@@ -151,8 +151,9 @@ export async function analyzeRepositoryWithCopilot(options: AnalyzeOptions): Pro
   let spinner = !isSilent && !isJson ? startSpinner("Initializing Copilot...") : null;
 
   try {
-    // Create client
+    // Create and start client
     const client = new CopilotClient();
+    await client.start();
 
     if (spinner) {
       updateSpinner("Creating analysis session...");
@@ -160,7 +161,7 @@ export async function analyzeRepositoryWithCopilot(options: AnalyzeOptions): Pro
 
     // Create session with tools
     const session = await client.createSession({
-      model: "gpt-4o",
+      model: "claude-sonnet-4.5",
       streaming: true,
       tools: repoTools({ token, maxFiles, maxBytes }),
       systemMessage: {
@@ -179,6 +180,11 @@ export async function analyzeRepositoryWithCopilot(options: AnalyzeOptions): Pro
     let toolCallCount = 0;
 
     session.on((event: SessionEvent) => {
+      // Debug: log all events in verbose mode
+      if (isVerbose && !isJson) {
+        console.log(`\n  ${c.dim(`[EVENT] ${event.type}`)}`);
+      }
+
       switch (event.type) {
         case "assistant.message_delta":
           if (!isSilent && !isJson) {
@@ -187,9 +193,16 @@ export async function analyzeRepositoryWithCopilot(options: AnalyzeOptions): Pro
           outputBuffer += event.data.deltaContent;
           break;
 
+        case "assistant.message":
+          // Full message event (non-streaming)
+          if (!isSilent && !isJson && event.data?.content) {
+            console.log(event.data.content);
+          }
+          break;
+
         case "tool.execution_start":
           toolCallCount++;
-          const toolName = (event as unknown as { tool_name?: string }).tool_name || "tool";
+          const toolName = event.data?.toolName || "tool";
           
           // Update phase based on tool being called
           if (toolName.includes("meta") && currentPhaseIndex === 0) {
@@ -212,6 +225,13 @@ export async function analyzeRepositoryWithCopilot(options: AnalyzeOptions): Pro
           }
           break;
 
+        case "tool.execution_complete":
+          if (isVerbose && !isJson) {
+            const icon = c.healthy(ICON.check);
+            console.log(`  ${icon} ${c.dim("Tool completed")}`);
+          }
+          break;
+
         case "session.idle":
           // Mark all phases as done
           for (const phase of phases) {
@@ -225,13 +245,9 @@ export async function analyzeRepositoryWithCopilot(options: AnalyzeOptions): Pro
           break;
 
         default:
-          // Handle other events like tool.execution_end
-          if ((event as unknown as { type: string }).type === "tool.execution_end") {
-            const success = (event as unknown as { success?: boolean }).success;
-            if (isVerbose && !isJson) {
-              const icon = success ? c.healthy(ICON.check) : c.warning(ICON.warn);
-              console.log(`  ${icon} ${c.dim("Tool completed")}`);
-            }
+          // Log unknown events in verbose mode
+          if (isVerbose && !isJson) {
+            console.log(`  ${c.dim(`[UNKNOWN] ${JSON.stringify(event).slice(0, 100)}...`)}`);
           }
           break;
       }
@@ -270,7 +286,7 @@ Begin the analysis now.`;
         [
           "",
           `${c.dim("Repository:")} ${c.brand(repoUrl)}`,
-          `${c.dim("Model:")} ${c.info("gpt-4o")}`,
+          `${c.dim("Model:")} ${c.info("claude-sonnet-4.5")}`,
           `${c.dim("Max Files:")} ${c.text(String(maxFiles))}`,
           "",
         ],

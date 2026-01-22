@@ -122,7 +122,7 @@ async function runAnalyze(
   // Display analysis info (skip for JSON output)
   if (!isJson) {
     printRepo(owner, repo);
-    printModel("gpt-4o", false);
+    printModel("claude-sonnet-4.5", false);
     console.log();
   }
 
