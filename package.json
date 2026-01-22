@@ -1,20 +1,44 @@
 {
   "name": "repo-doctor",
   "version": "1.0.0",
-  "description": "An agentic sample to understand how to use Copilot SDK",
-  "main": "index.js",
+  "description": "AI-powered GitHub repository health analyzer using GitHub Copilot SDK",
+  "main": "dist/index.js",
   "type": "module",
+  "bin": {
+    "repo-doctor": "./dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
+    "build": "tsc && chmod +x dist/index.js",
     "dev": "npx tsx src/cli.ts",
+    "start": "node dist/index.js",
     "analyze": "npx tsx src/cli.ts analyze",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepublishOnly": "npm run build"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/glaucia86/repo-doctor.git"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "github",
+    "repository",
+    "health",
+    "analyzer",
+    "ai",
+    "copilot",
+    "github-copilot",
+    "dx",
+    "developer-experience",
+    "ci-cd",
+    "governance",
+    "cli"
+  ],
+  "author": "Glaucia Lemos",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/glaucia86/repo-doctor/issues"
@@ -22,12 +46,20 @@
   "homepage": "https://github.com/glaucia86/repo-doctor#readme",
   "dependencies": {
     "@github/copilot-sdk": "^0.1.15",
+    "@inquirer/prompts": "^7.0.0",
     "@octokit/rest": "^22.0.1",
+    "chalk": "^5.3.0",
+    "commander": "^12.0.0",
+    "ora": "^8.0.0",
     "tsx": "^4.21.0",
-    "zod": "^4.3.6"
+    "zod": "^3.22.0"
   },
   "devDependencies": {
+    "@types/commander": "^2.12.0",
     "@types/node": "^25.0.10",
     "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }

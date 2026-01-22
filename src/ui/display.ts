@@ -1,0 +1,492 @@
+/**
+ * Display module for Repo Doctor CLI
+ * Handles screen rendering, panels, and output formatting
+ */
+
+import ora, { type Ora } from "ora";
+import {
+  c,
+  BOX,
+  ICON,
+  COLORS,
+  renderLogo,
+  renderCompactLogo,
+  box,
+  progressBar,
+  healthScore,
+  categoryBar,
+  modelBadge,
+  priorityBadge,
+  stripAnsi,
+  CATEGORY_ICONS,
+  CATEGORY_LABELS,
+  PRIORITY_ICONS,
+  PRIORITY_LABELS,
+} from "./themes.js";
+
+// ════════════════════════════════════════════════════════════════════════════
+// SPINNER STATE
+// ════════════════════════════════════════════════════════════════════════════
+
+let currentSpinner: Ora | null = null;
+
+// ════════════════════════════════════════════════════════════════════════════
+// SCREEN MANAGEMENT
+// ════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Clear the terminal screen
+ */
+export function clearScreen(): void {
+  process.stdout.write("\x1B[2J\x1B[0f");
+}
+
+/**
+ * Print the logo header
+ */
+export function printHeader(compact = false): void {
+  console.log();
+  const logo = compact ? renderCompactLogo() : renderLogo();
+  for (const line of logo) {
+    console.log("  " + line);
+  }
+  if (!compact) {
+    console.log();
+    console.log(
+      "  " + c.dim("─".repeat(86))
+    );
+    console.log(
+      "  " +
+        c.brand(ICON.doctor) +
+        " " +
+        c.brandBold("GitHub Repository Health Analyzer") +
+        "  " +
+        c.dim("│") +
+        "  " +
+        c.dim("Powered by GitHub Copilot SDK")
+    );
+    console.log(
+      "  " + c.dim("─".repeat(86))
+    );
+  }
+  console.log();
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// REPOSITORY INFO
+// ════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Print repository being analyzed
+ */
+export function printRepo(owner: string, repo: string): void {
+  console.log(
+    "  " +
+      c.brand(ICON.github) +
+      " " +
+      c.text("Analyzing: ") +
+      c.infoBold(`${owner}/${repo}`)
+  );
+}
+
+/**
+ * Print the current model
+ */
+export function printModel(model: string, isPremium: boolean): void {
+  console.log(
+    "  " + c.brand(ICON.model) + " " + c.text("Model: ") + modelBadge(model, isPremium)
+  );
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// STATUS BAR
+// ════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Print a status bar with model and quota info
+ */
+export function printStatusBar(
+  model: string,
+  isPremium: boolean,
+  quota?: { used: number; total: number; isUnlimited?: boolean }
+): void {
+  console.log();
+  const modelDisplay = modelBadge(model, isPremium);
+
+  let quotaDisplay = "";
+  if (quota && !quota.isUnlimited) {
+    const percent = Math.round((quota.used / quota.total) * 100);
+    quotaDisplay =
+      c.dim(" │ Quota: ") +
+      progressBar(100 - percent, 10) +
+      c.dim(` ${quota.used}/${quota.total}`);
+  }
+
+  console.log("  " + modelDisplay + quotaDisplay);
+  console.log();
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// ANALYSIS PROGRESS
+// ════════════════════════════════════════════════════════════════════════════
+
+interface AnalysisPhase {
+  name: string;
+  status: "pending" | "running" | "done" | "error";
+}
+
+/**
+ * Print analysis progress with phases
+ */
+export function printProgress(phases: AnalysisPhase[], currentPercent: number): void {
+  console.log();
+  const lines = box(
+    [
+      "",
+      ...phases.map((phase) => {
+        let icon = c.muted("○");
+        let text = c.dim(phase.name);
+
+        if (phase.status === "running") {
+          icon = c.info("◉");
+          text = c.info(phase.name);
+        } else if (phase.status === "done") {
+          icon = c.healthy(ICON.check);
+          text = c.text(phase.name);
+        } else if (phase.status === "error") {
+          icon = c.critical(ICON.cross);
+          text = c.critical(phase.name);
+        }
+
+        return `  ${icon} ${text}`;
+      }),
+      "",
+      `  ${progressBar(currentPercent, 50)} ${c.dim(`${currentPercent}%`)}`,
+      "",
+    ],
+    {
+      width: 70,
+      title: `${ICON.analyze} ANALYSIS PROGRESS`,
+    }
+  );
+
+  for (const line of lines) {
+    console.log("  " + line);
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// HEALTH REPORT
+// ════════════════════════════════════════════════════════════════════════════
+
+interface CategoryScore {
+  category: string;
+  score: number;
+}
+
+/**
+ * Print the health report header with score
+ */
+export function printHealthHeader(score: number): void {
+  const lines = box(
+    [
+      "",
+      `  ${healthScore(score)}`,
+      "",
+    ],
+    {
+      width: 70,
+      title: `${ICON.report} HEALTH REPORT`,
+    }
+  );
+
+  console.log();
+  for (const line of lines) {
+    console.log("  " + line);
+  }
+}
+
+/**
+ * Print category scores
+ */
+export function printCategoryScores(categories: CategoryScore[]): void {
+  const lines = box(
+    [
+      "",
+      ...categories.map((cat) =>
+        categoryBar(
+          CATEGORY_LABELS[cat.category] || cat.category,
+          cat.score,
+          CATEGORY_ICONS[cat.category] || "📦",
+          40
+        )
+      ),
+      "",
+    ],
+    {
+      width: 70,
+      padding: 0,
+    }
+  );
+
+  console.log();
+  for (const line of lines) {
+    console.log("  " + line);
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// FINDINGS
+// ════════════════════════════════════════════════════════════════════════════
+
+export interface Finding {
+  id: string;
+  category: string;
+  priority: "P0" | "P1" | "P2";
+  title: string;
+  evidence: string;
+  impact: string;
+  action: string;
+}
+
+/**
+ * Print findings grouped by priority
+ */
+export function printFindings(findings: Finding[]): void {
+  const priorities: Array<"P0" | "P1" | "P2"> = ["P0", "P1", "P2"];
+
+  for (const priority of priorities) {
+    const priorityFindings = findings.filter((f) => f.priority === priority);
+    if (priorityFindings.length === 0) continue;
+
+    // Priority header
+    const icon = PRIORITY_ICONS[priority];
+    const label = PRIORITY_LABELS[priority];
+    const count = priorityFindings.length;
+
+    console.log();
+    const headerLines = box([], {
+      width: 70,
+      title: `${icon} ${priority} - ${label} (${count})`,
+    });
+    console.log("  " + headerLines[0]);
+
+    // Findings
+    for (const finding of priorityFindings) {
+      console.log();
+      printFinding(finding);
+    }
+  }
+}
+
+/**
+ * Print a single finding
+ */
+export function printFinding(finding: Finding): void {
+  const priorityColor =
+    finding.priority === "P0"
+      ? c.critical
+      : finding.priority === "P1"
+        ? c.warning
+        : c.p2;
+
+  const icon =
+    finding.priority === "P0"
+      ? ICON.critical
+      : finding.priority === "P1"
+        ? ICON.warning
+        : ICON.p2;
+
+  console.log(`  ${icon} ${priorityColor.bold(finding.title)}`);
+  console.log(`     ${c.dim("Evidence:")} ${c.text(finding.evidence)}`);
+  console.log(`     ${c.dim("Impact:")} ${c.text(finding.impact)}`);
+  console.log(`     ${c.dim("Action:")} ${c.info(finding.action)}`);
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// NEXT STEPS
+// ════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Print next steps section
+ */
+export function printNextSteps(steps: string[]): void {
+  const lines = box(
+    [
+      "",
+      ...steps.map((step, i) => `  ${c.number(`${i + 1}.`)} ${c.text(step)}`),
+      "",
+      `  ${c.brand(ICON.sparkle)} ${c.dim("Run with --verbose for detailed evidence")}`,
+      "",
+    ],
+    {
+      width: 70,
+      title: `📈 Next Steps`,
+    }
+  );
+
+  console.log();
+  for (const line of lines) {
+    console.log("  " + line);
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// MESSAGES
+// ════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Print success message
+ */
+export function printSuccess(message: string): void {
+  console.log();
+  console.log("  " + c.healthy(ICON.check) + " " + c.healthyBold(message));
+  console.log();
+}
+
+/**
+ * Print error message
+ */
+export function printError(message: string): void {
+  console.log();
+  console.log("  " + c.critical(ICON.cross) + " " + c.criticalBold(message));
+  console.log();
+}
+
+/**
+ * Print warning message
+ */
+export function printWarning(message: string): void {
+  console.log();
+  console.log("  " + c.warning(ICON.warn) + " " + c.warningBold(message));
+  console.log();
+}
+
+/**
+ * Print info message
+ */
+export function printInfo(message: string): void {
+  console.log();
+  console.log("  " + c.info(ICON.info) + " " + c.infoBold(message));
+  console.log();
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// SPINNERS
+// ════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Start a spinner
+ */
+export function startSpinner(text: string): Ora {
+  currentSpinner = ora({
+    text: c.dim(text),
+    spinner: "dots",
+    color: "cyan",
+    prefixText: "  ",
+  }).start();
+  return currentSpinner;
+}
+
+/**
+ * Update spinner text
+ */
+export function updateSpinner(text: string): void {
+  if (currentSpinner) {
+    currentSpinner.text = c.dim(text);
+  }
+}
+
+/**
+ * Stop spinner with success
+ */
+export function spinnerSuccess(text?: string): void {
+  if (currentSpinner) {
+    currentSpinner.succeed(text ? c.healthy(text) : undefined);
+    currentSpinner = null;
+  }
+}
+
+/**
+ * Stop spinner with failure
+ */
+export function spinnerFail(text?: string): void {
+  if (currentSpinner) {
+    currentSpinner.fail(text ? c.critical(text) : undefined);
+    currentSpinner = null;
+  }
+}
+
+/**
+ * Stop spinner with warning
+ */
+export function spinnerWarn(text?: string): void {
+  if (currentSpinner) {
+    currentSpinner.warn(text ? c.warning(text) : undefined);
+    currentSpinner = null;
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// HELP
+// ════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Print help/usage information
+ */
+export function printHelp(): void {
+  const lines = box(
+    [
+      "",
+      c.whiteBold("Usage:"),
+      `  ${c.brand("repo-doctor analyze")} ${c.dim("<repoRef>")} ${c.muted("[options]")}`,
+      "",
+      c.whiteBold("Repository Reference:"),
+      `  ${c.text("https://github.com/owner/repo")}  ${c.dim("Full URL")}`,
+      `  ${c.text("owner/repo")}                     ${c.dim("Short form")}`,
+      `  ${c.text("git@github.com:owner/repo.git")}  ${c.dim("SSH URL")}`,
+      "",
+      c.whiteBold("Options:"),
+      `  ${c.key("--token")} ${c.dim("<TOKEN>")}    ${c.text("GitHub token for private repos")}`,
+      `  ${c.key("--max-files")} ${c.dim("<N>")}   ${c.text("Max files to list (default: 800)")}`,
+      `  ${c.key("--max-bytes")} ${c.dim("<N>")}   ${c.text("Max bytes per file (default: 200KB)")}`,
+      `  ${c.key("--timeout")} ${c.dim("<ms>")}     ${c.text("Analysis timeout (default: 120000)")}`,
+      `  ${c.key("--verbose")}            ${c.text("Show detailed output")}`,
+      "",
+      c.whiteBold("Examples:"),
+      `  ${c.brand("$")} repo-doctor analyze vercel/next.js`,
+      `  ${c.brand("$")} repo-doctor analyze owner/private-repo --token ghp_xxx`,
+      "",
+    ],
+    {
+      width: 70,
+      title: `${ICON.doctor} REPO DOCTOR HELP`,
+    }
+  );
+
+  console.log();
+  for (const line of lines) {
+    console.log("  " + line);
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// GOODBYE
+// ════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Print goodbye message
+ */
+export function printGoodbye(): void {
+  console.log();
+  console.log(
+    "  " + c.brand(ICON.sparkle) + " " + c.dim("Thanks for using Repo Doctor!")
+  );
+  console.log();
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// EXPORTS
+// ════════════════════════════════════════════════════════════════════════════
+
+export * from "./themes.js";
