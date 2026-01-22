@@ -1,0 +1,33 @@
+{
+  "name": "repo-doctor",
+  "version": "1.0.0",
+  "description": "An agentic sample to understand how to use Copilot SDK",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "npx tsx src/cli.ts",
+    "analyze": "npx tsx src/cli.ts analyze",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/glaucia86/repo-doctor.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/glaucia86/repo-doctor/issues"
+  },
+  "homepage": "https://github.com/glaucia86/repo-doctor#readme",
+  "dependencies": {
+    "@github/copilot-sdk": "^0.1.15",
+    "@octokit/rest": "^22.0.1",
+    "tsx": "^4.21.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.10",
+    "typescript": "^5.9.3"
+  }
+}
