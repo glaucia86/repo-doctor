@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 GitHub Discussions
+    url: https://github.com/glaucia86/repo-doctor/discussions
+    about: Ask questions and share ideas with the community
+  - name: 📖 Documentation
+    url: https://github.com/glaucia86/repo-doctor/tree/main/docs
+    about: Check out the documentation before opening an issue
+  - name: 🐦 Twitter
+    url: https://twitter.com/glaucia_lemos86
+    about: Follow for updates and quick questions

@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+---
+
+## 🗺️ Roadmap
+
+### v2.1.0 (Planned)
+- 🔍 **Dependency Audit Integration** — `npm audit`, `pip-audit`, `cargo audit`
+- 🔑 **Secrets Scanning** — Detect exposed API keys, tokens via regex patterns
+
+### v3.0.0 (Future)
+- 🛡️ **Gitleaks Integration** — Advanced secrets detection
+- 📦 **SBOM Generation** — Software Bill of Materials with Syft/CycloneDX
+- 🔗 **Snyk/Trivy Integration** — Optional vulnerability scanning
+- 🔬 **CodeQL Support** — Static analysis integration
+
+### v4.0.0 (Vision)
+- 🌐 **Web UI** — Browser-based interface for non-CLI users
+- 📊 **Dashboard** — Visual health reports with charts and trends
+- 🔄 **Scheduled Scans** — Automated periodic repository health checks
+- 📈 **Historical Tracking** — Track repository health over time
+- 🏢 **Organization View** — Analyze multiple repositories at once
+
+---
+
 ## [2.0.0] - 2026-01-23
 
 ### Added

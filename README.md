@@ -29,8 +29,6 @@
   <a href="#-documentation">Documentation</a>
 </p>
 
-<hr>
-
 ---
 
 ## 📖 Overview
@@ -206,9 +204,17 @@ repo-doctor vercel/next.js --model claude-sonnet-4 --deep
 
 | Document | Description |
 |----------|-------------|
+| [� Getting Started](docs/getting-started.md) | Installation and first analysis |
 | [📖 User Guide](docs/GUIDE.md) | Complete usage guide with examples |
+| [💻 Commands](docs/commands.md) | Full CLI command reference |
+| [📊 Analysis Categories](docs/analysis-categories.md) | What gets analyzed in each category |
 | [🤖 AI Models](docs/AI-MODELS.md) | Available models and recommendations |
+| [🏗️ Architecture](docs/architecture.md) | Technical architecture and design |
+| [❓ FAQ](docs/faq.md) | Frequently asked questions |
+| [🔧 Troubleshooting](docs/troubleshooting.md) | Common issues and solutions |
 | [🤝 Contributing](docs/CONTRIBUTING.md) | How to contribute to Repo Doctor |
+
+> 📖 **Full documentation:** [docs/index.md](docs/index.md)
 
 ---
 
