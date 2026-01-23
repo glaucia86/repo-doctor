@@ -358,11 +358,13 @@ async function handleExport(customPath?: string, format?: "md" | "json"): Promis
   }
   
   if (format === "json") {
+    // JSON export: include full content for debugging/analysis purposes
     fs.writeFileSync(absolutePath, JSON.stringify({
       repo: state.lastRepo,
       model: state.lastAnalysis.model,
       date: new Date().toISOString(),
-      content: state.lastAnalysis.content,
+      content: state.lastAnalysis.content, // Full content including phases
+      report: extractReportOnly(state.lastAnalysis.content), // Clean report only
       toolCallCount: state.lastAnalysis.toolCallCount,
       durationMs: state.lastAnalysis.durationMs,
     }, null, 2), { encoding: "utf8" });
@@ -373,13 +375,46 @@ async function handleExport(customPath?: string, format?: "md" | "json"): Promis
     return;
   }
 
-  // Default to markdown - ensure UTF-8 encoding with BOM for proper emoji display
+  // Default to markdown - extract only the report (no phase logs)
   const BOM = "\uFEFF";
-  fs.writeFileSync(absolutePath, BOM + state.lastAnalysis.content, { encoding: "utf8" });
+  const reportContent = extractReportOnly(state.lastAnalysis.content);
+  fs.writeFileSync(absolutePath, BOM + reportContent, { encoding: "utf8" });
   
   console.log();
   printSuccess(`Report exported to ${absolutePath}`);
   console.log();
+}
+
+/**
+ * Extract only the final report from analysis output
+ * Removes phase logs and keeps only the health report
+ */
+function extractReportOnly(content: string): string {
+  // Try to find the start of the health report section
+  // Common patterns: "## 🩺", "# Repository Health", "## Repository Health", "# Health Report"
+  const reportPatterns = [
+    /^##?\s*🩺\s*Repository Health Report/m,
+    /^##?\s*Repository Health Report/mi,
+    /^##?\s*Health Report/mi,
+    /^---\s*\n+##?\s*🩺/m,
+  ];
+
+  for (const pattern of reportPatterns) {
+    const match = content.match(pattern);
+    if (match && match.index !== undefined) {
+      // Include content from the match onwards
+      // If there's a "---" before, include it for proper markdown formatting
+      let startIndex = match.index;
+      const beforeMatch = content.slice(Math.max(0, startIndex - 10), startIndex);
+      if (beforeMatch.includes("---")) {
+        startIndex = content.lastIndexOf("---", startIndex);
+      }
+      return content.slice(startIndex).trim();
+    }
+  }
+
+  // Fallback: if no report header found, return everything
+  return content;
 }
 
 /**
@@ -391,7 +426,8 @@ async function handleCopy(): Promise<void> {
     return;
   }
 
-  const content = state.lastAnalysis.content;
+  // Extract only the final report (without phase logs)
+  const content = extractReportOnly(state.lastAnalysis.content);
   const isWindows = process.platform === "win32";
   const isMac = process.platform === "darwin";
 
