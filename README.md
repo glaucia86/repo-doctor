@@ -1,65 +1,104 @@
-# 🩺 Repo Doctor
+<p align="center">
+  <img src="resources/banner.svg" alt="Repo Doctor Banner" width="700"/>
+</p>
 
-<div align="center">
+<h1 align="center">🩺 Repo Doctor</h1>
 
-[![Star this repo](https://img.shields.io/github/stars/glaucia86/repo-doctor?style=social)](https://github.com/glaucia86/repo-doctor/stargazers)
-[![Fork this repo](https://img.shields.io/github/forks/glaucia86/repo-doctor?style=social)](https://github.com/glaucia86/repo-doctor/fork)
+<p align="center">
+  <strong>AI-powered GitHub Repository Health Analyzer</strong><br>
+  Built with the <a href="https://github.com/github/copilot-sdk">GitHub Copilot SDK</a> — the same AI agent runtime that powers Copilot CLI.
+</p>
 
-⭐ **Star** and 🍴 **Fork** to support and contribute!
+<p align="center">
+  <a href="https://github.com/glaucia86/repo-doctor/stargazers">
+    <img src="https://img.shields.io/github/stars/glaucia86/repo-doctor?style=for-the-badge&logo=github&color=yellow" alt="Stars"/>
+  </a>
+  <a href="https://github.com/glaucia86/repo-doctor/fork">
+    <img src="https://img.shields.io/github/forks/glaucia86/repo-doctor?style=for-the-badge&logo=github&color=blue" alt="Forks"/>
+  </a>
+  <a href="LICENSE">
+    <img src="https://img.shields.io/badge/license-MIT-green?style=for-the-badge" alt="License"/>
+  </a>
+</p>
 
-</div>
+<p align="center">
+  <a href="#-quick-start">Quick Start</a> •
+  <a href="#-features">Features</a> •
+  <a href="#-how-it-works">How It Works</a> •
+  <a href="#-commands">Commands</a> •
+  <a href="#-documentation">Documentation</a>
+</p>
 
-<div align="center">
+<hr>
 
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Node.js](https://img.shields.io/badge/Node.js-18%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![GitHub Copilot](https://img.shields.io/badge/GitHub%20Copilot-SDK-000000?logo=github&logoColor=white)](https://github.com/github/copilot-sdk)
-[![Version](https://img.shields.io/badge/version-2.0.0-green)](package.json)
+---
 
-</div>
+## 📖 Overview
 
-![Repo Doctor Demo](resources/image.png)
+**Repo Doctor** is your repository's AI doctor that diagnoses issues and prescribes solutions. It performs comprehensive health checks across **6 critical areas** — documentation, developer experience, CI/CD, testing, governance, and security — delivering a detailed diagnosis with prioritized findings (**P0/P1/P2**) and actionable remediation steps.
 
-<div align="center">
+### Two Analysis Modes
 
-**Agentic CLI Tool for GitHub Repository Health Analysis**
-
-Built with the [GitHub Copilot SDK](https://github.com/github/copilot-sdk) — the same AI agent runtime that powers Copilot CLI.
-
-</div>
-
-Your repository's AI doctor that diagnoses issues and prescribes solutions. **Repo Doctor** performs comprehensive health checks across 6 critical areas — documentation, developer experience, CI/CD, testing, governance, and security — delivering a detailed diagnosis with prioritized findings (P0/P1/P2) and actionable remediation steps.
-
-**Two analysis modes:** 
-
-- Quick scan via GitHub API or 
-- Deep analysis using [Repomix](https://github.com/yamadashy/repomix) for full source code inspection. 
-
-Get a health score, evidence-based findings, and ready-to-use code snippets to fix issues — all through an interactive CLI with 10+ AI models.
+| Mode | Description | Use Case |
+|------|-------------|----------|
+| 🔍 **Quick Scan** | Analyzes via GitHub API (up to 20 file reads) | Fast checks, governance review |
+| 🔬 **Deep Analysis** | Full source scan using [Repomix](https://github.com/yamadashy/repomix) | Code quality, architecture review |
 
 ---
 
 ## ✨ Features
 
-- **💬 Interactive Chat Interface** - Modern CLI with slash commands
-- **🤖 10 AI Models** - Choose between free and premium models
-- **🔬 Deep Analysis** - Full repository scan using [Repomix](https://github.com/yamadashy/repomix)
-- **📊 Health Score** - Overall health percentage for your repository
-- **🎯 Prioritized Findings** - Issues classified as P0 (critical), P1 (high), P2 (nice-to-have)
-- **💡 Actionable Recommendations** - Specific steps with code snippets
-- **📋 Clipboard & Export** - Copy or save reports in Markdown/JSON
+<table>
+<tr>
+<td width="50%">
+
+### 🤖 AI-Powered Analysis
+- **10+ AI Models** — GPT-4o, Claude Sonnet 4, o3, and more
+- **Contextual Understanding** — Adapts to your stack
+- **Evidence-Based** — Every finding backed by file evidence
+
+</td>
+<td width="50%">
+
+### 📊 Comprehensive Reports
+- **Health Score** — Overall percentage (0-100%)
+- **Prioritized Findings** — P0 (critical), P1 (high), P2 (suggestions)
+- **Actionable Steps** — Code snippets included
+
+</td>
+</tr>
+<tr>
+<td width="50%">
+
+### 💬 Interactive CLI
+- **Slash Commands** — `/analyze`, `/deep`, `/copy`, `/export`
+- **Chat Interface** — Ask follow-up questions
+- **Streaming Output** — Real-time analysis
+
+</td>
+<td width="50%">
+
+### 🔐 Security First
+- **Prompt Injection Protection** — File content treated as data
+- **Token Management** — Secure GitHub authentication
+- **No Data Storage** — Analysis runs locally
+
+</td>
+</tr>
+</table>
+
+---
 
 ## 🔍 What Gets Analyzed?
 
-| Category | What's Checked |
-|----------|----------------|
-| 📚 **Docs & Onboarding** | README, setup instructions, contributing guidelines |
-| ⚡ **Developer Experience** | Build scripts, language version, project structure, monorepo configs |
-| 🔄 **CI/CD** | GitHub Actions, test automation, build pipelines |
-| 🧪 **Quality & Tests** | Test framework, linting, formatting, coverage |
-| 📋 **Governance** | LICENSE, CODE_OF_CONDUCT, SECURITY policy |
-| 🔐 **Security** | Dependabot/Renovate, security policy |
+| Category | What's Checked | Example Findings |
+|----------|----------------|------------------|
+| 📚 **Docs & Onboarding** | README, setup instructions, contributing guidelines | Missing installation steps |
+| ⚡ **Developer Experience** | Build scripts, language version, project structure | No `.nvmrc` or `.node-version` |
+| 🔄 **CI/CD** | GitHub Actions, test automation, build pipelines | No CI workflow found |
+| 🧪 **Quality & Tests** | Test framework, linting, formatting, coverage | Missing test configuration |
+| 📋 **Governance** | LICENSE, CODE_OF_CONDUCT, SECURITY policy | No LICENSE file |
+| 🔐 **Security** | Dependabot/Renovate, security policy, secret scanning | No dependency updates configured |
 
 ---
 
@@ -67,16 +106,22 @@ Get a health score, evidence-based findings, and ready-to-use code snippets to f
 
 ### Prerequisites
 
-- **GitHub Copilot** - Active subscription
-- **Node.js** - Version 18.0.0 or higher
+> [!IMPORTANT]
+> - **GitHub Copilot** — Active subscription required
+> - **Node.js** — Version 18.0.0 or higher
 
 ### Installation
 
 ```bash
+# Clone the repository
 git clone https://github.com/glaucia86/repo-doctor.git
 cd repo-doctor
+
+# Install dependencies and build
 npm install
 npm run build
+
+# Link globally
 npm link
 ```
 
@@ -89,8 +134,38 @@ repo-doctor
 # Direct analysis
 repo-doctor vercel/next.js
 
-# With specific model
-repo-doctor vercel/next.js --model gpt-4o
+# Deep analysis with premium model
+repo-doctor vercel/next.js --model claude-sonnet-4 --deep
+```
+
+---
+
+## 🔧 How It Works
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     REPO DOCTOR                             │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  1️⃣ RECONNAISSANCE                                          │
+│     └─► Fetch repo metadata & file tree                    │
+│                                                             │
+│  2️⃣ STACK DETECTION                                         │
+│     └─► Identify primary language & framework              │
+│                                                             │
+│  3️⃣ STRATEGIC READING                                       │
+│     └─► Read priority files (README, LICENSE, CI, etc.)    │
+│                                                             │
+│  4️⃣ ANALYSIS                                                │
+│     └─► Evaluate against best practices                    │
+│                                                             │
+│  5️⃣ SCORING                                                 │
+│     └─► Calculate health score per category                │
+│                                                             │
+│  6️⃣ REPORT                                                  │
+│     └─► Generate findings with evidence & actions          │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -101,12 +176,29 @@ repo-doctor vercel/next.js --model gpt-4o
 |---------|-------------|
 | `/analyze <repo>` | Quick analysis via GitHub API |
 | `/deep <repo>` | Deep analysis with full source scan |
-| `/copy` | Copy report to clipboard |
-| `/export [path]` | Save report to file |
+| `/copy` | Copy last report to clipboard |
+| `/export [path]` | Save report as markdown file |
 | `/model [name]` | Switch AI model |
-| `/help` | Show all commands |
+| `/help` | Show all available commands |
+| `/quit` | Exit Repo Doctor |
 
-> 💡 See the [User Guide](docs/GUIDE.md) for complete command reference.
+> [!TIP]
+> Use `/deep` for comprehensive code quality analysis. Use `/analyze` for quick governance checks.
+
+---
+
+## 🤖 Available AI Models
+
+| Model | Type | Best For |
+|-------|------|----------|
+| `gpt-4o` | Free | Balanced performance (default) |
+| `gpt-4.1` | Free | Fast analysis |
+| `claude-sonnet-4` | Premium ⚡ | Detailed analysis |
+| `claude-opus-4.5` | Premium ⚡ | Most capable (3x rate limit) |
+| `o3` | Premium ⚡ | Deep reasoning tasks |
+
+> [!NOTE]
+> Premium models require GitHub Copilot Pro/Enterprise. See [AI Models Guide](docs/AI-MODELS.md) for full list.
 
 ---
 
@@ -114,7 +206,7 @@ repo-doctor vercel/next.js --model gpt-4o
 
 | Document | Description |
 |----------|-------------|
-| [📖 User Guide](docs/GUIDE.md) | Complete usage guide, commands, and examples |
+| [📖 User Guide](docs/GUIDE.md) | Complete usage guide with examples |
 | [🤖 AI Models](docs/AI-MODELS.md) | Available models and recommendations |
 | [🤝 Contributing](docs/CONTRIBUTING.md) | How to contribute to Repo Doctor |
 
@@ -122,12 +214,45 @@ repo-doctor vercel/next.js --model gpt-4o
 
 ## 🏗️ Tech Stack
 
-- **[@github/copilot-sdk](https://github.com/github/copilot-sdk)** - AI orchestration
-- **[@octokit/rest](https://github.com/octokit/rest.js)** - GitHub API
-- **[Repomix](https://github.com/yamadashy/repomix)** - Repository packing
-- **[Commander](https://github.com/tj/commander.js)** - CLI framework
-- **[Chalk](https://github.com/chalk/chalk)** - Terminal styling
-- **[Zod](https://github.com/colinhacks/zod)** - Schema validation
+<table>
+<tr>
+<td align="center" width="120">
+<a href="https://github.com/github/copilot-sdk">
+<img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" width="48" height="48" alt="GitHub Copilot SDK"/>
+</a>
+<br><strong>Copilot SDK</strong>
+<br><sub>AI Orchestration</sub>
+</td>
+<td align="center" width="120">
+<a href="https://github.com/octokit/rest.js">
+<img src="https://avatars.githubusercontent.com/u/3430433?s=200&v=4" width="48" height="48" alt="Octokit"/>
+</a>
+<br><strong>Octokit</strong>
+<br><sub>GitHub API</sub>
+</td>
+<td align="center" width="120">
+<a href="https://github.com/yamadashy/repomix">
+<img src="https://repomix.com/images/repomix-logo.svg" width="48" height="48" alt="Repomix"/>
+</a>
+<br><strong>Repomix</strong>
+<br><sub>Repo Packing</sub>
+</td>
+<td align="center" width="120">
+<a href="https://www.typescriptlang.org/">
+<img src="https://raw.githubusercontent.com/remojansen/logo.ts/master/ts.png" width="48" height="48" alt="TypeScript"/>
+</a>
+<br><strong>TypeScript</strong>
+<br><sub>Language</sub>
+</td>
+<td align="center" width="120">
+<a href="https://github.com/colinhacks/zod">
+<img src="https://raw.githubusercontent.com/colinhacks/zod/main/logo.svg" width="48" height="48" alt="Zod"/>
+</a>
+<br><strong>Zod</strong>
+<br><sub>Validation</sub>
+</td>
+</tr>
+</table>
 
 ---
 
@@ -135,13 +260,37 @@ repo-doctor vercel/next.js --model gpt-4o
 
 If you find Repo Doctor useful:
 
-- **⭐ Star** this repository
-- **🐛 Report** issues you encounter
-- **💡 Suggest** new features
-- **🔀 Contribute** via pull requests
+<table>
+<tr>
+<td>⭐ <strong>Star</strong> this repository</td>
+<td>🐛 <strong>Report</strong> issues you encounter</td>
+</tr>
+<tr>
+<td>💡 <strong>Suggest</strong> new features</td>
+<td>🔀 <strong>Contribute</strong> via pull requests</td>
+</tr>
+</table>
 
-[![GitHub issues](https://img.shields.io/github/issues/glaucia86/repo-doctor)](https://github.com/glaucia86/repo-doctor/issues)
-[![GitHub pull requests](https://img.shields.io/github/issues-pr/glaucia86/repo-doctor)](https://github.com/glaucia86/repo-doctor/pulls)
+<p align="center">
+  <a href="https://github.com/glaucia86/repo-doctor/issues">
+    <img src="https://img.shields.io/github/issues/glaucia86/repo-doctor?style=flat-square" alt="Issues"/>
+  </a>
+  <a href="https://github.com/glaucia86/repo-doctor/pulls">
+    <img src="https://img.shields.io/github/issues-pr/glaucia86/repo-doctor?style=flat-square" alt="Pull Requests"/>
+  </a>
+</p>
+
+---
+
+## 📈 Star History
+
+<a href="https://star-history.com/#glaucia86/repo-doctor&Date">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=glaucia86/repo-doctor&type=Date&theme=dark"/>
+    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=glaucia86/repo-doctor&type=Date"/>
+    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=glaucia86/repo-doctor&type=Date"/>
+  </picture>
+</a>
 
 ---
 
@@ -178,7 +327,5 @@ MIT © [Glaucia Lemos](https://github.com/glaucia86)
 </p>
 
 <p align="center">
-  <a href="https://github.com/glaucia86/repo-doctor/stargazers">
-    <img src="https://img.shields.io/github/stars/glaucia86/repo-doctor?style=for-the-badge&logo=github&color=yellow" alt="Stars"/>
-  </a>
+  <a href="#-repo-doctor">⬆️ Back to Top</a>
 </p>
