@@ -27,9 +27,14 @@
 
 </div>
 
-Your repository's AI doctor that diagnoses issues and prescribes solutions. Repo Doctor performs comprehensive health checks across 6 critical areas — documentation, developer experience, CI/CD, testing, governance, and security — delivering a detailed diagnosis with prioritized findings (P0/P1/P2) and actionable remediation steps.
+Your repository's AI doctor that diagnoses issues and prescribes solutions. **Repo Doctor** performs comprehensive health checks across 6 critical areas — documentation, developer experience, CI/CD, testing, governance, and security — delivering a detailed diagnosis with prioritized findings (P0/P1/P2) and actionable remediation steps.
 
-**Two analysis modes:** Quick scan via GitHub API or deep analysis using [Repomix](https://github.com/yamadashy/repomix) for full source code inspection. Get a health score, evidence-based findings, and ready-to-use code snippets to fix issues — all through an interactive CLI with 10+ AI models.
+**Two analysis modes:** 
+
+- Quick scan via GitHub API or 
+- Deep analysis using [Repomix](https://github.com/yamadashy/repomix) for full source code inspection. 
+
+Get a health score, evidence-based findings, and ready-to-use code snippets to fix issues — all through an interactive CLI with 10+ AI models.
 
 ---
 
