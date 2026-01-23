@@ -1,6 +1,6 @@
 {
   "name": "repo-doctor",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "AI-powered GitHub repository health analyzer using GitHub Copilot SDK",
   "main": "dist/index.js",
   "type": "module",
@@ -16,6 +16,7 @@
     "build": "tsc && chmod +x dist/index.js",
     "dev": "npx tsx src/cli.ts",
     "start": "node dist/index.js",
+    "chat": "npx tsx src/cli.ts chat",
     "analyze": "npx tsx src/cli.ts analyze",
     "test": "echo \"Error: no test specified\" && exit 1",
     "prepublishOnly": "npm run build"

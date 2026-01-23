@@ -209,6 +209,16 @@ const LOGO_LINES = [
   "╚═╝  ╚═╝╚══════╝╚═╝      ╚═════╝     ╚═════╝  ╚═════╝  ╚═════╝   ╚═╝    ╚═════╝ ╚═╝  ╚═╝",
 ];
 
+// Big stylized ASCII art logo for chat mode - REPO DOCTOR side by side
+const BIG_LOGO_LINES = [
+  "██████╗ ███████╗██████╗  ██████╗     ██████╗  ██████╗  ██████╗████████╗ ██████╗ ██████╗ ",
+  "██╔══██╗██╔════╝██╔══██╗██╔═══██╗    ██╔══██╗██╔═══██╗██╔════╝╚══██╔══╝██╔═══██╗██╔══██╗",
+  "██████╔╝█████╗  ██████╔╝██║   ██║    ██║  ██║██║   ██║██║        ██║   ██║   ██║██████╔╝",
+  "██╔══██╗██╔══╝  ██╔═══╝ ██║   ██║    ██║  ██║██║   ██║██║        ██║   ██║   ██║██╔══██╗",
+  "██║  ██║███████╗██║     ╚██████╔╝    ██████╔╝╚██████╔╝╚██████╗   ██║   ╚██████╔╝██║  ██║",
+  "╚═╝  ╚═╝╚══════╝╚═╝      ╚═════╝     ╚═════╝  ╚═════╝  ╚═════╝   ╚═╝    ╚═════╝ ╚═╝  ╚═╝",
+];
+
 // Gradient from teal to blue
 const GRADIENT_COLORS = [
   "#00d4aa",
@@ -219,10 +229,39 @@ const GRADIENT_COLORS = [
   "#0084c8",
 ];
 
+// Gradient for big logo (coral/pink to teal - vibrant medical theme)
+const BIG_LOGO_GRADIENT = [
+  "#ff6b6b",  // Line 1 - coral
+  "#ff8e72",  // Line 2 - coral-orange
+  "#ffa07a",  // Line 3 - light coral
+  "#00d4aa",  // Line 4 - teal
+  "#00c8a8",  // Line 5 - teal
+  "#00bca6",  // Line 6 - teal
+];
+
 export function renderLogo(): string[] {
   return LOGO_LINES.map((line, i) => {
     const color = GRADIENT_COLORS[i] ?? GRADIENT_COLORS[GRADIENT_COLORS.length - 1] ?? "#00d4aa";
     return chalk.hex(color)(line);
+  });
+}
+
+/**
+ * Render the big colorful logo for chat mode
+ * REPO in coral gradient, DOCTOR in teal gradient
+ */
+export function renderBigLogo(): string[] {
+  // Split position - where "REPO" ends and space before "DOCTOR" begins
+  const splitPos = 36; // After "██████╗ " (REPO O ends here)
+  
+  return BIG_LOGO_LINES.map((line, i) => {
+    const repoColor = BIG_LOGO_GRADIENT[i] ?? "#ff6b6b";
+    const doctorColor = GRADIENT_COLORS[i] ?? "#00d4aa";
+    
+    const repoPart = line.slice(0, splitPos);
+    const doctorPart = line.slice(splitPos);
+    
+    return chalk.hex(repoColor).bold(repoPart) + chalk.hex(doctorColor).bold(doctorPart);
   });
 }
 
@@ -232,7 +271,7 @@ export function renderLogo(): string[] {
 export function renderCompactLogo(): string[] {
   return [
     c.brand("╭─────────────────────────────────────────╮"),
-    c.brand("│") + c.brandBold("  🩺 REPO DOCTOR ") + c.dim("v1.0") + c.brand("                  │"),
+    c.brand("│") + c.brandBold("  🩺 REPO DOCTOR ") + c.dim("v2.0") + c.brand("                  │"),
     c.brand("│") + c.dim("     GitHub Repository Health Analyzer") + c.brand(" │"),
     c.brand("╰─────────────────────────────────────────╯"),
   ];

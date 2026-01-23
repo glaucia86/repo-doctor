@@ -29,11 +29,20 @@ import {
 export interface AnalyzeOptions {
   repoUrl: string;
   token?: string;
+  model?: string;
   maxFiles?: number;
   maxBytes?: number;
   timeout?: number;
   verbosity?: "silent" | "normal" | "verbose";
   format?: "pretty" | "json" | "minimal";
+}
+
+export interface AnalysisOutput {
+  content: string;
+  toolCallCount: number;
+  durationMs: number;
+  repoUrl: string;
+  model: string;
 }
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -126,12 +135,13 @@ Begin by stating your analysis plan, then execute step by step.`;
 // MAIN FUNCTION
 // ════════════════════════════════════════════════════════════════════════════
 
-export async function analyzeRepositoryWithCopilot(options: AnalyzeOptions): Promise<void> {
+export async function analyzeRepositoryWithCopilot(options: AnalyzeOptions): Promise<AnalysisOutput> {
   const startTime = Date.now();
   
   const {
     repoUrl,
     token,
+    model = "claude-sonnet-4",
     maxFiles = 800,
     maxBytes = 204800,
     timeout = 120000,
@@ -161,7 +171,7 @@ export async function analyzeRepositoryWithCopilot(options: AnalyzeOptions): Pro
 
     // Create session with tools
     const session = await client.createSession({
-      model: "claude-sonnet-4.5",
+      model: model,
       streaming: true,
       tools: repoTools({ token, maxFiles, maxBytes }),
       systemMessage: {
@@ -286,7 +296,7 @@ Begin the analysis now.`;
         [
           "",
           `${c.dim("Repository:")} ${c.brand(repoUrl)}`,
-          `${c.dim("Model:")} ${c.info("claude-sonnet-4.5")}`,
+          `${c.dim("Model:")} ${c.info(model)}`,
           `${c.dim("Max Files:")} ${c.text(String(maxFiles))}`,
           "",
         ],
@@ -320,6 +330,8 @@ Begin the analysis now.`;
     // Cleanup
     await client.stop();
 
+    const durationMs = Date.now() - startTime;
+
     // Final message
     if (!isSilent && !isJson) {
       // Print completion summary
@@ -332,12 +344,19 @@ Begin the analysis now.`;
       );
       console.log(
         "  " +
-          c.dim(`Made ${toolCallCount} API calls in ${((Date.now() - startTime) / 1000).toFixed(1)}s`)
+          c.dim(`Made ${toolCallCount} API calls in ${(durationMs / 1000).toFixed(1)}s`)
       );
-      printGoodbye();
+      console.log();
     }
 
-    process.exit(0);
+    // Return analysis result (DO NOT call process.exit!)
+    return {
+      content: outputBuffer,
+      toolCallCount,
+      durationMs,
+      repoUrl,
+      model,
+    };
   } catch (error) {
     if (spinner) {
       spinnerFail("Analysis failed");

@@ -241,6 +241,50 @@ export async function promptForToken(): Promise<string | undefined> {
 }
 
 // ════════════════════════════════════════════════════════════════════════════
+// MODEL SELECTION
+// ════════════════════════════════════════════════════════════════════════════
+
+export interface ModelChoice {
+  id: string;
+  name: string;
+  premium: boolean;
+}
+
+/**
+ * Interactive model selector with premium indicators
+ */
+export async function promptModelSelect(
+  models: ModelChoice[],
+  currentModel: string
+): Promise<ModelChoice | null> {
+  const { select } = await loadInquirer();
+
+  const choices = models.map((model) => {
+    const premiumIcon = model.premium ? c.premium(" ⚡") : c.healthy(" ✓ FREE");
+    const isCurrent = model.id === currentModel;
+    const currentIndicator = isCurrent ? c.dim(" (current)") : "";
+    
+    return {
+      name: `${c.infoBold(model.name)}${premiumIcon}${currentIndicator}`,
+      value: model,
+      description: model.premium 
+        ? c.dim("Requires Copilot Pro/Business subscription")
+        : c.healthy("Available to all Copilot users"),
+    };
+  });
+
+  console.log();
+  
+  const selected = await select<ModelChoice>({
+    message: c.brand("Select AI model:"),
+    choices,
+    default: models.find((m) => m.id === currentModel),
+  });
+
+  return selected;
+}
+
+// ════════════════════════════════════════════════════════════════════════════
 // OUTPUT FORMAT
 // ════════════════════════════════════════════════════════════════════════════
 
