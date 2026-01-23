@@ -1,19 +1,31 @@
 # 🩺 Repo Doctor
 
-**AI-Powered GitHub Repository Health Analyzer** using the GitHub Copilot SDK.
+<div align="center">
 
-Your repository's AI doctor that diagnoses issues and prescribes solutions. Repo Doctor performs comprehensive health checks across 6 critical areas — documentation, developer experience, CI/CD, testing, governance, and security — delivering a detailed diagnosis with prioritized findings (P0/P1/P2) and actionable remediation steps.
+[![Star this repo](https://img.shields.io/github/stars/glaucia86/repo-doctor?style=social)](https://github.com/glaucia86/repo-doctor/stargazers)
+[![Fork this repo](https://img.shields.io/github/forks/glaucia86/repo-doctor?style=social)](https://github.com/glaucia86/repo-doctor/fork)
 
-**Two analysis modes:** Quick scan via GitHub API or deep analysis using [Repomix](https://github.com/yamadashy/repomix) for full source code inspection. Get a health score, evidence-based findings, and ready-to-use code snippets to fix issues — all through an interactive CLI with 10+ AI models.
+⭐ **Star** and 🍴 **Fork** to support and contribute!
 
-![Repo Doctor Demo](resources/image-repo-doctor.png)
+</div>
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Node.js](https://img.shields.io/badge/Node.js-18%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![GitHub Copilot](https://img.shields.io/badge/GitHub%20Copilot-SDK-000000?logo=github&logoColor=white)](https://github.com/github/copilot-sdk)
 [![Version](https://img.shields.io/badge/version-2.0.0-green)](package.json)
-[![GitHub Stars](https://img.shields.io/github/stars/glaucia86/repo-doctor?style=social)](https://github.com/glaucia86/repo-doctor)
+
+![Repo Doctor Demo](resources/image-repo-doctor.png)
+
+<div align="center">
+
+**AI-Powered GitHub Repository Health Analyzer** using the GitHub Copilot SDK.
+
+</div>
+
+Your repository's AI doctor that diagnoses issues and prescribes solutions. Repo Doctor performs comprehensive health checks across 6 critical areas — documentation, developer experience, CI/CD, testing, governance, and security — delivering a detailed diagnosis with prioritized findings (P0/P1/P2) and actionable remediation steps.
+
+**Two analysis modes:** Quick scan via GitHub API or deep analysis using [Repomix](https://github.com/yamadashy/repomix) for full source code inspection. Get a health score, evidence-based findings, and ready-to-use code snippets to fix issues — all through an interactive CLI with 10+ AI models.
 
 ---
 
@@ -122,7 +134,7 @@ If you find Repo Doctor useful:
 
 ---
 
-## 📄 License
+## � License
 
 MIT © [Glaucia Lemos](https://github.com/glaucia86)
 
