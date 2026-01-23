@@ -7,8 +7,12 @@ Analyze any GitHub repository and get actionable insights to improve documentati
 ![Repo Doctor Demo](resources/image-repo-doctor.png)
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Node](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](https://nodejs.org/)
-[![TypeScript](https://img.shields.io/badge/typescript-5.x-blue)](https://www.typescriptlang.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-18%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![GitHub Copilot](https://img.shields.io/badge/GitHub%20Copilot-SDK-000000?logo=github&logoColor=white)](https://github.com/github/copilot-sdk)
+[![Zod](https://img.shields.io/badge/Zod-3.22-3E67B1?logo=zod&logoColor=white)](https://zod.dev/)
+[![Commander.js](https://img.shields.io/badge/Commander.js-12-red?logo=npm&logoColor=white)](https://github.com/tj/commander.js)
+[![Chalk](https://img.shields.io/badge/Chalk-5.3-orange?logo=npm&logoColor=white)](https://github.com/chalk/chalk)
 [![Version](https://img.shields.io/badge/version-2.0.0-green)](package.json)
 [![GitHub Stars](https://img.shields.io/github/stars/glaucia86/repo-doctor?style=social)](https://github.com/glaucia86/repo-doctor)
 
@@ -56,7 +60,16 @@ If you find Repo Doctor useful, please consider:
 ## 📋 Prerequisites
 
 1. **GitHub Copilot** - Active subscription (individual, business, or enterprise)
-2. **Node.js** - Version 18.0.0 or higher
+2. **GitHub Copilot CLI** - Required for AI agent communication:
+   ```bash
+   # Install GitHub Copilot CLI globally
+   npm install -g @anthropic-ai/copilot
+   
+   # Or via GitHub CLI extension
+   gh extension install github/gh-copilot
+   ```
+3. **Node.js** - Version 18.0.0 or higher
+4. **Git** - For cloning the repository
 
 ## 🚀 Installation
 
@@ -189,6 +202,37 @@ repo-doctor vercel/next.js --export
 
 ---
 
+## 🔒 Analyzing Private Repositories
+
+To analyze private repositories, you need to provide a GitHub Personal Access Token (PAT) with `repo` scope.
+
+### Option 1: Environment Variable (Recommended)
+
+```bash
+# Set your GitHub token
+export GITHUB_TOKEN=ghp_xxxxxxxxxxxxxxxxxxxx
+
+# Now analyze any private repo
+repo-doctor my-org/private-repo
+```
+
+### Option 2: Command Line Argument
+
+```bash
+repo-doctor my-org/private-repo --token ghp_xxxxxxxxxxxxxxxxxxxx
+```
+
+### Creating a GitHub Token
+
+1. Go to [GitHub Settings → Developer settings → Personal access tokens](https://github.com/settings/tokens)
+2. Click **Generate new token (classic)**
+3. Select the `repo` scope (Full control of private repositories)
+4. Copy the generated token and use it as shown above
+
+> ⚠️ **Security Tip:** Never commit your token to version control. Use environment variables or a secrets manager.
+
+---
+
 ## 🤖 Available AI Models
 
 | Model | Type | Description |
@@ -239,30 +283,34 @@ npm test
 ```
 repo-doctor/
 ├── src/
-│   ├── index.ts              # Entry point
-│   ├── cli.ts                # Commander setup + chat loop
+│   ├── index.ts                # Entry point (shebang for CLI)
+│   ├── cli.ts                  # Commander setup + interactive chat loop
 │   ├── core/
-│   │   ├── agent.ts          # Copilot SDK integration
-│   │   ├── analyzer.ts       # Analysis engine
-│   │   ├── markdownReporter.ts
-│   │   └── reporter.ts
+│   │   ├── agent.ts            # GitHub Copilot SDK integration
+│   │   ├── analyzer.ts         # Repository analysis engine
+│   │   ├── markdownReporter.ts # Markdown report generation
+│   │   └── reporter.ts         # Output formatting utilities
 │   ├── providers/
-│   │   └── github.ts         # GitHub API client
+│   │   └── github.ts           # GitHub API client (Octokit)
 │   ├── tools/
-│   │   └── repoTools.ts      # Custom agent tools
-│   ├── ui/
-│   │   ├── themes.ts         # Colors and icons
-│   │   ├── display.ts        # Screen rendering
-│   │   ├── commands.ts       # Slash command parsing
-│   │   └── prompts.ts
-│   └── types/
-│       └── schema.ts
+│   │   └── repoTools.ts        # Custom AI agent tools
+│   ├── types/
+│   │   └── schema.ts           # TypeScript type definitions
+│   └── ui/
+│       ├── commands.ts         # Slash command parsing
+│       ├── display.ts          # Terminal screen rendering
+│       ├── index.ts            # UI exports barrel
+│       ├── prompts.ts          # Interactive prompts (readline)
+│       └── themes.ts           # Colors, icons, and styling
 ├── resources/
-│   └── image-repo-doctor.png
-└── ai-documents/
-    ├── spec.md
-    ├── PRD.md
-    └── AGENTS.md
+│   └── image-repo-doctor.png   # Demo screenshot
+├── ai-documents/               # AI agent documentation
+│   ├── AGENTS.md
+│   ├── PRD.md
+│   └── spec.md
+├── package.json
+├── tsconfig.json
+└── README.md
 ```
 
 ## 🏗️ Tech Stack
@@ -298,23 +346,24 @@ MIT © [Glaucia Lemos](https://github.com/glaucia86)
 
 ## 👩‍💻 Author
 
-<table>
-  <tr>
-    <td align="center">
-      <a href="https://github.com/glaucia86">
-        <img src="https://github.com/glaucia86.png" width="100px;" alt="Glaucia Lemos"/>
-        <br />
-        <sub><b>Glaucia Lemos</b></sub>
-      </a>
-      <br />
-      <a href="https://twitter.com/glaucialemos">Twitter</a> •
-      <a href="https://www.linkedin.com/in/glaucialemos/">LinkedIn</a> •
-      <a href="https://glaucialemos.dev/">Blog</a>
-    </td>
-  </tr>
-</table>
-
-**Cloud Advocate at Microsoft** | Developer | Speaker | Open Source Contributor
+<div align="center">
+  <a href="https://github.com/glaucia86">
+    <img src="https://github.com/glaucia86.png" width="120px;" alt="Glaucia Lemos" style="border-radius: 50%;"/>
+  </a>
+  <br />
+  <h3>Glaucia Lemos</h3>
+  <p><strong>A.I Developer at Zup Innovation/Itaú</strong></p>
+  <p>
+    <a href="https://mvp.microsoft.com/pt-BR/MVP/profile/d3200941-395d-423b-a0ec-eb0577d3bb86">
+      <img src="https://img.shields.io/badge/Microsoft%20MVP-Web%20Technologies-blue?logo=microsoft&logoColor=white" alt="Microsoft MVP"/>
+    </a>
+  </p>
+  <p>
+    <a href="https://twitter.com/glaucia_lemos86">🐦 Twitter</a> •
+    <a href="https://www.linkedin.com/in/glaucialemos/">💼 LinkedIn</a> •
+    <a href="https://github.com/glaucia86">🐙 GitHub</a>
+  </p>
+</div>
 
 ---
 
