@@ -9,11 +9,15 @@
 
 </div>
 
+<div align="center">
+
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Node.js](https://img.shields.io/badge/Node.js-18%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![GitHub Copilot](https://img.shields.io/badge/GitHub%20Copilot-SDK-000000?logo=github&logoColor=white)](https://github.com/github/copilot-sdk)
 [![Version](https://img.shields.io/badge/version-2.0.0-green)](package.json)
+
+</div>
 
 ![Repo Doctor Demo](resources/image-repo-doctor.png)
 
