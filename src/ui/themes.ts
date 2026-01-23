@@ -307,11 +307,18 @@ export function line(width: number, char = BOX.h): string {
 
 /**
  * Draw a box around content
+ * @param content - Array of content lines
+ * @param options - Box options
+ * @param options.width - Fixed width (default: auto-calculated from content)
+ * @param options.minWidth - Minimum width when auto-calculating
+ * @param options.maxWidth - Maximum width when auto-calculating
  */
 export function box(
   content: string[],
   options: {
     width?: number;
+    minWidth?: number;
+    maxWidth?: number;
     title?: string;
     titleAlign?: "left" | "center" | "right";
     padding?: number;
@@ -319,12 +326,31 @@ export function box(
   } = {}
 ): string[] {
   const {
-    width = 80,
+    minWidth = 40,
+    maxWidth = 100,
     title,
     titleAlign = "left",
     padding = 1,
     borderColor = c.border,
   } = options;
+
+  // Calculate width dynamically if not specified
+  let width = options.width;
+  if (!width) {
+    // Find the longest line in content
+    let maxContentLength = 0;
+    for (const line of content) {
+      const len = visibleLength(line);
+      if (len > maxContentLength) maxContentLength = len;
+    }
+    // Add padding and borders: 2 (borders) + padding*2 (left+right padding) + 2 (extra margin)
+    const calculatedWidth = maxContentLength + 2 + (padding * 2) + 2;
+    
+    // Also consider title length
+    const titleLength = title ? visibleLength(title) + 6 : 0; // 6 = spaces + borders
+    
+    width = Math.max(minWidth, Math.min(maxWidth, Math.max(calculatedWidth, titleLength)));
+  }
 
   const innerWidth = width - 2;
   const result: string[] = [];

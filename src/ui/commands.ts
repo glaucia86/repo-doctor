@@ -11,6 +11,8 @@ import { c, ICON } from "./themes.js";
 
 export type CommandType =
   | { type: "analyze"; repoRef: string }
+  | { type: "deep"; repoRef: string }
+  | { type: "summary" }
   | { type: "last" }
   | { type: "export"; format?: "md" | "json"; path?: string }
   | { type: "copy" }
@@ -45,6 +47,14 @@ export const COMMANDS: CommandDefinition[] = [
     category: "analysis",
   },
   {
+    command: "/deep",
+    aliases: ["/d", "/full"],
+    description: "Deep analysis with full source code review (uses Repomix)",
+    usage: "/deep <repo-url or owner/repo>",
+    example: "/deep vercel/swr",
+    category: "analysis",
+  },
+  {
     command: "/last",
     aliases: ["/l", "/prev"],
     description: "Show the last analysis result",
@@ -60,6 +70,13 @@ export const COMMANDS: CommandDefinition[] = [
   },
 
   // Output commands
+  {
+    command: "/summary",
+    aliases: ["/sum", "/brief"],
+    description: "Generate condensed summary of last analysis",
+    usage: "/summary",
+    category: "output",
+  },
   {
     command: "/export",
     aliases: ["/save", "/e"],
@@ -158,6 +175,12 @@ export function parseCommand(input: string): CommandType {
       }
       return { type: "analyze", repoRef: args.join(" ") };
 
+    case "/deep":
+      if (args.length === 0) {
+        return { type: "unknown", input: trimmed };
+      }
+      return { type: "deep", repoRef: args.join(" ") };
+
     case "/export": {
       // Parse args: could be path, format, or both
       // /export → default
@@ -182,6 +205,9 @@ export function parseCommand(input: string): CommandType {
 
     case "/copy":
       return { type: "copy" };
+
+    case "/summary":
+      return { type: "summary" };
 
     case "/model":
       return { type: "model", modelName: args[0] };

@@ -2,7 +2,9 @@
 
 **AI-Powered GitHub Repository Health Analyzer** using the GitHub Copilot SDK.
 
-Analyze any GitHub repository and get actionable insights to improve documentation, CI/CD, security, and developer experience.
+Your repository's AI doctor that diagnoses issues and prescribes solutions. Repo Doctor performs comprehensive health checks across 6 critical areas — documentation, developer experience, CI/CD, testing, governance, and security — delivering a detailed diagnosis with prioritized findings (P0/P1/P2) and actionable remediation steps.
+
+**Two analysis modes:** Quick scan via GitHub API or deep analysis using [Repomix](https://github.com/yamadashy/repomix) for full source code inspection. Get a health score, evidence-based findings, and ready-to-use code snippets to fix issues — all through an interactive CLI with 10+ AI models.
 
 ![Repo Doctor Demo](resources/image-repo-doctor.png)
 
@@ -10,331 +12,113 @@ Analyze any GitHub repository and get actionable insights to improve documentati
 [![Node.js](https://img.shields.io/badge/Node.js-18%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![GitHub Copilot](https://img.shields.io/badge/GitHub%20Copilot-SDK-000000?logo=github&logoColor=white)](https://github.com/github/copilot-sdk)
-[![Zod](https://img.shields.io/badge/Zod-3.22-3E67B1?logo=zod&logoColor=white)](https://zod.dev/)
-[![Commander.js](https://img.shields.io/badge/Commander.js-12-red?logo=npm&logoColor=white)](https://github.com/tj/commander.js)
-[![Chalk](https://img.shields.io/badge/Chalk-5.3-orange?logo=npm&logoColor=white)](https://github.com/chalk/chalk)
 [![Version](https://img.shields.io/badge/version-2.0.0-green)](package.json)
 [![GitHub Stars](https://img.shields.io/github/stars/glaucia86/repo-doctor?style=social)](https://github.com/glaucia86/repo-doctor)
-
----
-
-## ⭐ Support This Project
-
-If you find Repo Doctor useful, please consider:
-
-- **⭐ Give it a star** - It helps others discover this tool
-- **🐛 Report issues** - Help us improve by reporting bugs
-- **💡 Suggest features** - Open an issue with your ideas
-- **🔀 Contribute** - PRs are welcome!
-
-[![GitHub issues](https://img.shields.io/github/issues/glaucia86/repo-doctor)](https://github.com/glaucia86/repo-doctor/issues)
-[![GitHub pull requests](https://img.shields.io/github/issues-pr/glaucia86/repo-doctor)](https://github.com/glaucia86/repo-doctor/pulls)
 
 ---
 
 ## ✨ Features
 
 - **💬 Interactive Chat Interface** - Modern CLI with slash commands
-- **🤖 10 AI Models** - Choose between free (GPT-4o, GPT-4.1, GPT-5 mini) and premium models
-- **📊 Health Score** - Get an overall health percentage for your repository
-- **📋 Clipboard Support** - Copy analysis results directly to clipboard
-- **📝 Flexible Export** - Save reports to any location (home, desktop, custom path)
-- **📜 Analysis History** - Track your previous analyses
-- **🔍 Smart Diagnosis** - AI-powered analysis across 6 key categories
+- **🤖 10 AI Models** - Choose between free and premium models
+- **🔬 Deep Analysis** - Full repository scan using [Repomix](https://github.com/yamadashy/repomix)
+- **📊 Health Score** - Overall health percentage for your repository
 - **🎯 Prioritized Findings** - Issues classified as P0 (critical), P1 (high), P2 (nice-to-have)
-- **💡 Actionable Recommendations** - Specific steps to improve your repository
+- **💡 Actionable Recommendations** - Specific steps with code snippets
+- **📋 Clipboard & Export** - Copy or save reports in Markdown/JSON
 
 ## 🔍 What Gets Analyzed?
 
 | Category | What's Checked |
 |----------|----------------|
-| 📚 **Docs & Onboarding** | README quality, setup instructions, contributing guidelines |
-| ⚡ **Developer Experience** | npm scripts, Node version, TypeScript, monorepo setup |
+| 📚 **Docs & Onboarding** | README, setup instructions, contributing guidelines |
+| ⚡ **Developer Experience** | npm scripts, Node version, TypeScript, monorepo |
 | 🔄 **CI/CD** | GitHub Actions, test automation, build pipelines |
-| 🧪 **Quality & Tests** | Test framework, linting, formatting, code coverage |
-| 📋 **Governance** | LICENSE, CODE_OF_CONDUCT, SECURITY policy, templates |
-| 🔐 **Security** | Dependabot/Renovate, security policy, secret management |
+| 🧪 **Quality & Tests** | Test framework, linting, formatting, coverage |
+| 📋 **Governance** | LICENSE, CODE_OF_CONDUCT, SECURITY policy |
+| 🔐 **Security** | Dependabot/Renovate, security policy |
 
 ---
 
-## 📋 Prerequisites
+## 🚀 Quick Start
 
-1. **GitHub Copilot** - Active subscription (individual, business, or enterprise)
-2. **GitHub Copilot CLI** - Required for AI agent communication:
-   ```bash
-   # Install GitHub Copilot CLI globally
-   npm install -g @anthropic-ai/copilot
-   
-   # Or via GitHub CLI extension
-   gh extension install github/gh-copilot
-   ```
-3. **Node.js** - Version 18.0.0 or higher
-4. **Git** - For cloning the repository
+### Prerequisites
 
-## 🚀 Installation
+- **GitHub Copilot** - Active subscription
+- **Node.js** - Version 18.0.0 or higher
+
+### Installation
 
 ```bash
-# Clone the repository
 git clone https://github.com/glaucia86/repo-doctor.git
 cd repo-doctor
-
-# Install dependencies
 npm install
-
-# Build and link globally
 npm run build
 npm link
 ```
 
----
-
-## 📖 How to Use
-
-### Quick Start
+### Usage
 
 ```bash
-# Start interactive mode - will prompt for repository and model
+# Interactive mode
 repo-doctor
 
-# Analyze a specific repository directly
+# Direct analysis
 repo-doctor vercel/next.js
 
-# Analyze with a specific model
+# With specific model
 repo-doctor vercel/next.js --model gpt-4o
 ```
 
-### Interactive Chat Mode
+---
 
-When you run `repo-doctor`, you enter an interactive chat interface:
+## 📖 Commands
 
-```
-╭─────────────────────────────────────────╮
-│  🩺 REPO DOCTOR v2.0                    │
-│     GitHub Repository Health Analyzer   │
-╰─────────────────────────────────────────╯
+| Command | Description |
+|---------|-------------|
+| `/analyze <repo>` | Quick analysis via GitHub API |
+| `/deep <repo>` | Deep analysis with full source scan |
+| `/copy` | Copy report to clipboard |
+| `/export [path]` | Save report to file |
+| `/model [name]` | Switch AI model |
+| `/help` | Show all commands |
 
-  ✨ Welcome to Repo Doctor!
-  
-  Enter repository (owner/repo): vercel/next.js
-  
-  Select AI Model:
-  ❯ claude-sonnet-4 (Premium)
-    gpt-4o (Free)
-    gpt-4.1 (Free)
-    ...
-
-  🔍 Analyzing repository...
-```
-
-After analysis, you'll see options to copy, export, or analyze another repository.
-
-### Slash Commands
-
-| Command | Description | Example |
-|---------|-------------|---------|
-| `/analyze <repo>` | Analyze a repository | `/analyze vercel/next.js` |
-| `/last` | Show last analysis result | `/last` |
-| `/history` | Show recent analyses | `/history` |
-| `/copy` | Copy analysis to clipboard | `/copy` |
-| `/export [path] [format]` | Export report to file | `/export ~/Desktop` |
-| `/model [name]` | Switch AI model | `/model gpt-4o` |
-| `/clear` | Clear the screen | `/clear` |
-| `/help` | Show available commands | `/help` |
-| `/quit` | Exit Repo Doctor | `/quit` |
-
-### Export Options
-
-The `/export` command supports flexible paths:
-
-```bash
-# Save to default location: ~/repo-doctor/reports/
-/export
-
-# Save to Desktop
-/export ~/Desktop
-
-# Save with custom filename
-/export ./my-report.md
-
-# Save as JSON
-/export ~/Documents json
-
-# Save to specific path as JSON
-/export ~/Desktop/analysis.json
-```
-
-Reports are saved with UTF-8 encoding (with BOM) to preserve emojis correctly.
-
-### Command Line Options
-
-```bash
-repo-doctor [repository] [options]
-
-Options:
-  --token <TOKEN>     GitHub token for private repos (or set GITHUB_TOKEN env)
-  --model <name>      AI model to use (default: claude-sonnet-4)
-  --max-files <N>     Maximum files to analyze (default: 800)
-  --max-bytes <N>     Maximum bytes per file (default: 200KB)
-  --timeout <ms>      Analysis timeout (default: 120000)
-  --export            Export report after analysis
-  --help              Show help
-```
-
-### Examples
-
-```bash
-# Analyze a public repository
-repo-doctor microsoft/typescript
-
-# Analyze with full URL
-repo-doctor https://github.com/facebook/react
-
-# Analyze a private repository
-export GITHUB_TOKEN=ghp_xxxxx
-repo-doctor owner/private-repo
-
-# Use a free model
-repo-doctor vercel/next.js --model gpt-4o
-
-# Auto-export after analysis
-repo-doctor vercel/next.js --export
-```
+> 💡 See the [User Guide](docs/GUIDE.md) for complete command reference.
 
 ---
 
-## 🔒 Analyzing Private Repositories
+## 📚 Documentation
 
-To analyze private repositories, you need to provide a GitHub Personal Access Token (PAT) with `repo` scope.
-
-### Option 1: Environment Variable (Recommended)
-
-```bash
-# Set your GitHub token
-export GITHUB_TOKEN=ghp_xxxxxxxxxxxxxxxxxxxx
-
-# Now analyze any private repo
-repo-doctor my-org/private-repo
-```
-
-### Option 2: Command Line Argument
-
-```bash
-repo-doctor my-org/private-repo --token ghp_xxxxxxxxxxxxxxxxxxxx
-```
-
-### Creating a GitHub Token
-
-1. Go to [GitHub Settings → Developer settings → Personal access tokens](https://github.com/settings/tokens)
-2. Click **Generate new token (classic)**
-3. Select the `repo` scope (Full control of private repositories)
-4. Copy the generated token and use it as shown above
-
-> ⚠️ **Security Tip:** Never commit your token to version control. Use environment variables or a secrets manager.
+| Document | Description |
+|----------|-------------|
+| [📖 User Guide](docs/GUIDE.md) | Complete usage guide, commands, and examples |
+| [🤖 AI Models](docs/AI-MODELS.md) | Available models and recommendations |
+| [🤝 Contributing](docs/CONTRIBUTING.md) | How to contribute to Repo Doctor |
 
 ---
-
-## 🤖 Available AI Models
-
-| Model | Type | Description |
-|-------|------|-------------|
-| `gpt-4o` | ✅ Free | Fast, efficient - works for all Copilot users |
-| `gpt-4.1` | ✅ Free | Latest GPT-4 variant |
-| `gpt-5-mini` | ✅ Free | Lightweight GPT-5 |
-| `claude-sonnet-4` | ⚡ Premium | Default model, requires Copilot Pro/Business |
-| `claude-sonnet-4.5` | ⚡ Premium | Enhanced Sonnet |
-| `claude-opus-4.5` | ⚡ Premium | Most capable (3x rate limit) |
-| `gpt-5` | ⚡ Premium | Preview model |
-| `gpt-5.1-codex` | ⚡ Premium | Optimized for code |
-| `gpt-5.2-codex` | ⚡ Premium | Latest Codex variant |
-| `o3` | ⚡ Premium | Reasoning model |
-
-> 💡 **Tip:** If you have a free Copilot subscription, use `gpt-4o` or `gpt-4.1` for the best experience.
-
----
-
-## 🎯 Priority Levels
-
-| Priority | Meaning | Examples |
-|----------|---------|----------|
-| **P0** | Critical blocker | No LICENSE, no README, no CI |
-| **P1** | High impact | CI without tests, no CONTRIBUTING guide |
-| **P2** | Nice to have | Badges, refined templates |
-
----
-
-## 🛠️ Development
-
-```bash
-# Install dependencies
-npm install
-
-# Run in development mode
-npm run dev
-
-# Build for production
-npm run build
-
-# Run tests
-npm test
-```
-
-## 🏗️ Architecture
-
-```
-repo-doctor/
-├── src/
-│   ├── index.ts                # Entry point (shebang for CLI)
-│   ├── cli.ts                  # Commander setup + interactive chat loop
-│   ├── core/
-│   │   ├── agent.ts            # GitHub Copilot SDK integration
-│   │   ├── analyzer.ts         # Repository analysis engine
-│   │   ├── markdownReporter.ts # Markdown report generation
-│   │   └── reporter.ts         # Output formatting utilities
-│   ├── providers/
-│   │   └── github.ts           # GitHub API client (Octokit)
-│   ├── tools/
-│   │   └── repoTools.ts        # Custom AI agent tools
-│   ├── types/
-│   │   └── schema.ts           # TypeScript type definitions
-│   └── ui/
-│       ├── commands.ts         # Slash command parsing
-│       ├── display.ts          # Terminal screen rendering
-│       ├── index.ts            # UI exports barrel
-│       ├── prompts.ts          # Interactive prompts (readline)
-│       └── themes.ts           # Colors, icons, and styling
-├── resources/
-│   └── image-repo-doctor.png   # Demo screenshot
-├── ai-documents/               # AI agent documentation
-│   ├── AGENTS.md
-│   ├── PRD.md
-│   └── spec.md
-├── package.json
-├── tsconfig.json
-└── README.md
-```
 
 ## 🏗️ Tech Stack
 
 - **[@github/copilot-sdk](https://github.com/github/copilot-sdk)** - AI orchestration
-- **[@octokit/rest](https://github.com/octokit/rest.js)** - GitHub API client
-- **[commander](https://github.com/tj/commander.js)** - CLI framework
-- **[chalk](https://github.com/chalk/chalk)** - Terminal styling
-- **[ora](https://github.com/sindresorhus/ora)** - Terminal spinners
-- **[zod](https://github.com/colinhacks/zod)** - Schema validation
+- **[@octokit/rest](https://github.com/octokit/rest.js)** - GitHub API
+- **[Repomix](https://github.com/yamadashy/repomix)** - Repository packing
+- **[Commander](https://github.com/tj/commander.js)** - CLI framework
+- **[Chalk](https://github.com/chalk/chalk)** - Terminal styling
+- **[Zod](https://github.com/colinhacks/zod)** - Schema validation
 
 ---
 
-## 🤝 Contributing
+## ⭐ Support This Project
 
-Contributions are welcome! Here's how you can help:
+If you find Repo Doctor useful:
 
-1. **Fork** the repository
-2. **Create** a feature branch: `git checkout -b feature/amazing-feature`
-3. **Commit** your changes: `git commit -m 'Add amazing feature'`
-4. **Push** to the branch: `git push origin feature/amazing-feature`
-5. **Open** a Pull Request
+- **⭐ Star** this repository
+- **🐛 Report** issues you encounter
+- **💡 Suggest** new features
+- **🔀 Contribute** via pull requests
 
-Please read our contributing guidelines and code of conduct before submitting.
+[![GitHub issues](https://img.shields.io/github/issues/glaucia86/repo-doctor)](https://github.com/glaucia86/repo-doctor/issues)
+[![GitHub pull requests](https://img.shields.io/github/issues-pr/glaucia86/repo-doctor)](https://github.com/glaucia86/repo-doctor/pulls)
 
 ---
 
@@ -348,21 +132,20 @@ MIT © [Glaucia Lemos](https://github.com/glaucia86)
 
 <div align="center">
   <a href="https://github.com/glaucia86">
-    <img src="https://github.com/glaucia86.png" width="120px;" alt="Glaucia Lemos" style="border-radius: 50%;"/>
+    <img src="https://github.com/glaucia86.png" width="100px;" alt="Glaucia Lemos" style="border-radius: 50%;"/>
   </a>
   <br />
-  <h3>Glaucia Lemos</h3>
-  <p><strong>A.I Developer at Zup Innovation/Itaú</strong></p>
-  <p>
-    <a href="https://mvp.microsoft.com/pt-BR/MVP/profile/d3200941-395d-423b-a0ec-eb0577d3bb86">
-      <img src="https://img.shields.io/badge/Microsoft%20MVP-Web%20Technologies-blue?logo=microsoft&logoColor=white" alt="Microsoft MVP"/>
-    </a>
-  </p>
-  <p>
-    <a href="https://twitter.com/glaucia_lemos86">🐦 Twitter</a> •
-    <a href="https://www.linkedin.com/in/glaucialemos/">💼 LinkedIn</a> •
-    <a href="https://github.com/glaucia86">🐙 GitHub</a>
-  </p>
+  <strong>Glaucia Lemos</strong>
+  <br />
+  <sub>A.I Developer at Zup Innovation/Itaú</sub>
+  <br /><br />
+  <a href="https://mvp.microsoft.com/pt-BR/MVP/profile/d3200941-395d-423b-a0ec-eb0577d3bb86">
+    <img src="https://img.shields.io/badge/Microsoft%20MVP-Web%20Technologies-blue?logo=microsoft&logoColor=white" alt="Microsoft MVP"/>
+  </a>
+  <br /><br />
+  <a href="https://twitter.com/glaucia_lemos86">🐦 Twitter</a> •
+  <a href="https://www.linkedin.com/in/glaucialemos/">💼 LinkedIn</a> •
+  <a href="https://github.com/glaucia86">🐙 GitHub</a>
 </div>
 
 ---

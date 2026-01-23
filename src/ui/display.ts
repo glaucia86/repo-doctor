@@ -449,6 +449,7 @@ export function printHelp(): void {
       "",
       c.whiteBold("Options:"),
       `  ${c.key("--token")} ${c.dim("<TOKEN>")}    ${c.text("GitHub token for private repos")}`,
+      `  ${c.key("--deep")}               ${c.text("Deep analysis with full source code (Repomix)")}`,
       `  ${c.key("--max-files")} ${c.dim("<N>")}   ${c.text("Max files to list (default: 800)")}`,
       `  ${c.key("--max-bytes")} ${c.dim("<N>")}   ${c.text("Max bytes per file (default: 200KB)")}`,
       `  ${c.key("--timeout")} ${c.dim("<ms>")}     ${c.text("Analysis timeout (default: 120000)")}`,
@@ -456,6 +457,7 @@ export function printHelp(): void {
       "",
       c.whiteBold("Examples:"),
       `  ${c.brand("$")} repo-doctor analyze vercel/next.js`,
+      `  ${c.brand("$")} repo-doctor analyze vercel/swr --deep`,
       `  ${c.brand("$")} repo-doctor analyze owner/private-repo --token ghp_xxx`,
       "",
     ],
@@ -531,7 +533,7 @@ export function printChatStatusBar(
   isPremium: boolean,
   lastRepo?: string
 ): void {
-  const innerWidth = 55;
+  // Build content first to measure it
   const badge = modelBadge(model, isPremium);
   
   let repoDisplay = "";
@@ -541,14 +543,18 @@ export function printChatStatusBar(
   
   const hint = c.dim(" │ ") + c.brand("/help");
   
+  // Calculate content length
+  const statusContent = " " + badge + repoDisplay + hint + " ";
+  const contentLen = stripAnsi(statusContent).length;
+  
+  // Dynamic width: content + some padding, min 55, max 100
+  const innerWidth = Math.max(55, Math.min(100, contentLen + 4));
+  const padding = innerWidth - contentLen;
+  
   // Top border with brand color
   console.log("  " + c.brand(BOX.tl + BOX.h.repeat(innerWidth) + BOX.tr));
   
   // Status content
-  const statusContent = " " + badge + repoDisplay + hint;
-  const contentLen = stripAnsi(statusContent).length;
-  const padding = innerWidth - contentLen - 1;
-  
   console.log("  " + c.brand(BOX.v) + statusContent + " ".repeat(Math.max(0, padding)) + c.brand(BOX.v));
   
   // Bottom border
@@ -568,13 +574,15 @@ export function printCommandMenu(): void {
   // Analysis Commands
   console.log("  " + c.brand(ICON.analyze + " Analysis"));
   console.log(`   ${c.info("/analyze")} ${c.dim("<repo>")}  ${c.muted("Analyze a repository")}`);
+  console.log(`   ${c.info("/deep")} ${c.dim("<repo>")}     ${c.muted("Deep analysis with source code (Repomix)")}`);
   console.log(`   ${c.info("/last")}            ${c.muted("Show last analysis")}`);
   console.log(`   ${c.info("/history")}         ${c.muted("Recent analyses")}`);
   console.log();
   
   // Output Commands
   console.log("  " + c.brand(ICON.save + " Output"));
-  console.log(`   ${c.info("/export")} ${c.dim("[md|json]")} ${c.muted("Export report to file")}`);
+  console.log(`   ${c.info("/export")} ${c.dim("[path]")}   ${c.muted("Export report to file")}`);
+  console.log(`   ${c.info("/copy")}            ${c.muted("Copy report to clipboard")}`);
   console.log();
   
   // Utility Commands
@@ -667,6 +675,23 @@ export function printWelcome(): void {
   console.log(
     "  " + c.brand(ICON.doctor) + " " + c.brandBold("Enter Repository URL")
   );
+  console.log();
+}
+
+/**
+ * Print quick commands reference on startup
+ */
+export function printQuickCommands(): void {
+  console.log("  " + c.dim("─".repeat(55)));
+  console.log();
+  console.log("  " + c.whiteBold("⚡ Quick Commands"));
+  console.log();
+  console.log(`    ${c.info("/analyze")} ${c.dim("<repo>")}  ${c.muted("Standard governance analysis")}`);
+  console.log(`    ${c.info("/deep")} ${c.dim("<repo>")}     ${c.muted("Deep analysis with source code")}`);
+  console.log(`    ${c.info("/model")}           ${c.muted("Switch AI model")}`);
+  console.log(`    ${c.info("/help")}            ${c.muted("See all commands")}`);
+  console.log();
+  console.log("  " + c.dim("💡 Tip: Paste a GitHub URL directly to analyze"));
   console.log();
 }
 
