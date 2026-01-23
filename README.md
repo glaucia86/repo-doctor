@@ -19,7 +19,7 @@
 
 </div>
 
-![Repo Doctor Demo](resources/image-repo-doctor.png)
+![Repo Doctor Demo](resources/image.png)
 
 <div align="center">
 
