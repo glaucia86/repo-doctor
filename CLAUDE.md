@@ -10,30 +10,62 @@ Repo Doctor is an **Agentic CLI Tool** built with the [GitHub Copilot SDK](https
 npm install          # Install dependencies
 npm run dev          # Development mode (tsx)
 npm run build        # Compile to dist/
+npm run test         # Run unit tests (Vitest)
 npm link             # Link globally for testing
 ```
 
 ## Architecture Summary
 
+The project follows **SOLID principles** with a modular architecture:
+
 ```
 src/
-├── cli.ts              # Commander setup, chat loop, commands
+├── cli.ts                 # CLI entry point (Commander setup only)
+├── cli/                   # 🆕 CLI layer (modular)
+│   ├── chatLoop.ts        # Interactive REPL
+│   ├── handlers/          # Command handlers (/analyze, /export, etc.)
+│   ├── state/             # AppState class + IAppState interface
+│   └── parsers/           # URL parsing, report extraction
+│
 ├── core/
-│   ├── agent.ts        # Copilot SDK session, SYSTEM_PROMPT
-│   ├── repoPacker.ts   # Repomix integration for deep analysis
+│   ├── agent.ts           # Copilot SDK session management
+│   ├── agent/             # 🆕 Agent modules
+│   │   ├── prompts/       # SYSTEM_PROMPT, analysisPrompt
+│   │   └── eventHandler.ts # Session event handling
+│   ├── repoPacker.ts      # Repomix integration
 │   └── markdownReporter.ts
-├── providers/github.ts # Octokit factory, token resolution
-├── tools/repoTools.ts  # defineTool() implementations
-├── types/schema.ts     # Zod schemas
-└── ui/                 # Terminal display (chalk, ora)
+│
+├── tools/
+│   ├── repoTools.ts       # Tool factory (re-exports)
+│   ├── getRepoMeta.ts     # 🆕 Individual tool
+│   ├── listRepoFiles.ts   # 🆕 Individual tool
+│   ├── readRepoFile.ts    # 🆕 Individual tool
+│   └── packRepository.ts  # 🆕 Individual tool
+│
+├── ui/
+│   ├── display.ts         # Re-exports from display/
+│   └── display/           # 🆕 Display modules
+│       ├── spinner.ts     # Spinner management
+│       ├── messages.ts    # printSuccess, printError, etc.
+│       ├── menus.ts       # Command menus
+│       └── ...
+│
+├── types/
+│   ├── schema.ts          # Zod schemas
+│   └── interfaces.ts      # 🆕 Shared interfaces (IAppState, etc.)
+│
+└── utils/
+    ├── sanitizer.ts       # Prompt injection protection
+    └── clipboard.ts       # 🆕 Cross-platform clipboard
 ```
 
 ## Key Files to Read First
 
-1. **[src/core/agent.ts](src/core/agent.ts)** — Core SDK integration and SYSTEM_PROMPT
-2. **[src/tools/repoTools.ts](src/tools/repoTools.ts)** — Tool definitions
-3. **[src/cli.ts](src/cli.ts)** — Command handling
-4. **[src/types/schema.ts](src/types/schema.ts)** — Type definitions
+1. **[src/core/agent/prompts/systemPrompt.ts](src/core/agent/prompts/systemPrompt.ts)** — SYSTEM_PROMPT (~500 lines)
+2. **[src/core/agent.ts](src/core/agent.ts)** — SDK session management
+3. **[src/tools/](src/tools/)** — Tool definitions (individual files)
+4. **[src/cli/handlers/](src/cli/handlers/)** — Command handlers
+5. **[src/types/schema.ts](src/types/schema.ts)** — Type definitions
 
 ## Code Conventions
 
@@ -41,41 +73,39 @@ src/
 - **UI Output**: Use helpers from `src/ui/` — never raw `console.log` for user-facing output
 - **Error Handling**: Tools return error objects (not throw) so the agent can use errors as evidence
 - **Streaming**: Agent output streams via `assistant.message_delta` events
+- **State Management**: Use `appState.setModel()` instead of direct property assignment
 
-## Claude-Specific Guidance
+## SOLID Principles Applied
 
-### When Analyzing This Codebase
+| Principle | Implementation |
+|-----------|----------------|
+| **Single Responsibility** | Each handler, tool, and display module in its own file |
+| **Open/Closed** | `buildSystemPrompt()` allows extension without modification |
+| **Interface Segregation** | `IAppState`, `IClipboardService` define minimal contracts |
+| **Dependency Inversion** | State accessed via interface, tools created via factories |
 
-1. **Understand the tool pattern**: Each tool in `repoTools.ts` uses `defineTool()` with Zod-style parameters
-2. **Security is critical**: File content from repos is sanitized via `utils/sanitizer.ts` — always check for prompt injection
-3. **The agent is agentic**: It makes autonomous decisions based on SYSTEM_PROMPT guidance
+## Testing
 
-### When Writing Code
+```bash
+npm test              # Run all tests
+npm run test:watch    # Watch mode
+npm run test:coverage # Coverage report
+```
 
-- Keep tools focused and single-purpose
-- Return structured JSON from tool handlers
-- Use the existing UI helpers for consistent terminal output
-- Follow the existing error handling pattern (return errors, don't throw)
+Test files are in `tests/` mirroring the `src/` structure:
+- `tests/cli/state/appState.test.ts` — 16 tests
+- `tests/cli/parsers/*.test.ts` — 21 tests
+- `tests/core/agent/*.test.ts` — 25 tests
 
-### Common Tasks
+## Common Tasks
 
 | Task | Where to Look |
 |------|---------------|
-| Add a new analysis category | Update `SYSTEM_PROMPT` in `agent.ts`, add checks |
-| Add a new CLI command | `cli.ts` — add to Commander setup |
-| Add a new tool | `repoTools.ts` — use `defineTool()` pattern |
-| Change output format | `ui/display.ts` and `markdownReporter.ts` |
-
-## Testing Approach
-
-> ⚠️ Test suite planned for future — currently manual testing only
-
-Test with various repositories:
-```bash
-npm run dev -- vercel/next.js      # Large, healthy repo
-npm run dev -- <user>/<empty-repo> # Edge case: empty repo
-npm run dev -- <archived-repo>     # Edge case: archived
-```
+| Add a CLI command handler | Create in `src/cli/handlers/`, export from `index.ts` |
+| Add a new tool | Create `src/tools/newTool.ts`, add to `repoTools.ts` |
+| Modify system prompt | Edit `src/core/agent/prompts/systemPrompt.ts` |
+| Change output format | Edit files in `src/ui/display/` |
+| Add app state | Extend `IAppState` in `src/cli/state/appState.ts` |
 
 ## AI Models Available
 

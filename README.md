@@ -260,6 +260,21 @@ repo-doctor vercel/next.js --model claude-sonnet-4 --deep
 </tr>
 </table>
 
+### 🔧 Modular Architecture
+
+The codebase follows **SOLID principles** for maintainability:
+
+```
+src/
+├── cli/          # Command handlers, state, parsers
+├── core/agent/   # System prompts, event handling
+├── tools/        # Individual tool files (SRP)
+├── ui/display/   # Display modules (spinner, menus, etc.)
+└── types/        # Zod schemas, interfaces
+```
+
+> 📖 See [Architecture Documentation](docs/architecture.md) for details.
+
 ---
 
 ## ⭐ Support This Project
