@@ -23,7 +23,9 @@
 
 <div align="center">
 
-**AI-Powered GitHub Repository Health Analyzer** using the GitHub Copilot SDK.
+**Agentic CLI Tool for GitHub Repository Health Analysis**
+
+Built with the [GitHub Copilot SDK](https://github.com/github/copilot-sdk) — the same AI agent runtime that powers Copilot CLI.
 
 </div>
 
@@ -53,7 +55,7 @@ Get a health score, evidence-based findings, and ready-to-use code snippets to f
 | Category | What's Checked |
 |----------|----------------|
 | 📚 **Docs & Onboarding** | README, setup instructions, contributing guidelines |
-| ⚡ **Developer Experience** | npm scripts, Node version, TypeScript, monorepo |
+| ⚡ **Developer Experience** | Build scripts, language version, project structure, monorepo configs |
 | 🔄 **CI/CD** | GitHub Actions, test automation, build pipelines |
 | 🧪 **Quality & Tests** | Test framework, linting, formatting, coverage |
 | 📋 **Governance** | LICENSE, CODE_OF_CONDUCT, SECURITY policy |
