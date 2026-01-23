@@ -145,7 +145,7 @@ If you find Repo Doctor useful:
 
 ---
 
-## � License
+## 📄 License
 
 MIT © [Glaucia Lemos](https://github.com/glaucia86)
 
