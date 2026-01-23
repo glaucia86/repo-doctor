@@ -204,6 +204,9 @@ export async function runChatMode(
       console.log();
       printWarning("No repository provided. Use /analyze <repo> in chat.");
       console.log();
+    } else if (repoRef.startsWith("/")) {
+      // User entered a command - skip to chat loop where it will be handled
+      console.log();
     } else {
       const parsed = parseRepoRef(repoRef);
       if (!parsed) {
