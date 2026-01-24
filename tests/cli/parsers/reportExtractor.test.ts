@@ -72,20 +72,39 @@ Deep findings
   });
 
   describe("removeDuplicateSections", () => {
-    it("should keep only last occurrence of each section", () => {
+    it("should keep section with more content when duplicates exist", () => {
       const input = `
 ## Section A
-First content
+Short
 
 ## Section B
 Some content
 
 ## Section A
-Second content (should keep this)
+Longer content with more details (should keep this)
 `;
       const result = removeDuplicateSections(input);
-      expect(result).toContain("Second content");
-      expect(result).not.toContain("First content");
+      // Should keep the longer content
+      expect(result).toContain("Longer content with more details");
+      expect(result).not.toContain("Short\n");
+    });
+
+    it("should preserve original document order for first occurrence", () => {
+      const input = `
+## First
+Content 1
+
+## Second
+Content 2
+
+## First
+Content 1 again (duplicate, uses first position but better content if longer)
+`;
+      const result = removeDuplicateSections(input);
+      // Section A should still appear before Section B (original order)
+      const firstIndex = result.indexOf("## First");
+      const secondIndex = result.indexOf("## Second");
+      expect(firstIndex).toBeLessThan(secondIndex);
     });
 
     it("should preserve section order", () => {

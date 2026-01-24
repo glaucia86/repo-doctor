@@ -26,6 +26,9 @@ export function extractReportOnly(content: string): string {
     .replace(/Packing repository.*\n?/gi, "")
     .replace(/Successfully packed.*\n?/gi, "")
     .replace(/\[repomix\].*\n?/gi, "")
+    // Remove Repomix failure messages (may appear multiple times)
+    .replace(/Repomix failed\..*?(?:analysis|read_repo_file)\.?\n?/gi, "")
+    .replace(/Falling back to reading source files.*\n?/gi, "")
     // Remove phase markers from streaming output
     .replace(/^\*\*PHASE \d+.*\*\*\s*$/gm, "")
     // Remove tool call annotations
@@ -73,7 +76,20 @@ export function extractReportOnly(content: string): string {
     }
   }
 
-  // Fallback: if no report header found, clean and return
+  // Fallback: if no report header found, try to find the first significant section
+  // This handles cases where content before the main report header is orphaned
+  const firstSectionMatch = cleaned.match(/^(##\s+[^\n]+)/m);
+  if (firstSectionMatch && firstSectionMatch.index !== undefined) {
+    // Check if there's orphaned content before this section (tables, partial text)
+    const beforeSection = cleaned.slice(0, firstSectionMatch.index).trim();
+    // If the content before is short or looks like a fragment, skip it
+    if (beforeSection.length < 500 && !beforeSection.includes("## ")) {
+      const report = cleaned.slice(firstSectionMatch.index).trim();
+      return removeDuplicateSections(report);
+    }
+  }
+
+  // Final fallback: just clean and return
   return removeDuplicateSections(cleaned.trim());
 }
 
@@ -84,30 +100,72 @@ export function extractReportOnly(content: string): string {
 /**
  * Remove duplicate sections in markdown content
  * Keeps the last (most complete) occurrence of each major section
+ * 
+ * Strategy:
+ * 1. First pass: identify all sections and their positions
+ * 2. For duplicates, keep the one with more content
+ * 3. Rebuild in original document order (by first occurrence position)
  */
 export function removeDuplicateSections(content: string): string {
-  // Split into major sections by ## headers
   const lines = content.split("\n");
-  const sections: Map<string, { start: number; end: number; content: string[] }> = new Map();
+  
+  interface SectionInfo {
+    normalizedHeader: string;
+    originalHeader: string;
+    firstStart: number;    // Position of FIRST occurrence (for ordering)
+    lastStart: number;     // Position of LAST occurrence (for content)
+    content: string[];
+    occurrenceCount: number;
+  }
+  
+  const sections: Map<string, SectionInfo> = new Map();
   
   let currentHeader = "__intro__";
   let currentStart = 0;
   let currentLines: string[] = [];
+
+  /**
+   * Calculate total content size (characters) in a section
+   */
+  function getContentSize(lines: string[]): number {
+    return lines.reduce((sum, line) => sum + line.length, 0);
+  }
+
+  function saveSection(endIndex: number) {
+    if (currentLines.length === 0) return;
+    
+    const normalizedHeader = currentHeader.toLowerCase().replace(/[^a-z0-9]/g, "");
+    const existing = sections.get(normalizedHeader);
+    
+    if (existing) {
+      // Duplicate found - keep the one with more content (by character count)
+      existing.occurrenceCount++;
+      const currentSize = getContentSize(currentLines);
+      const existingSize = getContentSize(existing.content);
+      if (currentSize > existingSize) {
+        existing.content = [...currentLines];
+        existing.lastStart = currentStart;
+      }
+      // Keep firstStart unchanged (for ordering)
+    } else {
+      sections.set(normalizedHeader, {
+        normalizedHeader,
+        originalHeader: currentHeader,
+        firstStart: currentStart,
+        lastStart: currentStart,
+        content: [...currentLines],
+        occurrenceCount: 1,
+      });
+    }
+  }
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]!;
     const headerMatch = line.match(/^(#{1,3})\s+(.+)$/);
     
     if (headerMatch) {
-      // Save previous section (keep last occurrence)
-      if (currentLines.length > 0) {
-        const normalizedHeader = currentHeader.toLowerCase().replace(/[^a-z0-9]/g, "");
-        sections.set(normalizedHeader, {
-          start: currentStart,
-          end: i,
-          content: [...currentLines],
-        });
-      }
+      // Save previous section
+      saveSection(i);
       
       currentHeader = headerMatch[2] || "__section__";
       currentStart = i;
@@ -118,21 +176,14 @@ export function removeDuplicateSections(content: string): string {
   }
   
   // Save last section
-  if (currentLines.length > 0) {
-    const normalizedHeader = currentHeader.toLowerCase().replace(/[^a-z0-9]/g, "");
-    sections.set(normalizedHeader, {
-      start: currentStart,
-      end: lines.length,
-      content: [...currentLines],
-    });
-  }
+  saveSection(lines.length);
 
-  // Rebuild content from unique sections, preserving order of last occurrence
-  const sortedSections = Array.from(sections.entries())
-    .sort((a, b) => a[1].start - b[1].start);
+  // Rebuild content - order by FIRST occurrence position (preserves document structure)
+  const sortedSections = Array.from(sections.values())
+    .sort((a, b) => a.firstStart - b.firstStart);
 
   return sortedSections
-    .map(([_, section]) => section.content.join("\n"))
+    .map(section => section.content.join("\n"))
     .join("\n")
     .replace(/\n{3,}/g, "\n\n");
 }

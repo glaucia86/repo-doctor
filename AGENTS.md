@@ -593,11 +593,39 @@ const CATEGORY_WEIGHTS = {
   ci: 0.20,          // 20%
   tests: 0.15,       // 15%
   governance: 0.15,  // 15%
-  security: 0.10,    // 10%
+  security: 0.10,    // 10% — expanded in deep analysis
 };
 
 // P0 = -30 points, P1 = -15 points, P2 = -5 points per category
 ```
+
+### 7.3. Security Category (Deep Analysis)
+
+When performing deep analysis, the security category is expanded:
+
+| Security Aspect | P0 Condition | P1 Condition | P2 Condition |
+|-----------------|--------------|--------------|---------------|
+| Hardcoded Secrets | API keys, passwords in code | Connection strings exposed | Debug tokens in comments |
+| Input Validation | No validation on user input | Partial validation, missing bounds | Could be stricter |
+| Error Handling | Stack traces to users | Internal paths leaked | Verbose errors in prod |
+| Dependencies | Known CVE in deps | Outdated major versions | Minor updates available |
+| Auth/AuthZ | No auth on protected routes | Weak auth implementation | Missing rate limiting |
+| Injection Risks | SQL/Command injection possible | Unparameterized queries | Template injection risks |
+
+### 7.4. Production Readiness Assessment (Deep Analysis)
+
+Deep analysis includes a production readiness evaluation:
+
+| Aspect | What to Check |
+|--------|---------------|
+| Graceful Shutdown | SIGTERM/SIGINT handlers for clean exit |
+| Health Checks | Endpoint for load balancers/orchestrators |
+| Structured Logging | Using logger (pino, winston) vs console.log |
+| Error Tracking | Integration with Sentry, Bugsnag, etc. |
+| Config Management | Env vars externalized, secrets not in code |
+| Rate Limiting | API protection against abuse |
+| Retry/Resilience | Transient failure handling with backoff |
+| Cache Strategy | Appropriate caching for static data |
 
 ---
 
