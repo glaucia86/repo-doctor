@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## 🗺️ Roadmap
 
-### v2.1.0 (Planned)
+### v2.2.0 (Planned)
 - 🔍 **Dependency Audit Integration** — `npm audit`, `pip-audit`, `cargo audit`
 - 🔑 **Secrets Scanning** — Detect exposed API keys, tokens via regex patterns
 
@@ -25,6 +25,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 🔄 **Scheduled Scans** — Automated periodic repository health checks
 - 📈 **Historical Tracking** — Track repository health over time
 - 🏢 **Organization View** — Analyze multiple repositories at once
+
+---
+
+## [2.1.0] - 2026-01-23
+
+### Added
+
+- **Agent Guardrails**: Loop prevention with `ToolCallTracker` and `AgentGuardrails`
+  - Step limit enforcement (30 standard / 40 deep)
+  - Consecutive identical call detection
+  - Sequence loop detection (A→B→A→B patterns)
+  - Progressive response: warn → inject replan message → abort
+- **Testing Infrastructure**: 86 unit tests across 7 test files
+  - `tests/cli/parsers/repoParser.test.ts` (12 tests)
+  - `tests/cli/parsers/reportExtractor.test.ts` (9 tests)
+  - `tests/cli/state/appState.test.ts` (16 tests)
+  - `tests/core/agent/analysisPrompt.test.ts` (8 tests)
+  - `tests/core/agent/eventHandler.test.ts` (17 tests)
+  - `tests/core/agent/toolCallTracker.test.ts` (13 tests)
+  - `tests/core/agent/guardrails.test.ts` (11 tests)
+- **Vitest Configuration**: `vitest.config.ts` with proper TypeScript support
+- **Deep Analysis Improvements**: Enhanced PHASE 6 instructions with comprehensive checklist
+
+### Changed
+
+- **Major Refactoring (SOLID Principles)**:
+  - `src/cli.ts`: 1165 → 186 lines (-84%)
+  - Extracted `src/cli/chatLoop.ts` — Interactive REPL
+  - Extracted `src/cli/handlers/` — One file per command (SRP)
+  - Extracted `src/cli/parsers/` — URL parsing, report extraction
+  - Extracted `src/cli/state/appState.ts` — Centralized state management
+  - Extracted `src/core/agent/prompts/` — Isolated system and analysis prompts (OCP)
+  - Extracted `src/tools/` — Individual tool files (DIP)
+  - Extracted `src/ui/display/` — Modular UI components
+- **Interfaces**: Added `src/types/interfaces.ts` with shared interfaces (ISP)
+
+### Fixed
+
+- `/copy` command now captures full report (not just Deep Analysis section)
 
 ---
 
@@ -86,5 +125,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+[2.1.0]: https://github.com/glaucia86/repo-doctor/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/glaucia86/repo-doctor/compare/v1.0.0...v2.0.0
 [1.0.0]: https://github.com/glaucia86/repo-doctor/releases/tag/v1.0.0
