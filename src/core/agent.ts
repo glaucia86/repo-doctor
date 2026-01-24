@@ -104,6 +104,13 @@ export async function analyzeRepositoryWithCopilot(options: AnalyzeOptions): Pro
         mode: "append",
         content: SYSTEM_PROMPT,
       },
+      // Enable infinite sessions for long-running analyses (v0.1.18+)
+      // Automatically compacts context when buffer approaches limits
+      infiniteSessions: {
+        enabled: true,
+        backgroundCompactionThreshold: 0.80,  // Start compaction at 80% buffer
+        bufferExhaustionThreshold: 0.95,      // Block at 95% until compaction completes
+      },
     });
 
     if (spinner) {

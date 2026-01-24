@@ -407,10 +407,31 @@ const session = await client.createSession({
     mode: "append",
     content: SYSTEM_PROMPT,
   },
+  // Infinite Sessions (v0.1.18+) - auto-compacts context for long analyses
+  infiniteSessions: {
+    enabled: true,
+    backgroundCompactionThreshold: 0.80,  // Start compaction at 80%
+    bufferExhaustionThreshold: 0.95,      // Block at 95%
+  },
 });
 ```
 
-### 4.2. Event Handling
+### 4.2. Infinite Sessions (v0.1.18+)
+
+Repo Doctor uses **Infinite Sessions** for long-running analyses:
+
+| Config | Default | Description |
+|--------|---------|-------------|
+| `enabled` | `true` | Enable automatic context compaction |
+| `backgroundCompactionThreshold` | `0.80` | Start compaction when buffer reaches 80% |
+| `bufferExhaustionThreshold` | `0.95` | Block new messages at 95% until compaction completes |
+
+**Benefits:**
+- Analyses can run much longer without hitting context limits
+- Automatic context management - the SDK handles compaction transparently
+- Workspace persistence at `~/.copilot/session-state/{sessionId}/`
+
+### 4.3. Event Handling
 
 ```typescript
 session.on((event: SessionEvent) => {
@@ -437,6 +458,15 @@ session.on((event: SessionEvent) => {
 
     case "session.idle":
       // Analysis complete
+      break;
+
+    // Infinite Sessions compaction events (v0.1.18+)
+    case "session.compaction_start":
+      // Context compaction started
+      break;
+
+    case "session.compaction_complete":
+      // Compaction finished - event.data contains { tokensRemoved, success }
       break;
   }
 });

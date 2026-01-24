@@ -202,6 +202,28 @@ export function createEventHandler(options: EventHandlerOptions): {
         }
         break;
 
+      // Infinite Sessions compaction events (v0.1.18+)
+      case "session.compaction_start":
+        if (verbose && !json) {
+          console.log(`\n  ${c.dim(`${ICON.refresh} Context compaction started...`)}`);
+        }
+        break;
+
+      case "session.compaction_complete":
+        {
+          const compactionData = event.data as { tokensRemoved?: number; success?: boolean } | undefined;
+          if (verbose && !json) {
+            const tokensRemoved = compactionData?.tokensRemoved ?? 0;
+            const success = compactionData?.success ?? true;
+            if (success) {
+              console.log(`  ${c.healthy(ICON.check)} ${c.dim(`Compaction complete (${tokensRemoved} tokens freed)`)}`);
+            } else {
+              console.log(`  ${c.warning(ICON.warn)} ${c.dim("Compaction completed with issues")}`);
+            }
+          }
+        }
+        break;
+
       default:
         // Log unknown events in verbose mode
         if (verbose && !json) {

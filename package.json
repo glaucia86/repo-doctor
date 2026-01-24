@@ -1,6 +1,6 @@
 {
   "name": "repo-doctor",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "AI-powered GitHub repository health analyzer using GitHub Copilot SDK",
   "main": "dist/index.js",
   "type": "module",
@@ -50,7 +50,7 @@
   },
   "homepage": "https://github.com/glaucia86/repo-doctor#readme",
   "dependencies": {
-    "@github/copilot-sdk": "^0.1.15",
+    "@github/copilot-sdk": "^0.1.18",
     "@inquirer/prompts": "^7.0.0",
     "@octokit/rest": "^22.0.1",
     "chalk": "^5.3.0",

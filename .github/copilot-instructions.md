@@ -68,10 +68,17 @@ const session = await client.createSession({
   streaming: true,
   tools: repoTools({ token, maxFiles, maxBytes }),
   systemMessage: { mode: "append", content: SYSTEM_PROMPT },
+  // Infinite Sessions (v0.1.18+) - auto-compacts context for long analyses
+  infiniteSessions: {
+    enabled: true,
+    backgroundCompactionThreshold: 0.80,  // Start compaction at 80%
+    bufferExhaustionThreshold: 0.95,      // Block at 95%
+  },
 });
 
 session.on((event: SessionEvent) => {
   // Handle: assistant.message_delta, tool.execution_start, session.idle
+  // Compaction events (v0.1.18+): session.compaction_start, session.compaction_complete
 });
 
 await session.sendAndWait({ prompt }, timeout);
