@@ -39,19 +39,21 @@ export function extractReportOnly(content: string): string {
     .join("\n");
 
   // Step 2: Find the start of the report content
-  // For deep analysis, include Evidence sections
-  // For standard analysis, start at Health Report
+  // IMPORTANT: For deep analysis, we need to capture BOTH the health report AND the deep analysis section
+  // Priority: Start from the Health Report header (which should include Deep Analysis section at the end)
   const reportStartPatterns = [
-    // Deep analysis patterns (include evidence sections)
-    /^##?\s*Evidence Extraction/mi,
-    /^##?\s*Evidence Collection Summary/mi,
-    /^##?\s*🔬\s*Deep Analysis/mi,
-    // Standard report patterns
+    // Standard report patterns (prioritized - start from the beginning of the full report)
     /^##?\s*🩺\s*Repository Health Report/m,
     /^##?\s*Repository Health Report/mi,
     /^##?\s*Health Report/mi,
     /^##\s*📊\s*Health Score/m,
     /^---\s*\n+##?\s*🩺/m,
+    // Evidence sections (if report starts with evidence extraction)
+    /^##?\s*Evidence Extraction/mi,
+    /^##?\s*Evidence Collection Summary/mi,
+    // Deep analysis section (fallback if no health report header found)
+    // This should only match if there's no health report section
+    /^##?\s*🔬\s*Deep Analysis/mi,
   ];
 
   for (const pattern of reportStartPatterns) {

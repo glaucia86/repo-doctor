@@ -27,13 +27,68 @@ export function buildAnalysisPrompt(options: AnalysisPromptOptions): string {
 
 **PHASE 6 — DEEP ANALYSIS (ENABLED)**
 Output: "**PHASE 6 — DEEP ANALYSIS**" then:
-8. After completing standard analysis, call \`pack_repository\` with mode="deep"
-9. Analyze the consolidated source code for:
-   - Code patterns and architecture
-   - Potential bugs or anti-patterns
-   - Test coverage indicators
-   - Code quality issues
-10. Add findings under "🔬 Deep Analysis" section in report`
+
+8. Call \`pack_repository\` with mode="deep" to get consolidated source code
+
+9. Analyze the source code comprehensively for:
+
+   **Architecture & Design:**
+   - Project structure and organization (is it modular? separation of concerns?)
+   - Design patterns used (or missing)
+   - Component coupling and cohesion
+   - Dependency injection patterns
+   - State management approach
+   
+   **Code Quality:**
+   - Code duplication / DRY violations
+   - Function/method complexity (long functions, deep nesting)
+   - Naming conventions and consistency
+   - Magic numbers/strings that should be constants
+   - Dead code or unused exports
+   - TODO/FIXME/HACK comments indicating technical debt
+   
+   **Error Handling:**
+   - Exception handling patterns (try/catch coverage)
+   - Error propagation strategy
+   - User-facing error messages quality
+   - Null/undefined safety
+   
+   **Security Concerns:**
+   - Input validation gaps
+   - Potential injection vulnerabilities
+   - Hardcoded secrets or credentials
+   - Insecure API usage patterns
+   
+   **Performance:**
+   - Potential memory leaks (unclosed resources)
+   - N+1 query patterns
+   - Unnecessary re-renders (React) or recomputation
+   - Large bundle/import concerns
+   
+   **Testability:**
+   - Code structure that hinders testing
+   - Missing abstraction layers
+   - Global state that complicates mocking
+   
+   **Best Practices per Stack:**
+   - For TypeScript: proper typing, no \`any\` abuse, strict null checks
+   - For React: proper hooks usage, component organization
+   - For Node.js: async patterns, stream handling
+   - For Python: type hints, docstrings, PEP8 compliance
+   - For Go: error handling, goroutine leaks
+   - For Rust: ownership patterns, unsafe usage
+
+10. Generate detailed findings in the "🔬 Deep Analysis" section with:
+    - **Code Architecture Review** - Strengths and areas for improvement
+    - **Potential Issues** - With code snippets and line references
+    - **Refactoring Suggestions** - Specific, actionable improvements
+    - **Code Quality Summary** table
+
+**IMPORTANT for Deep Analysis:**
+- Be SPECIFIC: quote actual code patterns you found
+- Provide code examples showing the issue AND the fix
+- Prioritize actionable insights over exhaustive listing
+- Connect findings to real impact (maintainability, bugs, performance)`
     : "";
 
   return `Analyze the GitHub repository: ${repoUrl}

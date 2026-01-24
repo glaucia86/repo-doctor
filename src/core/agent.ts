@@ -1,6 +1,5 @@
 import { CopilotClient, type SessionEvent } from "@github/copilot-sdk";
 import { repoTools, deepAnalysisTools } from "../tools/repoTools.js";
-import type { AnalyzeOptions as BaseOptions } from "../types/schema.js";
 import {
   startSpinner,
   updateSpinner,

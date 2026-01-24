@@ -205,8 +205,31 @@ export async function runChatMode(
       printWarning("No repository provided. Use /analyze <repo> in chat.");
       console.log();
     } else if (repoRef.startsWith("/")) {
-      // User entered a command - skip to chat loop where it will be handled
-      console.log();
+      // User entered a command - parse and execute it
+      const command = parseCommand(repoRef);
+      
+      if (command.type === "analyze") {
+        // Run analysis with the repo ref from the command
+        const selectedModel = await promptModelSelection();
+        appState.setModel(selectedModel.id, selectedModel.premium);
+        console.log();
+        printSuccess(`Model: ${selectedModel.name}`);
+        console.log();
+        await runInitialAnalysis(command.repoRef, options);
+      } else if (command.type === "deep") {
+        // Run deep analysis
+        const selectedModel = await promptModelSelection();
+        appState.setModel(selectedModel.id, selectedModel.premium);
+        console.log();
+        printSuccess(`Model: ${selectedModel.name}`);
+        console.log();
+        await handleAnalyze(command.repoRef, options, true);
+      } else {
+        // Other commands - skip to chat loop
+        console.log();
+        printWarning(`Command "${repoRef}" will be processed in chat mode.`);
+        console.log();
+      }
     } else {
       const parsed = parseRepoRef(repoRef);
       if (!parsed) {
@@ -245,6 +268,7 @@ export async function runChatMode(
     input: process.stdin,
     output: process.stdout,
     terminal: true,
+    prompt: c.brand("  ❯ "),
   });
 
   // Prevent readline from closing when stdin pauses
@@ -252,66 +276,96 @@ export async function runChatMode(
     // Do nothing - keep readline alive
   });
 
+  // Ensure stdin is in flowing mode for readline
+  if (process.stdin.isPaused()) {
+    process.stdin.resume();
+  }
+
   const promptUser = (): void => {
-    printPrompt();
+    // Use rl.prompt() instead of manual stdout.write for proper readline integration
+    rl.prompt();
   };
 
+  // Flag to prevent re-entrance during async operations
+  let isProcessing = false;
+
   rl.on("line", async (input) => {
+    // Prevent multiple simultaneous command executions
+    if (isProcessing) {
+      return;
+    }
+    
     const command = parseCommand(input);
 
-    switch (command.type) {
-      case "analyze":
-        await handleAnalyze(command.repoRef, options, false);
-        break;
+    // For async commands, pause readline to prevent input issues during analysis
+    if (command.type === "analyze" || command.type === "deep" || 
+        command.type === "export" || command.type === "copy" || 
+        command.type === "model") {
+      isProcessing = true;
+      rl.pause();
+    }
 
-      case "deep":
-        await handleAnalyze(command.repoRef, options, true);
-        break;
+    try {
+      switch (command.type) {
+        case "analyze":
+          await handleAnalyze(command.repoRef, options, false);
+          break;
 
-      case "export":
-        await handleExport(command.path, command.format);
-        break;
+        case "deep":
+          await handleAnalyze(command.repoRef, options, true);
+          break;
 
-      case "copy":
-        await handleCopy();
-        break;
+        case "export":
+          await handleExport(command.path, command.format);
+          break;
 
-      case "summary":
-        handleSummary();
-        break;
+        case "copy":
+          await handleCopy();
+          break;
 
-      case "history":
-        handleHistory();
-        break;
+        case "summary":
+          handleSummary();
+          break;
 
-      case "model":
-        await handleModel(command.modelName);
-        break;
+        case "history":
+          handleHistory();
+          break;
 
-      case "last":
-        handleLast();
-        break;
+        case "model":
+          await handleModel(command.modelName);
+          break;
 
-      case "clear":
-        handleClear();
-        break;
+        case "last":
+          handleLast();
+          break;
 
-      case "help":
-        handleHelp();
-        break;
+        case "clear":
+          handleClear();
+          break;
 
-      case "quit":
-        appState.setRunning(false);
-        printGoodbye();
-        rl.close();
-        process.exit(0);
-        return;
+        case "help":
+          handleHelp();
+          break;
 
-      case "unknown":
-        if (command.input.trim()) {
-          printUnknownCommand(command.input);
-        }
-        break;
+        case "quit":
+          appState.setRunning(false);
+          printGoodbye();
+          rl.close();
+          process.exit(0);
+          return;
+
+        case "unknown":
+          if (command.input.trim()) {
+            printUnknownCommand(command.input);
+          }
+          break;
+      }
+    } finally {
+      // Resume readline after async operations complete
+      if (isProcessing) {
+        isProcessing = false;
+        rl.resume();
+      }
     }
 
     if (appState.isRunning) {
