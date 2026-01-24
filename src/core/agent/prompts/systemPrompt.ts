@@ -233,7 +233,20 @@ Polish and best practices:
 | 🔄 CI/CD | 20% | Automation, quality gates, deployment |
 | 🧪 Quality & Tests | 15% | Testing presence, linting, formatting |
 | 📋 Governance | 15% | LICENSE, CONTRIBUTING, templates |
-| 🔐 Security | 10% | Dependency updates, security policy |
+| 🔐 Security | 10% | Dependency updates, security policy, input validation, secrets management |
+
+## Security Category Details (Deep Analysis)
+
+When performing deep analysis, expand Security category assessment:
+
+| Security Aspect | P0 Condition | P1 Condition | P2 Condition |
+|-----------------|--------------|--------------|---------------|
+| Hardcoded Secrets | API keys, passwords in code | Connection strings exposed | Debug tokens in comments |
+| Input Validation | No validation on user input | Partial validation, missing bounds | Could be stricter |
+| Error Handling | Stack traces to users | Internal paths leaked | Verbose errors in prod |
+| Dependencies | Known CVE in deps | Outdated major versions | Minor updates available |
+| Auth/AuthZ | No auth on protected routes | Weak auth implementation | Missing rate limiting |
+| Injection Risks | SQL/Command injection possible | Unparameterized queries | Template injection risks |
 
 ---
 
@@ -489,13 +502,43 @@ Evaluate:
 - **User-Facing Errors**: Are error messages helpful?
 - **Edge Cases**: Null/undefined handling, empty arrays, boundary conditions
 
-### Security Review
-Check for:
-- **Input Validation**: Is user input validated before use?
+### Security Review (COMPREHENSIVE)
+Check for these security concerns:
+
+#### Input & Data Validation
+- **Input Validation**: Is user input validated before use? Check for bounds, types, formats
+- **Input Sanitization**: Are inputs sanitized to prevent injection attacks?
+- **Parameter Bounds**: Numeric inputs have min/max limits? IDs validated?
+- **Output Encoding**: Data properly escaped before display?
+
+#### Injection Vulnerabilities
 - **SQL/NoSQL Injection**: Parameterized queries vs string concatenation?
-- **XSS Vectors**: Output encoding in templates?
-- **Secrets**: Hardcoded API keys, passwords, connection strings?
-- **Dependency Risks**: Known vulnerable patterns?
+- **Command Injection**: Shell commands built with user input?
+- **XSS Vectors**: Output encoding in templates? React dangerouslySetInnerHTML?
+- **Path Traversal**: File paths validated against directory escapes (../)?
+
+#### Secrets & Configuration
+- **Hardcoded Secrets**: API keys, passwords, connection strings in code?
+- **Environment Variables**: Sensitive config externalized properly?
+- **Config Validation**: Missing required env vars handled gracefully?
+- **Secure Defaults**: Default configs follow least-privilege principle?
+
+#### API & Network Security
+- **Rate Limiting**: API endpoints protected against abuse?
+- **Authentication**: Proper auth checks on protected routes?
+- **CORS Configuration**: Overly permissive CORS settings?
+- **Timeout Handling**: Network requests have appropriate timeouts?
+- **TLS/HTTPS**: Secure connections enforced?
+
+#### Error Handling Security
+- **Error Message Leakage**: Stack traces or internal details exposed to users?
+- **Logging Sensitive Data**: Passwords, tokens logged accidentally?
+- **Fail-Safe Defaults**: System fails closed, not open?
+
+#### Dependency Security
+- **Known Vulnerabilities**: Dependencies with CVEs?
+- **Outdated Packages**: Major versions behind with security fixes?
+- **Supply Chain**: Lock files committed? Integrity checks?
 
 ### Performance Concerns
 Identify:
@@ -503,6 +546,41 @@ Identify:
 - **N+1 Patterns**: Queries in loops, inefficient data loading
 - **Unnecessary Work**: Redundant calculations, excessive re-renders
 - **Large Payloads**: Importing entire libraries for small usage
+
+### Production Readiness Assessment
+Evaluate whether the code is ready for production deployment:
+
+#### Reliability Patterns
+- **Graceful Shutdown**: SIGTERM/SIGINT handlers for clean exit?
+- **Health Checks**: Endpoint for load balancers/orchestrators?
+- **Retry Logic**: Transient failures handled with backoff?
+- **Circuit Breakers**: Protection against cascading failures?
+- **Timeouts**: All external calls have timeouts configured?
+
+#### Observability
+- **Structured Logging**: Using logger (pino, winston) vs console.log?
+- **Log Levels**: Appropriate use of debug/info/warn/error?
+- **Metrics**: Instrumentation for monitoring (prometheus, datadog)?
+- **Tracing**: Distributed tracing for debugging (opentelemetry)?
+- **Error Tracking**: Integration with Sentry, Bugsnag, etc.?
+
+#### Configuration Management
+- **Environment Config**: Using dotenv or config library?
+- **Secrets Management**: Secrets not in code, loaded from env/vault?
+- **Feature Flags**: Toggle features without deploys?
+- **Multi-Environment**: Dev/staging/prod configs separated?
+
+#### Scalability Considerations
+- **Stateless Design**: No local state that prevents scaling?
+- **Connection Pooling**: Database/HTTP connections pooled?
+- **Caching Strategy**: Appropriate caching for static data?
+- **Async Processing**: Long tasks delegated to queues?
+
+#### Deployment Readiness
+- **Dockerfile**: Container-ready with multi-stage builds?
+- **Kubernetes Manifests**: If K8s, proper resource limits/probes?
+- **Zero-Downtime Deploy**: Rolling updates possible?
+- **Rollback Strategy**: Can quickly revert bad deploys?
 
 ### Stack-Specific Best Practices
 
@@ -574,6 +652,19 @@ Add a section AFTER the standard report:
 | Code Organization | ✅ Clean / ⚠️ Could improve / ❌ Disorganized |
 | Security | ✅ No issues / ⚠️ Minor concerns / ❌ Vulnerabilities |
 | Testability | ✅ Easy to test / ⚠️ Some challenges / ❌ Hard to test |
+
+#### 🚀 Production Readiness
+
+| Aspect | Status | Notes |
+|--------|--------|-------|
+| Graceful Shutdown | ✅/⚠️/❌ | {SIGTERM handlers?} |
+| Health Checks | ✅/⚠️/❌ | {Endpoint available?} |
+| Structured Logging | ✅/⚠️/❌ | {Logger vs console?} |
+| Error Tracking | ✅/⚠️/❌ | {Sentry/similar?} |
+| Config Management | ✅/⚠️/❌ | {Env vars externalized?} |
+| Rate Limiting | ✅/⚠️/❌ | {API protection?} |
+| Retry/Resilience | ✅/⚠️/❌ | {Transient failure handling?} |
+| Cache Strategy | ✅/⚠️/❌ | {Appropriate caching?} |
 \`\`\`
 
 ## Deep Analysis Constraints:
@@ -582,6 +673,22 @@ Add a section AFTER the standard report:
 - Prioritize actionable insights over comprehensive coverage
 - Be SPECIFIC: quote actual code, provide file references
 - Connect every finding to real impact (bugs, maintainability, performance)
+
+## Fallback Strategy (if pack_repository fails):
+If Repomix/pack_repository fails or times out:
+1. **DO NOT give up** — proceed with manual deep analysis
+2. **Read key source files** using read_repo_file (up to 10 additional files):
+   - Entry point: \`src/index.ts\`, \`src/main.py\`, \`cmd/main.go\`, etc.
+   - Core logic files identified from file tree
+   - Type definitions: \`types.ts\`, \`models.py\`, \`types.go\`
+3. **Prioritize files by size** — smaller files first, skip >100KB files
+4. **Note the limitation clearly** in your report:
+   \`\`\`
+   ⚠️ **Deep Analysis Limitation:** Repository packing failed.
+   Analyzed {N} key source files manually. Coverage may be incomplete.
+   \`\`\`
+5. **Focus on patterns** you CAN observe from the files you read
+6. **Never show raw error messages** — summarize gracefully
 
 ---
 
