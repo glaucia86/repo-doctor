@@ -356,21 +356,50 @@ function buildRepomixArgs(opts: RepomixArgs): string[] {
 
 async function executeRepomix(args: string[], timeout: number): Promise<void> {
   return new Promise((resolve, reject) => {
-    // Use npx.cmd on Windows to avoid shell: true deprecation
-    const npx = process.platform === "win32" ? "npx.cmd" : "npx";
+    // Build the full command as a single string for cross-platform compatibility
+    // This is necessary because Node.js v25+ has issues with spawn('npx.cmd', args) on Windows
+    const isWindows = process.platform === "win32";
+    
+    // Escape arguments that contain special characters
+    const escapeArg = (arg: string): string => {
+      if (isWindows) {
+        // On Windows with shell, wrap in quotes if contains special chars
+        if (/[\s*?{}[\]()!^"&|<>]/.test(arg)) {
+          return `"${arg.replace(/"/g, '\\"')}"`;
+        }
+        return arg;
+      }
+      // On Unix, escape special characters
+      if (/[\s*?{}[\]()!^"'&|<>;$`\\]/.test(arg)) {
+        return `'${arg.replace(/'/g, "'\\''")}'`;
+      }
+      return arg;
+    };
+    
+    const escapedArgs = args.map(escapeArg);
+    const command = isWindows 
+      ? `npx ${escapedArgs.join(" ")}`
+      : `npx ${escapedArgs.join(" ")}`;
 
-    const child = spawn(npx, args, {
+    const child = spawn(command, [], {
+      shell: true,
       stdio: ["ignore", "pipe", "pipe"],
-      // Avoid shell: true to prevent deprecation warnings
-      // Using npx.cmd directly on Windows handles this
-      detached: false,
       windowsHide: true,
-      // Prevent stdin inheritance issues
-      env: { ...process.env, FORCE_COLOR: "0" },
+      env: { 
+        ...process.env, 
+        FORCE_COLOR: "0",
+        // Suppress npm/node warnings in output
+        NODE_NO_WARNINGS: "1",
+      },
     });
 
     let stderr = "";
+    let stdout = "";
     let settled = false;
+
+    child.stdout?.on("data", (data) => {
+      stdout += data.toString();
+    });
 
     child.stderr?.on("data", (data) => {
       stderr += data.toString();
@@ -379,7 +408,13 @@ async function executeRepomix(args: string[], timeout: number): Promise<void> {
     child.on("error", (error) => {
       if (!settled) {
         settled = true;
-        reject(new Error(`Failed to execute Repomix: ${error.message}`));
+        // Provide more context about the failure
+        const errMsg = error.message.toLowerCase();
+        if (errMsg.includes("enoent") || errMsg.includes("not found")) {
+          reject(new Error(`npx command not found. Ensure Node.js is installed and in PATH.`));
+        } else {
+          reject(new Error(`Failed to execute Repomix: ${error.message}`));
+        }
       }
     });
 
@@ -389,8 +424,17 @@ async function executeRepomix(args: string[], timeout: number): Promise<void> {
         if (code === 0) {
           resolve();
         } else {
+          // Include relevant parts of stderr for diagnostics
+          const stderrClean = stderr
+            .replace(/npm warn.*\n?/gi, "")
+            .replace(/npm notice.*\n?/gi, "")
+            .replace(/\(node:\d+\).*Warning:.*\n?/gi, "")
+            .replace(/DeprecationWarning:.*\n?/gi, "")
+            .trim()
+            .slice(0, 800);
+          
           reject(
-            new Error(`Repomix exited with code ${code}: ${stderr.slice(0, 500)}`)
+            new Error(`Repomix exited with code ${code}${stderrClean ? `: ${stderrClean}` : ""}`)
           );
         }
       }

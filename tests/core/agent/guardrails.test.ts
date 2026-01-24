@@ -118,19 +118,19 @@ describe("createGuardrails", () => {
     const guardrails = createGuardrails("deep");
     
     // Deep mode allows more calls - fill up standard limit
-    for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < 50; i++) {
       guardrails.onToolStart(`tool${i}`, { index: i });
     }
     
-    // Should not abort yet in deep mode (limit is 40)
+    // Should not abort yet in deep mode (limit is 80)
     expect(guardrails.shouldAbort()).toBe(false);
   });
 
   it("should create strict guardrails with lower limits", () => {
     const guardrails = createGuardrails("strict");
     
-    // Strict mode has lower limit (20)
-    for (let i = 0; i < 20; i++) {
+    // Strict mode has lower limit (30)
+    for (let i = 0; i < 30; i++) {
       guardrails.onToolStart(`tool${i}`, { index: i });
     }
     

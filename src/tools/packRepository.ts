@@ -8,6 +8,7 @@ import {
   packRemoteRepository,
   getDefaultIncludePatterns,
   getDeepIncludePatterns,
+  isRepomixAvailable,
 } from "../core/repoPacker.js";
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -69,6 +70,18 @@ Returns consolidated content with file markers and structure.`,
       const { repoUrl, ref, mode = "governance", compress = false } = args;
 
       try {
+        // Pre-check: verify Repomix is available
+        const repomixReady = await isRepomixAvailable();
+        if (!repomixReady) {
+          return {
+            success: false,
+            error: "Repomix is not available. npx repomix --version failed.",
+            reason: "REPOMIX_NOT_AVAILABLE",
+            suggestion:
+              "Fall back to standard file-by-file analysis using read_repo_file. Ensure Node.js >= 18 and npx are working correctly.",
+          };
+        }
+
         // Select include patterns based on mode
         const include =
           mode === "deep"
@@ -85,11 +98,44 @@ Returns consolidated content with file markers and structure.`,
         });
 
         if (!result.success) {
+          // Categorize the error for better diagnostics
+          const errorLower = (result.error || "").toLowerCase();
+          let reason = "UNKNOWN";
+          let suggestion =
+            "Repomix failed. Fall back to standard file-by-file analysis using read_repo_file.";
+
+          if (errorLower.includes("timeout")) {
+            reason = "TIMEOUT";
+            suggestion =
+              "Repository too large or network too slow. Use standard file-by-file analysis instead.";
+          } else if (
+            errorLower.includes("404") ||
+            errorLower.includes("not found")
+          ) {
+            reason = "REPO_NOT_FOUND";
+            suggestion =
+              "Repository not found or is private. Check the URL and ensure you have access.";
+          } else if (
+            errorLower.includes("403") ||
+            errorLower.includes("rate limit")
+          ) {
+            reason = "RATE_LIMITED";
+            suggestion =
+              "GitHub rate limit hit. Wait a few minutes or use a token with higher limits.";
+          } else if (
+            errorLower.includes("clone") ||
+            errorLower.includes("git")
+          ) {
+            reason = "CLONE_FAILED";
+            suggestion =
+              "Failed to clone repository. Check network connection and repository accessibility.";
+          }
+
           return {
             success: false,
             error: result.error,
-            suggestion:
-              "Repomix failed. Fall back to standard file-by-file analysis using read_repo_file.",
+            reason,
+            suggestion,
           };
         }
 
@@ -106,11 +152,13 @@ Returns consolidated content with file markers and structure.`,
             : "Full repository content included.",
         };
       } catch (error: any) {
+        const errorMsg = error.message?.slice(0, 500) ?? "Unknown error";
         return {
           success: false,
-          error: error.message?.slice(0, 500) ?? "Unknown error",
+          error: errorMsg,
+          reason: "EXCEPTION",
           suggestion:
-            "Repomix failed. Fall back to standard file-by-file analysis using read_repo_file.",
+            "Repomix failed unexpectedly. Fall back to standard file-by-file analysis using read_repo_file.",
         };
       }
     },

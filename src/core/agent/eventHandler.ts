@@ -152,9 +152,41 @@ export function createEventHandler(options: EventHandlerOptions): {
         break;
 
       case "tool.execution_complete":
-        if (verbose && !json) {
-          const icon = c.healthy(ICON.check);
-          console.log(`  ${icon} ${c.dim("Tool completed")}`);
+        {
+          // The result may contain tool-specific data
+          // For pack_repository, we check for success/error in the parsed content
+          const resultData = event.data?.result;
+          
+          // Try to parse result content if it's a JSON string
+          let parsedResult: Record<string, unknown> | null = null;
+          if (resultData && typeof resultData.content === "string") {
+            try {
+              parsedResult = JSON.parse(resultData.content) as Record<string, unknown>;
+            } catch {
+              // Not JSON, that's fine
+            }
+          }
+
+          // Log pack_repository failures prominently (check by toolCallId pattern or parsed result)
+          if (parsedResult && parsedResult.success === false) {
+            const errorReason = String(parsedResult.reason || "UNKNOWN");
+            const errorMsg = String(parsedResult.error || "");
+            
+            if (!silent && !json) {
+              console.log(
+                `\n  ${c.warning("⚠️")} ${c.warningBold("Tool failed:")} ${c.dim(errorReason)}`
+              );
+              if (errorMsg) {
+                console.log(`  ${c.dim(`   Error: ${errorMsg.slice(0, 200)}`)}`);
+              }
+              if (parsedResult.suggestion) {
+                console.log(`  ${c.dim(`   → ${parsedResult.suggestion}`)}`);
+              }
+            }
+          } else if (verbose && !json) {
+            const icon = c.healthy(ICON.check);
+            console.log(`  ${icon} ${c.dim("Tool completed")}`);
+          }
         }
         break;
 

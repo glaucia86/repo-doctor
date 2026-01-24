@@ -5,7 +5,8 @@ export default defineConfig({
     globals: true,
     environment: "node",
     include: ["tests/**/*.test.ts"],
-    exclude: ["node_modules", "dist"],
+    // Exclude integration tests - run them separately with vitest.integration.config.ts
+    exclude: ["node_modules", "dist", "tests/**/*.integration.test.ts"],
     setupFiles: ["tests/setup.ts"],
     coverage: {
       provider: "v8",

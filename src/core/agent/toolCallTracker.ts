@@ -39,10 +39,10 @@ export interface TrackerConfig {
 // ════════════════════════════════════════════════════════════════════════════
 
 export const DEFAULT_TRACKER_CONFIG: TrackerConfig = {
-  maxToolCalls: 30,           // Allow up to 30 tool calls per session
-  maxConsecutiveRepeats: 3,   // Detect after 3 identical calls in a row
-  minSequenceLength: 2,       // Detect A→B→A patterns
-  timeWindowMs: 60000,        // Look at last 60 seconds
+  maxToolCalls: 50,           // Allow up to 50 tool calls per session
+  maxConsecutiveRepeats: 5,   // Detect after 5 identical calls in a row
+  minSequenceLength: 3,       // Detect A→B→C→A→B→C patterns (longer sequences)
+  timeWindowMs: 120000,       // Look at last 2 minutes
 };
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -183,6 +183,7 @@ export class ToolCallTracker {
 
   /**
    * Compare two sequences of tool calls
+   * Now compares both tool name AND arguments to avoid false positives
    */
   private sequencesMatch(seq1: ToolCall[], seq2: ToolCall[]): boolean {
     if (seq1.length !== seq2.length) return false;
@@ -191,9 +192,9 @@ export class ToolCallTracker {
       const a = seq1[i];
       const b = seq2[i];
       if (!a || !b) return false;
-      if (a.tool !== b.tool) return false;
-      // For sequence detection, we only compare tool names, not args
-      // This catches patterns like read_file(A) → read_file(B) → read_file(A) → read_file(B)
+      // Compare both tool name AND arguments
+      // This prevents false positives when reading different files
+      if (a.tool !== b.tool || a.argsHash !== b.argsHash) return false;
     }
     
     return true;
