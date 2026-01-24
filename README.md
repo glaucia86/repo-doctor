@@ -140,31 +140,7 @@ repo-doctor vercel/next.js --model claude-sonnet-4 --deep
 
 ## 🔧 How It Works
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                     REPO DOCTOR                             │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  1️⃣ RECONNAISSANCE                                          │
-│     └─► Fetch repo metadata & file tree                    │
-│                                                             │
-│  2️⃣ STACK DETECTION                                         │
-│     └─► Identify primary language & framework              │
-│                                                             │
-│  3️⃣ STRATEGIC READING                                       │
-│     └─► Read priority files (README, LICENSE, CI, etc.)    │
-│                                                             │
-│  4️⃣ ANALYSIS                                                │
-│     └─► Evaluate against best practices                    │
-│                                                             │
-│  5️⃣ SCORING                                                 │
-│     └─► Calculate health score per category                │
-│                                                             │
-│  6️⃣ REPORT                                                  │
-│     └─► Generate findings with evidence & actions          │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
-```
+![alt text](./resources/how-it-works.png)
 
 ---
 
@@ -259,6 +235,21 @@ repo-doctor vercel/next.js --model claude-sonnet-4 --deep
 </td>
 </tr>
 </table>
+
+### 🔧 Modular Architecture
+
+The codebase follows **SOLID principles** for maintainability:
+
+```
+src/
+├── cli/          # Command handlers, state, parsers
+├── core/agent/   # System prompts, event handling
+├── tools/        # Individual tool files (SRP)
+├── ui/display/   # Display modules (spinner, menus, etc.)
+└── types/        # Zod schemas, interfaces
+```
+
+> 📖 See [Architecture Documentation](docs/architecture.md) for details.
 
 ---
 

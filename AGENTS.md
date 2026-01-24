@@ -33,6 +33,59 @@ This document defines the Copilot SDK agent configuration for Repo Doctor, inclu
 └─────────────────────────────────────────────────────────────────┘
 ```
 
+### 1.1 Estrutura Modular (SOLID)
+
+```
+src/
+├── cli.ts                     # Entry point (Commander setup only)
+├── cli/                       # CLI Layer
+│   ├── chatLoop.ts            # Interactive REPL
+│   ├── handlers/              # Command handlers (SRP)
+│   │   ├── analyzeHandler.ts  # /analyze, /deep
+│   │   ├── exportHandler.ts   # /export
+│   │   ├── copyHandler.ts     # /copy
+│   │   ├── modelHandler.ts    # /model
+│   │   └── ...
+│   ├── state/                 # Application state
+│   │   └── appState.ts        # IAppState interface + AppState class
+│   └── parsers/               # Input parsing
+│       ├── repoParser.ts      # GitHub URL parsing
+│       └── reportExtractor.ts # Report extraction utilities
+│
+├── core/
+│   ├── agent.ts               # SDK session management
+│   └── agent/                 # Agent modules
+│       ├── prompts/           # Isolated prompts
+│       │   ├── systemPrompt.ts # SYSTEM_PROMPT (~500 lines)
+│       │   └── analysisPrompt.ts
+│       ├── eventHandler.ts    # Session event handling
+│       ├── toolCallTracker.ts # Loop detection (tracks tool calls)
+│       └── guardrails.ts      # Safety mechanisms (step limits, loop prevention)
+│
+├── tools/
+│   ├── repoTools.ts           # Factory (re-exports individual tools)
+│   ├── getRepoMeta.ts         # get_repo_meta tool
+│   ├── listRepoFiles.ts       # list_repo_files tool
+│   ├── readRepoFile.ts        # read_repo_file tool
+│   └── packRepository.ts      # pack_repository tool
+│
+├── ui/
+│   ├── display.ts             # Re-exports from display/
+│   └── display/               # Display modules (SRP)
+│       ├── spinner.ts
+│       ├── messages.ts
+│       ├── menus.ts
+│       └── ...
+│
+├── types/
+│   ├── schema.ts              # Zod schemas
+│   └── interfaces.ts          # Shared interfaces
+│
+└── utils/
+    ├── sanitizer.ts           # Prompt injection protection
+    └── clipboard.ts           # Cross-platform clipboard
+```
+
 ---
 
 ## 2. System Prompt
@@ -629,6 +682,27 @@ try {
 }
 ```
 
+### 10.4. Agent Guardrails (Loop Prevention)
+
+New safety mechanisms prevent the agent from getting stuck in infinite loops:
+
+**ToolCallTracker** (`src/core/agent/toolCallTracker.ts`):
+- Records all tool calls with args hash and timestamp
+- Detects consecutive identical calls (same tool + same args)
+- Detects sequence loops (A→B→A→B patterns)
+- Enforces step limit (30 standard / 40 deep)
+
+**AgentGuardrails** (`src/core/agent/guardrails.ts`):
+- Progressive response: warn → inject replan message → abort
+- Configurable modes: `standard`, `deep`, `strict`
+- Provides stats for debugging
+
+| Guardrail | Trigger | Action |
+|-----------|---------|--------|
+| Step Limit | 30+ tool calls | Abort |
+| Exact Repeat | 3+ identical calls | Warn → Inject → Abort |
+| Sequence Loop | A→B→A→B detected | Warn → Inject → Abort |
+
 ---
 
 ## 11. Testing the Agent
@@ -654,20 +728,58 @@ npm run dev -- vercel/next.js    # Direct analysis
 npm run dev -- /deep owner/repo  # Deep analysis
 ```
 
+### 11.3. Unit Tests
+
+```bash
+npm test              # Run unit tests
+npm run test:watch    # Watch mode
+npm run test:coverage # Coverage report
+```
+
 ---
 
 ## 12. Files Reference
 
 | File | Purpose |
 |------|---------|
-| `src/core/agent.ts` | Copilot SDK session, SYSTEM_PROMPT, event handling |
-| `src/tools/repoTools.ts` | Tool definitions (get_repo_meta, list_repo_files, read_repo_file, pack_repository) |
+| **CLI Layer** | |
+| `src/cli.ts` | Commander setup, entry point |
+| `src/cli/chatLoop.ts` | Interactive REPL |
+| `src/cli/handlers/` | Command handlers (/analyze, /export, etc.) |
+| `src/cli/state/appState.ts` | IAppState interface + AppState class |
+| `src/cli/parsers/` | URL parsing, report extraction |
+| **Core Layer** | |
+| `src/core/agent.ts` | Copilot SDK session management |
+| `src/core/agent/prompts/systemPrompt.ts` | SYSTEM_PROMPT (~500 lines) |
+| `src/core/agent/prompts/analysisPrompt.ts` | buildAnalysisPrompt() function |
+| `src/core/agent/eventHandler.ts` | Session event handling |
+| `src/core/agent/toolCallTracker.ts` | Loop detection (tracks tool calls) |
+| `src/core/agent/guardrails.ts` | Safety mechanisms (step limits, loop prevention) |
 | `src/core/repoPacker.ts` | Repomix integration for deep analysis |
-| `src/cli.ts` | Commander setup, chat loop, command handlers |
+| **Tools Layer** | |
+| `src/tools/repoTools.ts` | Tool factory (re-exports) |
+| `src/tools/getRepoMeta.ts` | get_repo_meta tool |
+| `src/tools/listRepoFiles.ts` | list_repo_files tool |
+| `src/tools/readRepoFile.ts` | read_repo_file tool |
+| `src/tools/packRepository.ts` | pack_repository tool |
+| **UI Layer** | |
+| `src/ui/display.ts` | Re-exports from display/ |
+| `src/ui/display/messages.ts` | printSuccess, printError, etc. |
+| `src/ui/display/menus.ts` | Command menus, model selection |
+| `src/ui/display/spinner.ts` | Spinner management |
+| **Types & Utils** | |
 | `src/types/schema.ts` | Zod schemas for all data types |
-| `src/utils/sanitizer.ts` | Security: prompt injection detection |
+| `src/types/interfaces.ts` | Shared interfaces (IAppState, etc.) |
+| `src/utils/sanitizer.ts` | Prompt injection detection |
+| `src/utils/clipboard.ts` | Cross-platform clipboard |
 | `src/providers/github.ts` | Octokit factory, token resolution |
-| `src/ui/` | Terminal display (chalk, ora, themed output) |
+| **Tests** | |
+| `tests/cli/state/appState.test.ts` | AppState unit tests (16) |
+| `tests/cli/parsers/*.test.ts` | Parser tests (21) |
+| `tests/core/agent/analysisPrompt.test.ts` | Prompt building tests (8) |
+| `tests/core/agent/eventHandler.test.ts` | Event handling tests (17) |
+| `tests/core/agent/toolCallTracker.test.ts` | Loop detection tests (13) |
+| `tests/core/agent/guardrails.test.ts` | Safety mechanism tests (11) |
 
 ---
 
