@@ -4,7 +4,6 @@
  */
 
 import { appState } from "../state/appState.js";
-import { extractReportOnly } from "../parsers/reportExtractor.js";
 import {
   printWarning,
   clearScreen,

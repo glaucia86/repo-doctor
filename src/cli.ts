@@ -30,7 +30,6 @@ import { analyzeRepositoryWithCopilot } from "./core/agent.js";
 // Import from refactored modules
 import {
   appState,
-  AVAILABLE_MODELS,
   findModel,
   parseRepoRef,
   type AnalyzeOptions,
@@ -203,4 +202,4 @@ program
   });
 
 // Parse and run
-program.parse();
+program.parse();

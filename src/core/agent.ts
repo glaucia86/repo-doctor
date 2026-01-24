@@ -5,19 +5,9 @@ import {
   updateSpinner,
   spinnerSuccess,
   spinnerFail,
-  spinnerWarn,
-  printSuccess,
-  printError,
   printWarning,
-  printHealthHeader,
-  printCategoryScores,
-  printFindings,
-  printNextSteps,
-  printGoodbye,
-  printProgress,
   c,
   ICON,
-  BOX,
   box,
 } from "../ui/index.js";
 
@@ -25,10 +15,8 @@ import {
 import {
   SYSTEM_PROMPT,
   buildAnalysisPrompt,
-  createEventHandler,
   createPhases,
   createGuardrails,
-  type AnalysisPhase,
 } from "./agent/index.js";
 
 // Re-export for backward compatibility

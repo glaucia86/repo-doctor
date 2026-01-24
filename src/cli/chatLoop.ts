@@ -31,7 +31,6 @@ import {
   printChatStatusBar,
   printWelcome,
   printQuickCommands,
-  printPrompt,
   printRepo,
   printModel,
   printSuccess,
