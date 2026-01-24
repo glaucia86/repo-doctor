@@ -9,6 +9,7 @@ import {
   c,
   ICON,
 } from "../../ui/index.js";
+import type { AgentGuardrails, GuardrailAction } from "./guardrails.js";
 
 // ════════════════════════════════════════════════════════════════════════════
 // TYPES
@@ -28,6 +29,8 @@ export interface EventHandlerOptions {
   json: boolean;
   /** Reference to spinner for updates */
   hasSpinner: boolean;
+  /** Optional guardrails for loop detection */
+  guardrails?: AgentGuardrails;
 }
 
 export interface EventHandlerState {
@@ -39,6 +42,10 @@ export interface EventHandlerState {
   currentPhaseIndex: number;
   /** Analysis phases */
   phases: AnalysisPhase[];
+  /** Whether analysis was aborted by guardrails */
+  aborted: boolean;
+  /** Reason for abort (if aborted) */
+  abortReason: string;
 }
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -73,7 +80,7 @@ export function createEventHandler(options: EventHandlerOptions): {
   handler: (event: SessionEvent) => void;
   state: EventHandlerState;
 } {
-  const { verbose, silent, json, hasSpinner } = options;
+  const { verbose, silent, json, hasSpinner, guardrails } = options;
 
   // Mutable state that will be updated by the handler
   const state: EventHandlerState = {
@@ -81,9 +88,16 @@ export function createEventHandler(options: EventHandlerOptions): {
     toolCallCount: 0,
     currentPhaseIndex: 0,
     phases: createPhases(),
+    aborted: false,
+    abortReason: "",
   };
 
   const handler = (event: SessionEvent): void => {
+    // If aborted, only process message events (for partial results)
+    if (state.aborted && event.type !== "assistant.message_delta" && event.type !== "assistant.message") {
+      return;
+    }
+
     // Debug: log all events in verbose mode
     if (verbose && !json) {
       console.log(`\n  ${c.dim(`[EVENT] ${event.type}`)}`);
@@ -110,8 +124,20 @@ export function createEventHandler(options: EventHandlerOptions): {
         break;
 
       case "tool.execution_start":
+        // Skip if aborted
+        if (state.aborted) {
+          return;
+        }
+
         state.toolCallCount++;
         const toolName = event.data?.toolName || "tool";
+        const toolArgs = event.data?.arguments || {};
+
+        // Check guardrails for loop detection (if provided)
+        if (guardrails) {
+          const action = guardrails.onToolStart(toolName, toolArgs);
+          handleGuardrailAction(action, state, { verbose, silent, json });
+        }
 
         // Update phase based on tool being called
         updatePhaseFromTool(toolName, state);
@@ -161,6 +187,46 @@ export function createEventHandler(options: EventHandlerOptions): {
 // ════════════════════════════════════════════════════════════════════════════
 // HELPERS
 // ════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Handle guardrail action and update state accordingly
+ */
+function handleGuardrailAction(
+  action: GuardrailAction,
+  state: EventHandlerState,
+  options: { verbose: boolean; silent: boolean; json: boolean }
+): void {
+  const { silent, json } = options;
+
+  switch (action.type) {
+    case "warn":
+      if (!silent && !json) {
+        console.log(`\n  ${c.warning(`⚠️ [Guardrail] ${action.message}`)}`);
+      }
+      break;
+
+    case "inject-message":
+      // Inject guidance message to help the agent replan
+      if (!silent && !json) {
+        console.log(`\n${c.warning(action.message)}`);
+      }
+      // Also add to buffer so it's visible in the report context
+      state.outputBuffer += `\n\n${action.message}\n\n`;
+      break;
+
+    case "abort":
+      // Set abort flag to prevent further tool executions
+      state.aborted = true;
+      state.abortReason = action.reason;
+      if (!silent && !json) {
+        console.log(`\n  ${c.error(`🛑 [Guardrail ABORT] ${action.reason}`)}`);
+        console.log(`\n  ${c.dim("Stopping analysis. Partial results shown above.")}`);
+      }
+      // Add abort notice to output
+      state.outputBuffer += `\n\n---\n⚠️ **Analysis stopped**: ${action.reason}\n---\n`;
+      break;
+  }
+}
 
 /**
  * Update phase status based on which tool is being called

@@ -1,4 +1,4 @@
-import { CopilotClient, type SessionEvent } from "@github/copilot-sdk";
+import { CopilotClient } from "@github/copilot-sdk";
 import { repoTools, deepAnalysisTools } from "../tools/repoTools.js";
 import {
   startSpinner,
@@ -15,8 +15,8 @@ import {
 import {
   SYSTEM_PROMPT,
   buildAnalysisPrompt,
-  createPhases,
   createGuardrails,
+  createEventHandler,
 } from "./agent/index.js";
 
 // Re-export for backward compatibility
@@ -75,10 +75,6 @@ export async function analyzeRepositoryWithCopilot(options: AnalyzeOptions): Pro
   const isJson = format === "json";
   const isDeep = deep;
 
-  // Use extracted phase management (SOLID refactoring)
-  const phases = createPhases();
-  let currentPhaseIndex = 0;
-
   // Initialize guardrails for loop detection and step limits
   const guardrails = createGuardrails(isDeep ? "deep" : "standard");
 
@@ -115,100 +111,16 @@ export async function analyzeRepositoryWithCopilot(options: AnalyzeOptions): Pro
       spinner = null;
     }
 
-    // Set up event handling
-    let outputBuffer = "";
-    let toolCallCount = 0;
-
-    session.on((event: SessionEvent) => {
-      // Debug: log all events in verbose mode
-      if (isVerbose && !isJson) {
-        console.log(`\n  ${c.dim(`[EVENT] ${event.type}`)}`);
-      }
-
-      switch (event.type) {
-        case "assistant.message_delta":
-          if (!isSilent && !isJson) {
-            process.stdout.write(event.data.deltaContent);
-          }
-          // Capture ALL delta content
-          outputBuffer += event.data.deltaContent;
-          break;
-
-        case "assistant.message":
-          // Full message event (non-streaming)
-          if (event.data?.content) {
-            if (!isSilent && !isJson) {
-              console.log(event.data.content);
-            }
-            // IMPORTANT: Also add to output buffer for /copy and /export
-            outputBuffer += event.data.content;
-          }
-          break;
-
-        case "tool.execution_start":
-          toolCallCount++;
-          const toolName = event.data?.toolName || "tool";
-          const toolArgs = event.data?.arguments || {};
-          
-          // Check guardrails for loop detection
-          const guardrailAction = guardrails.onToolStart(toolName, toolArgs);
-          if (guardrailAction.type === "warn" && isVerbose && !isJson) {
-            console.log(`\n  ${c.warning(`⚠️ [Guardrail] ${guardrailAction.message}`)}`);
-          } else if (guardrailAction.type === "abort") {
-            // Log abort reason but don't throw - let timeout handle graceful exit
-            if (!isSilent && !isJson) {
-              console.log(`\n  ${c.error(`🛑 [Guardrail] ${guardrailAction.reason}`)}`);
-            }
-          }
-          
-          // Update phase based on tool being called
-          if (toolName.includes("meta") && currentPhaseIndex === 0) {
-            if (phases[0]) phases[0].status = "running";
-          } else if (toolName.includes("list") && currentPhaseIndex <= 1) {
-            if (phases[0]) phases[0].status = "done";
-            if (phases[1]) phases[1].status = "running";
-            currentPhaseIndex = 1;
-          } else if (toolName.includes("read") && currentPhaseIndex <= 3) {
-            if (phases[1]) phases[1].status = "done";
-            if (phases[2]) phases[2].status = "done";
-            if (phases[3]) phases[3].status = "running";
-            currentPhaseIndex = 3;
-          }
-
-          if (isVerbose && !isJson) {
-            console.log(`\n  ${c.dim(`→ [${toolCallCount}] Calling ${toolName}...`)}`);
-          } else if (!isSilent && !isJson && spinner) {
-            updateSpinner(`Analyzing... (${toolCallCount} API calls)`);
-          }
-          break;
-
-        case "tool.execution_complete":
-          if (isVerbose && !isJson) {
-            const icon = c.healthy(ICON.check);
-            console.log(`  ${icon} ${c.dim("Tool completed")}`);
-          }
-          break;
-
-        case "session.idle":
-          // Mark all phases as done
-          for (const phase of phases) {
-            if (phase.status !== "error") {
-              phase.status = "done";
-            }
-          }
-          if (!isSilent && !isJson) {
-            console.log("\n");
-          }
-          break;
-
-        default:
-          // Log unknown events in verbose mode
-          if (isVerbose && !isJson) {
-            console.log(`  ${c.dim(`[UNKNOWN] ${JSON.stringify(event).slice(0, 100)}...`)}`);
-          }
-          break;
-      }
+    // Set up event handling using shared handler (SOLID - single source of truth)
+    const { handler, state } = createEventHandler({
+      verbose: isVerbose,
+      silent: isSilent,
+      json: isJson,
+      hasSpinner: !!spinner,
+      guardrails,
     });
+
+    session.on(handler);
 
     // Build the analysis prompt using extracted function (SOLID refactoring)
     const prompt = buildAnalysisPrompt({ repoUrl, deep: isDeep });
@@ -262,15 +174,30 @@ export async function analyzeRepositoryWithCopilot(options: AnalyzeOptions): Pro
     if (!isSilent && !isJson) {
       // Print completion summary
       console.log();
+      
+      if (state.aborted) {
+        console.log(
+          "  " +
+            c.warning(ICON.warn) +
+            " " +
+            c.warningBold("Analysis stopped by guardrails")
+        );
+        console.log(
+          "  " +
+            c.dim(`Reason: ${state.abortReason}`)
+        );
+      } else {
+        console.log(
+          "  " +
+            c.healthy(ICON.check) +
+            " " +
+            c.healthyBold("Analysis completed successfully!")
+        );
+      }
+      
       console.log(
         "  " +
-          c.healthy(ICON.check) +
-          " " +
-          c.healthyBold("Analysis completed successfully!")
-      );
-      console.log(
-        "  " +
-          c.dim(`Made ${toolCallCount} API calls in ${(durationMs / 1000).toFixed(1)}s`)
+          c.dim(`Made ${state.toolCallCount} API calls in ${(durationMs / 1000).toFixed(1)}s`)
       );
       
       // Log guardrail stats in verbose mode
@@ -288,8 +215,8 @@ export async function analyzeRepositoryWithCopilot(options: AnalyzeOptions): Pro
 
     // Return analysis result (DO NOT call process.exit!)
     return {
-      content: outputBuffer,
-      toolCallCount,
+      content: state.outputBuffer,
+      toolCallCount: state.toolCallCount,
       durationMs,
       repoUrl,
       model,

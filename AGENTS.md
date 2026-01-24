@@ -708,7 +708,7 @@ npm run dev -- /deep owner/repo  # Deep analysis
 ### 11.3. Unit Tests
 
 ```bash
-npm test              # Run 62 unit tests
+npm test              # Run unit tests
 npm run test:watch    # Watch mode
 npm run test:coverage # Coverage report
 ```
