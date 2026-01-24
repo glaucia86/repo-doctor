@@ -283,9 +283,9 @@ If you find Repo Doctor useful:
 
 <a href="https://star-history.com/#glaucia86/repo-doctor&Date">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=glaucia86/repo-doctor&type=Date&theme=dark"/>
-    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=glaucia86/repo-doctor&type=Date"/>
-    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=glaucia86/repo-doctor&type=Date"/>
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=glaucia86/repo-doctor&type=Date&theme=dark&v=20260123"/>
+    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=glaucia86/repo-doctor&type=Date&v=20260123"/>
+    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=glaucia86/repo-doctor&type=Date&v=20260123"/>
   </picture>
 </a>
 
