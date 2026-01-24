@@ -37,6 +37,21 @@ describe("repoParser", () => {
       expect(result).toEqual({ owner: "owner", repo: "repo" });
     });
 
+    it("should strip query strings from URLs", () => {
+      const result = parseRepoRef("https://github.com/owner/repo?tab=readme");
+      expect(result).toEqual({ owner: "owner", repo: "repo" });
+    });
+
+    it("should strip fragments from URLs", () => {
+      const result = parseRepoRef("https://github.com/owner/repo#readme");
+      expect(result).toEqual({ owner: "owner", repo: "repo" });
+    });
+
+    it("should handle both query string and fragment", () => {
+      const result = parseRepoRef("https://github.com/owner/repo?tab=code#L10");
+      expect(result).toEqual({ owner: "owner", repo: "repo" });
+    });
+
     it("should return null for invalid formats", () => {
       expect(parseRepoRef("")).toBeNull();
       expect(parseRepoRef("invalid")).toBeNull();

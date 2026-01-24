@@ -35,8 +35,9 @@ export function parseRepoRef(repoRef: string): ParsedRepo | null {
   const trimmed = repoRef.trim();
 
   // HTTPS URL: https://github.com/owner/repo
+  // Stop at query string (?), fragment (#), or whitespace
   const httpsMatch = trimmed.match(
-    /(?:https?:\/\/)?github\.com\/([^\/]+)\/([^\/\s]+)/
+    /(?:https?:\/\/)?github\.com\/([^\/]+)\/([^\/\s?#]+)/
   );
   if (httpsMatch) {
     return {
