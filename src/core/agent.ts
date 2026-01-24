@@ -27,6 +27,7 @@ import {
   buildAnalysisPrompt,
   createEventHandler,
   createPhases,
+  createGuardrails,
   type AnalysisPhase,
 } from "./agent/index.js";
 
@@ -89,6 +90,9 @@ export async function analyzeRepositoryWithCopilot(options: AnalyzeOptions): Pro
   // Use extracted phase management (SOLID refactoring)
   const phases = createPhases();
   let currentPhaseIndex = 0;
+
+  // Initialize guardrails for loop detection and step limits
+  const guardrails = createGuardrails(isDeep ? "deep" : "standard");
 
   // Start spinner
   let spinner = !isSilent && !isJson ? startSpinner("Initializing Copilot...") : null;
@@ -156,6 +160,18 @@ export async function analyzeRepositoryWithCopilot(options: AnalyzeOptions): Pro
         case "tool.execution_start":
           toolCallCount++;
           const toolName = event.data?.toolName || "tool";
+          const toolArgs = event.data?.arguments || {};
+          
+          // Check guardrails for loop detection
+          const guardrailAction = guardrails.onToolStart(toolName, toolArgs);
+          if (guardrailAction.type === "warn" && isVerbose && !isJson) {
+            console.log(`\n  ${c.warning(`⚠️ [Guardrail] ${guardrailAction.message}`)}`);
+          } else if (guardrailAction.type === "abort") {
+            // Log abort reason but don't throw - let timeout handle graceful exit
+            if (!isSilent && !isJson) {
+              console.log(`\n  ${c.error(`🛑 [Guardrail] ${guardrailAction.reason}`)}`);
+            }
+          }
           
           // Update phase based on tool being called
           if (toolName.includes("meta") && currentPhaseIndex === 0) {
@@ -268,6 +284,17 @@ export async function analyzeRepositoryWithCopilot(options: AnalyzeOptions): Pro
         "  " +
           c.dim(`Made ${toolCallCount} API calls in ${(durationMs / 1000).toFixed(1)}s`)
       );
+      
+      // Log guardrail stats in verbose mode
+      if (isVerbose) {
+        const stats = guardrails.getStats();
+        if (stats.warningCount > 0) {
+          console.log(
+            "  " +
+              c.warning(`Guardrail warnings: ${stats.warningCount}`)
+          );
+        }
+      }
       console.log();
     }
 
