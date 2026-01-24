@@ -8,20 +8,49 @@ Repo Doctor is an **Agentic CLI Tool** built with the [GitHub Copilot SDK](https
 
 ```
 src/
-├── cli.ts           # Main CLI entry, Commander setup, chat loop, command handlers
+├── cli.ts                     # Entry point (Commander setup only, ~186 lines)
+├── cli/                       # CLI Layer (SRP)
+│   ├── chatLoop.ts            # Interactive REPL
+│   ├── handlers/              # Command handlers (one per command)
+│   │   ├── analyzeHandler.ts  # /analyze, /deep
+│   │   ├── copyHandler.ts     # /copy
+│   │   ├── exportHandler.ts   # /export
+│   │   ├── modelHandler.ts    # /model
+│   │   └── ...
+│   ├── parsers/               # Input parsing utilities
+│   │   ├── repoParser.ts      # GitHub URL parsing
+│   │   └── reportExtractor.ts # Report extraction
+│   └── state/                 # Application state
+│       └── appState.ts        # IAppState interface + AppState class
 ├── core/
-│   ├── agent.ts     # Copilot SDK session, SYSTEM_PROMPT, event handling
-│   ├── repoPacker.ts # Repomix integration for deep analysis
-│   └── markdownReporter.ts
+│   ├── agent.ts               # Copilot SDK session management
+│   ├── repoPacker.ts          # Repomix integration for deep analysis
+│   └── agent/                 # Agent modules
+│       ├── prompts/           # Isolated prompts (OCP)
+│       │   ├── systemPrompt.ts # SYSTEM_PROMPT (~500 lines)
+│       │   └── analysisPrompt.ts
+│       ├── eventHandler.ts    # Session event handling
+│       ├── toolCallTracker.ts # Loop detection (tracks tool calls)
+│       └── guardrails.ts      # Safety mechanisms (step limits, loop prevention)
 ├── providers/
-│   └── github.ts    # Octokit factory, token resolution (env → gh CLI)
-├── tools/
-│   └── repoTools.ts # defineTool() implementations: get_repo_meta, list_repo_files, read_repo_file, pack_repository
+│   └── github.ts              # Octokit factory, token resolution (env → gh CLI)
+├── tools/                     # Individual tool files (DIP)
+│   ├── repoTools.ts           # Factory (re-exports individual tools)
+│   ├── getRepoMeta.ts         # get_repo_meta tool
+│   ├── listRepoFiles.ts       # list_repo_files tool
+│   ├── readRepoFile.ts        # read_repo_file tool
+│   └── packRepository.ts      # pack_repository tool
 ├── types/
-│   └── schema.ts    # Zod schemas for all data types (Finding, AnalysisResult, etc.)
-├── ui/              # Terminal display (chalk, ora spinners, themed output)
+│   ├── schema.ts              # Zod schemas for all data types
+│   └── interfaces.ts          # Shared interfaces (IAppState, etc.)
+├── ui/                        # Terminal display
+│   └── display/               # Modular UI components (SRP)
+│       ├── messages.ts        # printSuccess, printError, etc.
+│       ├── menus.ts           # Command menus, model selection
+│       └── spinner.ts         # Spinner management
 └── utils/
-    └── sanitizer.ts # Security: prompt injection detection in file content
+    ├── sanitizer.ts           # Security: prompt injection detection
+    └── clipboard.ts           # Cross-platform clipboard
 ```
 
 ## Key Patterns
@@ -180,14 +209,37 @@ Two modes defined in [repoPacker.ts](src/core/repoPacker.ts):
 
 ## Testing
 
-> ⚠️ **Planned for future versions** — Test suite not yet implemented.
+The project uses **Vitest** for unit testing with **86 tests** across 7 test files.
 
-### Current Testing Approach
+### Running Tests
 
-- Manual testing: `npm run dev -- <repo>` with various repositories
-- Test edge cases: archived repos, empty repos, rate limits, private repos
+```bash
+npm test              # Run all tests
+npm run test:watch    # Watch mode for development
+npm run test:coverage # Generate coverage report
+```
 
-### Recommended Test Cases for Future Implementation
+### Test Files
+
+| Test File | Tests | Coverage |
+|-----------|-------|----------|
+| `tests/cli/parsers/repoParser.test.ts` | 12 | URL parsing |
+| `tests/cli/parsers/reportExtractor.test.ts` | 9 | Report extraction |
+| `tests/cli/state/appState.test.ts` | 16 | State management |
+| `tests/core/agent/analysisPrompt.test.ts` | 8 | Prompt building |
+| `tests/core/agent/eventHandler.test.ts` | 17 | Event handling |
+| `tests/core/agent/toolCallTracker.test.ts` | 13 | Loop detection |
+| `tests/core/agent/guardrails.test.ts` | 11 | Safety mechanisms |
+
+### Manual Testing
+
+```bash
+npm run dev                    # Interactive chat mode
+npm run dev -- vercel/next.js  # Direct analysis
+npm run dev -- /deep owner/repo # Deep analysis
+```
+
+### Edge Cases to Test
 
 | Test Case | Input | Expected |
 |-----------|-------|----------|
@@ -199,17 +251,12 @@ Two modes defined in [repoPacker.ts](src/core/repoPacker.ts):
 | Archived repo | Archived repository | Note in summary, adjusted expectations |
 | Empty repo | Empty repository | P0: "Repository appears empty" |
 
-### Test Framework Considerations
-
-When implementing tests, consider:
-- **Unit tests**: Tool handlers in `repoTools.ts` with mocked Octokit
-- **Integration tests**: Full analysis flow with test repositories
-- **Snapshot tests**: Report output consistency
-
 ## Files to Read First
 
 When understanding this codebase, read in order:
-1. [agent.ts](src/core/agent.ts) — Core SDK integration and SYSTEM_PROMPT
-2. [repoTools.ts](src/tools/repoTools.ts) — Available tools for analysis
-3. [cli.ts](src/cli.ts) — Command handling and chat loop
-4. [schema.ts](src/types/schema.ts) — Type definitions
+1. [systemPrompt.ts](src/core/agent/prompts/systemPrompt.ts) — SYSTEM_PROMPT for agent behavior
+2. [agent.ts](src/core/agent.ts) — Copilot SDK session management
+3. [repoTools.ts](src/tools/repoTools.ts) — Available tools for analysis
+4. [cli.ts](src/cli.ts) — Commander setup (entry point)
+5. [chatLoop.ts](src/cli/chatLoop.ts) — Interactive REPL
+6. [guardrails.ts](src/core/agent/guardrails.ts) — Safety mechanisms
