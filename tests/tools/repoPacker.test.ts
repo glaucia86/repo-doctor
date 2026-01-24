@@ -8,7 +8,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import * as childProcess from "child_process";
 import * as fs from "fs/promises";
-import * as os from "os";
 import { EventEmitter } from "events";
 
 // Mock child_process and fs before importing the module

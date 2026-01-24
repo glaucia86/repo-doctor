@@ -364,26 +364,24 @@ async function executeRepomix(args: string[], timeout: number): Promise<void> {
     const escapeArg = (arg: string): string => {
       if (isWindows) {
         // On Windows with shell, wrap in quotes if contains special chars
-        if (/[\s*?{}[\]()!^"&|<>]/.test(arg)) {
+        if (/[\s*?{}\[\]()!^"&|<>]/.test(arg)) {
           return `"${arg.replace(/"/g, '\\"')}"`;
         }
         return arg;
       }
       // On Unix, escape special characters
-      if (/[\s*?{}[\]()!^"'&|<>;$`\\]/.test(arg)) {
+      if (/[\s*?{}\[\]()!^"'&|<>;$`\\]/.test(arg)) {
         return `'${arg.replace(/'/g, "'\\''")}'`;
       }
       return arg;
     };
     
     const escapedArgs = args.map(escapeArg);
-    const command = isWindows 
-      ? `npx ${escapedArgs.join(" ")}`
-      : `npx ${escapedArgs.join(" ")}`;
+    const command = `npx ${escapedArgs.join(" ")}`;
 
     const child = spawn(command, [], {
       shell: true,
-      stdio: ["ignore", "pipe", "pipe"],
+      stdio: ["ignore", "ignore", "pipe"],
       windowsHide: true,
       env: { 
         ...process.env, 
@@ -394,12 +392,7 @@ async function executeRepomix(args: string[], timeout: number): Promise<void> {
     });
 
     let stderr = "";
-    let stdout = "";
     let settled = false;
-
-    child.stdout?.on("data", (data) => {
-      stdout += data.toString();
-    });
 
     child.stderr?.on("data", (data) => {
       stderr += data.toString();
