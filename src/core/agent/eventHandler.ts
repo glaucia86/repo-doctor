@@ -46,7 +46,32 @@ export interface EventHandlerState {
   aborted: boolean;
   /** Reason for abort (if aborted) */
   abortReason: string;
+  /** Track the current tool being executed (for correlating start/complete events) */
+  currentToolName: string | null;
 }
+
+// ════════════════════════════════════════════════════════════════════════════
+// TOOL RESULT SCHEMA
+// ════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Tools that follow the structured result schema with { success, error, reason, suggestion }
+ * Only these tools will have their failure status displayed prominently.
+ * 
+ * Expected result structure:
+ * {
+ *   success: boolean;
+ *   error?: string;       // Human-readable error message
+ *   reason?: string;      // Error code like "TIMEOUT", "REPO_NOT_FOUND", etc.
+ *   suggestion?: string;  // Actionable suggestion for recovery
+ * }
+ */
+const TOOLS_WITH_STRUCTURED_RESULTS = new Set([
+  "pack_repository",
+  "get_repo_meta",
+  "read_repo_file",
+  "list_repo_files",
+]);
 
 // ════════════════════════════════════════════════════════════════════════════
 // DEFAULT PHASES
@@ -90,6 +115,7 @@ export function createEventHandler(options: EventHandlerOptions): {
     phases: createPhases(),
     aborted: false,
     abortReason: "",
+    currentToolName: null,
   };
 
   const handler = (event: SessionEvent): void => {
@@ -132,6 +158,9 @@ export function createEventHandler(options: EventHandlerOptions): {
         state.toolCallCount++;
         const toolName = event.data?.toolName || "tool";
         const toolArgs = event.data?.arguments || {};
+        
+        // Track current tool for correlating with execution_complete event
+        state.currentToolName = toolName;
 
         // Check guardrails for loop detection (if provided)
         if (guardrails) {
@@ -153,13 +182,20 @@ export function createEventHandler(options: EventHandlerOptions): {
 
       case "tool.execution_complete":
         {
+          // Get the tool name from tracking state (set during execution_start)
+          const completedToolName = state.currentToolName;
+          state.currentToolName = null; // Clear for next tool
+          
+          // Only apply structured error display to tools that follow the expected schema
+          // This prevents false positives from tools with different result formats
+          const isStructuredTool = completedToolName && TOOLS_WITH_STRUCTURED_RESULTS.has(completedToolName);
+          
           // The result may contain tool-specific data
-          // For pack_repository, we check for success/error in the parsed content
           const resultData = event.data?.result;
           
           // Try to parse result content if it's a JSON string
           let parsedResult: Record<string, unknown> | null = null;
-          if (resultData && typeof resultData.content === "string") {
+          if (isStructuredTool && resultData && typeof resultData.content === "string") {
             try {
               parsedResult = JSON.parse(resultData.content) as Record<string, unknown>;
             } catch {
@@ -167,7 +203,7 @@ export function createEventHandler(options: EventHandlerOptions): {
             }
           }
 
-          // Log pack_repository failures prominently (check by toolCallId pattern or parsed result)
+          // Log failures prominently for tools with structured results
           if (parsedResult && parsedResult.success === false) {
             const errorReason = String(parsedResult.reason || "UNKNOWN");
             const errorMsg = String(parsedResult.error || "");

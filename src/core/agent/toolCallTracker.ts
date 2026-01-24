@@ -182,8 +182,25 @@ export class ToolCallTracker {
   }
 
   /**
-   * Compare two sequences of tool calls
-   * Now compares both tool name AND arguments to avoid false positives
+   * Compare two sequences of tool calls.
+   * 
+   * DESIGN DECISION: We compare both tool name AND arguments (argsHash).
+   * 
+   * This is intentional for Repo Doctor's use case:
+   * - Reading different files in sequence (README → LICENSE → package.json) is 
+   *   expected and normal behavior during repository analysis
+   * - We only want to detect TRUE loops where the agent is stuck repeating
+   *   the exact same operation (same tool + same arguments)
+   * 
+   * Alternative approach (tool name only) would cause false positives:
+   *   read_file(README) → read_file(LICENSE) → read_file(package.json) → ...
+   *   would incorrectly be flagged as a loop pattern.
+   * 
+   * Current approach correctly allows:
+   *   ✓ read_file(A) → read_file(B) → read_file(C) (different files)
+   * 
+   * Current approach catches:
+   *   ✗ read_file(A) → process → read_file(A) → process (same file, stuck loop)
    */
   private sequencesMatch(seq1: ToolCall[], seq2: ToolCall[]): boolean {
     if (seq1.length !== seq2.length) return false;
@@ -192,8 +209,8 @@ export class ToolCallTracker {
       const a = seq1[i];
       const b = seq2[i];
       if (!a || !b) return false;
-      // Compare both tool name AND arguments
-      // This prevents false positives when reading different files
+      // Compare both tool name AND arguments to avoid false positives
+      // when the agent is legitimately reading multiple different files
       if (a.tool !== b.tool || a.argsHash !== b.argsHash) return false;
     }
     

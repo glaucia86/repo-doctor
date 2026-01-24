@@ -18,6 +18,7 @@ vi.mock("fs/promises");
 import {
   packRemoteRepository,
   isRepomixAvailable,
+  clearRepomixAvailabilityCache,
   getDefaultIncludePatterns,
   getDeepIncludePatterns,
 } from "../../src/core/repoPacker.js";
@@ -96,6 +97,8 @@ export interface User {
 describe("isRepomixAvailable", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Clear the availability cache before each test to ensure isolation
+    clearRepomixAvailabilityCache();
   });
 
   it("should return true when npx repomix --version succeeds", async () => {
@@ -120,7 +123,7 @@ describe("isRepomixAvailable", () => {
     expect(result).toBe(false);
   });
 
-  it("should return false on timeout", async () => {
+  it("should return false when execSync throws ETIMEDOUT error", async () => {
     vi.mocked(childProcess.execSync).mockImplementation(() => {
       const error = new Error("ETIMEDOUT") as Error & { code: string };
       error.code = "ETIMEDOUT";
@@ -130,6 +133,49 @@ describe("isRepomixAvailable", () => {
     const result = await isRepomixAvailable();
 
     expect(result).toBe(false);
+  });
+
+  it("should cache the result after first call", async () => {
+    vi.mocked(childProcess.execSync).mockReturnValue(Buffer.from("1.11.1"));
+
+    // First call - should execute the check
+    await isRepomixAvailable();
+    expect(childProcess.execSync).toHaveBeenCalledTimes(1);
+
+    // Second call - should use cached result
+    await isRepomixAvailable();
+    expect(childProcess.execSync).toHaveBeenCalledTimes(1); // Still 1
+  });
+
+  it("should bypass cache when forceRefresh is true", async () => {
+    vi.mocked(childProcess.execSync).mockReturnValue(Buffer.from("1.11.1"));
+
+    // First call
+    await isRepomixAvailable();
+    expect(childProcess.execSync).toHaveBeenCalledTimes(1);
+
+    // Force refresh
+    await isRepomixAvailable(true);
+    expect(childProcess.execSync).toHaveBeenCalledTimes(2);
+  });
+
+  it("should update cached result on forceRefresh", async () => {
+    // First call succeeds
+    vi.mocked(childProcess.execSync).mockReturnValue(Buffer.from("1.11.1"));
+    const result1 = await isRepomixAvailable();
+    expect(result1).toBe(true);
+
+    // Now make it fail and force refresh
+    vi.mocked(childProcess.execSync).mockImplementation(() => {
+      throw new Error("Command not found");
+    });
+    const result2 = await isRepomixAvailable(true);
+    expect(result2).toBe(false);
+
+    // Subsequent call should use the new cached value (false)
+    const result3 = await isRepomixAvailable();
+    expect(result3).toBe(false);
+    expect(childProcess.execSync).toHaveBeenCalledTimes(2); // Only 2 actual calls
   });
 });
 
@@ -255,6 +301,20 @@ describe("packRemoteRepository", () => {
       expect(result.error).toBeUndefined();
     });
 
+    it("should use shell: false for security (avoid shell injection)", async () => {
+      await packRemoteRepository({
+        url: "owner/repo",
+        timeout: 10000,
+      });
+
+      expect(childProcess.spawn).toHaveBeenCalled();
+      const spawnCall = vi.mocked(childProcess.spawn).mock.calls[0];
+      const options = spawnCall[2] as { shell: boolean };
+
+      // SECURITY: shell must be false to prevent command injection
+      expect(options.shell).toBe(false);
+    });
+
     it("should normalize owner/repo to full URL", async () => {
       await packRemoteRepository({
         url: "owner/repo",
@@ -263,9 +323,10 @@ describe("packRemoteRepository", () => {
 
       expect(childProcess.spawn).toHaveBeenCalled();
       const spawnCall = vi.mocked(childProcess.spawn).mock.calls[0];
-      const command = spawnCall[0];
+      // With shell: false, spawn receives (executable, args, options)
+      const args = spawnCall[1] as string[];
 
-      expect(command).toContain("https://github.com/owner/repo");
+      expect(args.join(" ")).toContain("https://github.com/owner/repo");
     });
 
     it("should append ref to URL when provided", async () => {
@@ -276,9 +337,9 @@ describe("packRemoteRepository", () => {
       });
 
       const spawnCall = vi.mocked(childProcess.spawn).mock.calls[0];
-      const command = spawnCall[0];
+      const args = spawnCall[1] as string[];
 
-      expect(command).toContain("https://github.com/owner/repo/tree/develop");
+      expect(args.join(" ")).toContain("https://github.com/owner/repo/tree/develop");
     });
 
     it("should include patterns in command", async () => {
@@ -289,10 +350,10 @@ describe("packRemoteRepository", () => {
       });
 
       const spawnCall = vi.mocked(childProcess.spawn).mock.calls[0];
-      const command = spawnCall[0];
+      const args = spawnCall[1] as string[];
 
-      expect(command).toContain("--include");
-      expect(command).toContain("src/**");
+      expect(args).toContain("--include");
+      expect(args.join(" ")).toContain("src/**");
     });
 
     it("should use plain style by default", async () => {
@@ -302,10 +363,10 @@ describe("packRemoteRepository", () => {
       });
 
       const spawnCall = vi.mocked(childProcess.spawn).mock.calls[0];
-      const command = spawnCall[0];
+      const args = spawnCall[1] as string[];
 
-      expect(command).toContain("--style");
-      expect(command).toContain("plain");
+      expect(args).toContain("--style");
+      expect(args).toContain("plain");
     });
 
     it("should pass --no-security-check flag", async () => {
@@ -315,9 +376,9 @@ describe("packRemoteRepository", () => {
       });
 
       const spawnCall = vi.mocked(childProcess.spawn).mock.calls[0];
-      const command = spawnCall[0];
+      const args = spawnCall[1] as string[];
 
-      expect(command).toContain("--no-security-check");
+      expect(args).toContain("--no-security-check");
     });
 
     it("should pass --compress flag when enabled", async () => {
@@ -328,9 +389,9 @@ describe("packRemoteRepository", () => {
       });
 
       const spawnCall = vi.mocked(childProcess.spawn).mock.calls[0];
-      const command = spawnCall[0];
+      const args = spawnCall[1] as string[];
 
-      expect(command).toContain("--compress");
+      expect(args).toContain("--compress");
     });
 
     it("should clean temp directory after success", async () => {
@@ -368,14 +429,18 @@ describe("packRemoteRepository", () => {
   });
 
   describe("truncation", () => {
-    it("should truncate when content exceeds maxBytes", async () => {
-      // Create content larger than maxBytes
-      const largeContent = "X".repeat(10000);
-      vi.mocked(fs.readFile).mockResolvedValue(largeContent);
+    beforeEach(() => {
+      // Mock successful repomix execution
       vi.mocked(childProcess.spawn).mockReturnValue(
         createMockChildProcess(0) as any
       );
 
+      // Mock large content that exceeds maxBytes
+      const largeContent = "X".repeat(10000);
+      vi.mocked(fs.readFile).mockResolvedValue(largeContent);
+    });
+
+    it("should truncate when content exceeds maxBytes", async () => {
       const result = await packRemoteRepository({
         url: "owner/repo",
         maxBytes: 1000, // Small limit
@@ -383,7 +448,7 @@ describe("packRemoteRepository", () => {
       });
 
       expect(result.truncated).toBe(true);
-      expect(result.content!.length).toBeLessThan(largeContent.length);
+      expect(result.content!.length).toBeLessThan(10000);
       expect(result.content).toContain("TRUNCATED");
     });
   });

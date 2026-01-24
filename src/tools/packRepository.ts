@@ -9,6 +9,7 @@ import {
   getDefaultIncludePatterns,
   getDeepIncludePatterns,
   isRepomixAvailable,
+  type PackErrorReason,
 } from "../core/repoPacker.js";
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -17,6 +18,35 @@ import {
 
 export interface PackRepositoryOptions {
   maxBytes?: number;
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// ERROR SUGGESTIONS
+// ════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Maps structured error reasons to user-friendly suggestions.
+ * Centralized here to keep suggestions consistent and easy to update.
+ */
+function getErrorSuggestion(reason: PackErrorReason): string {
+  const suggestions: Record<PackErrorReason, string> = {
+    TIMEOUT:
+      "Repository too large or network too slow. Use standard file-by-file analysis instead.",
+    REPO_NOT_FOUND:
+      "Repository not found or is private. Check the URL and ensure you have access.",
+    RATE_LIMITED:
+      "GitHub rate limit hit. Wait a few minutes or use a token with higher limits.",
+    CLONE_FAILED:
+      "Failed to clone repository. Check network connection and repository accessibility.",
+    NPX_NOT_FOUND:
+      "npx command not found. Ensure Node.js >= 18 is installed and in PATH.",
+    EXECUTION_FAILED:
+      "Repomix execution failed. Fall back to standard file-by-file analysis using read_repo_file.",
+    UNKNOWN:
+      "Repomix failed. Fall back to standard file-by-file analysis using read_repo_file.",
+  };
+  
+  return suggestions[reason] || suggestions.UNKNOWN;
 }
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -98,38 +128,10 @@ Returns consolidated content with file markers and structure.`,
         });
 
         if (!result.success) {
-          // Categorize the error for better diagnostics
-          const errorLower = (result.error || "").toLowerCase();
-          let reason = "UNKNOWN";
-          let suggestion =
-            "Repomix failed. Fall back to standard file-by-file analysis using read_repo_file.";
-
-          if (errorLower.includes("timeout")) {
-            reason = "TIMEOUT";
-            suggestion =
-              "Repository too large or network too slow. Use standard file-by-file analysis instead.";
-          } else if (
-            errorLower.includes("404") ||
-            errorLower.includes("not found")
-          ) {
-            reason = "REPO_NOT_FOUND";
-            suggestion =
-              "Repository not found or is private. Check the URL and ensure you have access.";
-          } else if (
-            errorLower.includes("403") ||
-            errorLower.includes("rate limit")
-          ) {
-            reason = "RATE_LIMITED";
-            suggestion =
-              "GitHub rate limit hit. Wait a few minutes or use a token with higher limits.";
-          } else if (
-            errorLower.includes("clone") ||
-            errorLower.includes("git")
-          ) {
-            reason = "CLONE_FAILED";
-            suggestion =
-              "Failed to clone repository. Check network connection and repository accessibility.";
-          }
+          // Use the structured error reason from PackResult
+          // This avoids fragile string matching on error messages
+          const reason = result.errorReason || "UNKNOWN";
+          const suggestion = getErrorSuggestion(reason);
 
           return {
             success: false,

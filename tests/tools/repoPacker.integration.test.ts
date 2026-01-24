@@ -7,10 +7,11 @@
  * Run with: npm run test:integration
  */
 
-import { describe, it, expect, beforeAll } from "vitest";
+import { describe, it, expect } from "vitest";
 import {
   packRemoteRepository,
   isRepomixAvailable,
+  clearRepomixAvailabilityCache,
   getDefaultIncludePatterns,
   getDeepIncludePatterns,
 } from "../../src/core/repoPacker.js";
@@ -26,14 +27,23 @@ const TEST_REPO_URL = "https://github.com/octocat/Hello-World";
 // Timeout for integration tests (Repomix can be slow)
 const INTEGRATION_TIMEOUT = 120000; // 2 minutes
 
+// Check Repomix availability once at module load time
+// This enables proper use of Vitest's skipIf for better test reporting
+clearRepomixAvailabilityCache();
+const repomixAvailable = await isRepomixAvailable();
+
+if (!repomixAvailable) {
+  console.warn("⚠️ Repomix not available - integration tests will be skipped");
+}
+
 // ════════════════════════════════════════════════════════════════════════════
 // PRE-FLIGHT CHECK
 // ════════════════════════════════════════════════════════════════════════════
 
 describe("Integration: Pre-flight", () => {
   it("should have Repomix available via npx", async () => {
+    // This test validates the availability check itself
     const available = await isRepomixAvailable();
-
     expect(available).toBe(true);
   }, 60000);
 });
@@ -43,22 +53,10 @@ describe("Integration: Pre-flight", () => {
 // ════════════════════════════════════════════════════════════════════════════
 
 describe("Integration: packRemoteRepository", () => {
-  // Skip all tests in this describe block if Repomix is not available
-  let repomixAvailable = false;
-
-  beforeAll(async () => {
-    repomixAvailable = await isRepomixAvailable();
-    if (!repomixAvailable) {
-      console.warn("⚠️ Repomix not available - skipping integration tests");
-    }
-  }, 60000);
-
   describe("with owner/repo shorthand", () => {
-    it(
+    it.skipIf(!repomixAvailable)(
       "should successfully pack a small public repository",
       async () => {
-        if (!repomixAvailable) return;
-
         const result = await packRemoteRepository({
           url: TEST_REPO,
           maxBytes: 500000,
@@ -73,11 +71,9 @@ describe("Integration: packRemoteRepository", () => {
       INTEGRATION_TIMEOUT
     );
 
-    it(
+    it.skipIf(!repomixAvailable)(
       "should include file content in the packed output",
       async () => {
-        if (!repomixAvailable) return;
-
         const result = await packRemoteRepository({
           url: TEST_REPO,
           include: ["README"],
@@ -93,11 +89,9 @@ describe("Integration: packRemoteRepository", () => {
   });
 
   describe("with full URL", () => {
-    it(
+    it.skipIf(!repomixAvailable)(
       "should successfully pack using full GitHub URL",
       async () => {
-        if (!repomixAvailable) return;
-
         const result = await packRemoteRepository({
           url: TEST_REPO_URL,
           timeout: INTEGRATION_TIMEOUT,
@@ -111,11 +105,9 @@ describe("Integration: packRemoteRepository", () => {
   });
 
   describe("output structure", () => {
-    it(
+    it.skipIf(!repomixAvailable)(
       "should include Repomix header in output",
       async () => {
-        if (!repomixAvailable) return;
-
         const result = await packRemoteRepository({
           url: TEST_REPO,
           timeout: INTEGRATION_TIMEOUT,
@@ -128,11 +120,9 @@ describe("Integration: packRemoteRepository", () => {
       INTEGRATION_TIMEOUT
     );
 
-    it(
+    it.skipIf(!repomixAvailable)(
       "should include file markers in output",
       async () => {
-        if (!repomixAvailable) return;
-
         const result = await packRemoteRepository({
           url: TEST_REPO,
           timeout: INTEGRATION_TIMEOUT,
@@ -145,11 +135,9 @@ describe("Integration: packRemoteRepository", () => {
       INTEGRATION_TIMEOUT
     );
 
-    it(
+    it.skipIf(!repomixAvailable)(
       "should return metadata about files processed",
       async () => {
-        if (!repomixAvailable) return;
-
         const result = await packRemoteRepository({
           url: TEST_REPO,
           timeout: INTEGRATION_TIMEOUT,
@@ -163,11 +151,9 @@ describe("Integration: packRemoteRepository", () => {
       INTEGRATION_TIMEOUT
     );
 
-    it(
+    it.skipIf(!repomixAvailable)(
       "should report correct original size",
       async () => {
-        if (!repomixAvailable) return;
-
         const result = await packRemoteRepository({
           url: TEST_REPO,
           timeout: INTEGRATION_TIMEOUT,
@@ -184,11 +170,9 @@ describe("Integration: packRemoteRepository", () => {
   });
 
   describe("include patterns", () => {
-    it(
+    it.skipIf(!repomixAvailable)(
       "should respect include patterns",
       async () => {
-        if (!repomixAvailable) return;
-
         // Only include README files
         const result = await packRemoteRepository({
           url: TEST_REPO,
@@ -203,11 +187,9 @@ describe("Integration: packRemoteRepository", () => {
       INTEGRATION_TIMEOUT
     );
 
-    it(
+    it.skipIf(!repomixAvailable)(
       "should use default patterns when not specified",
       async () => {
-        if (!repomixAvailable) return;
-
         const result = await packRemoteRepository({
           url: TEST_REPO,
           timeout: INTEGRATION_TIMEOUT,
@@ -223,11 +205,9 @@ describe("Integration: packRemoteRepository", () => {
   });
 
   describe("error scenarios", () => {
-    it(
+    it.skipIf(!repomixAvailable)(
       "should fail gracefully for non-existent repository",
       async () => {
-        if (!repomixAvailable) return;
-
         const result = await packRemoteRepository({
           url: "this-owner-does-not-exist/this-repo-does-not-exist-12345",
           timeout: 60000,
@@ -239,11 +219,9 @@ describe("Integration: packRemoteRepository", () => {
       INTEGRATION_TIMEOUT
     );
 
-    it(
+    it.skipIf(!repomixAvailable)(
       "should handle timeout for very slow operations",
       async () => {
-        if (!repomixAvailable) return;
-
         // Use a very short timeout to force timeout
         const result = await packRemoteRepository({
           url: TEST_REPO,
@@ -258,11 +236,9 @@ describe("Integration: packRemoteRepository", () => {
   });
 
   describe("output cleaning", () => {
-    it(
+    it.skipIf(!repomixAvailable)(
       "should not contain npm/node warnings in final output",
       async () => {
-        if (!repomixAvailable) return;
-
         const result = await packRemoteRepository({
           url: TEST_REPO,
           timeout: INTEGRATION_TIMEOUT,
@@ -284,17 +260,9 @@ describe("Integration: packRemoteRepository", () => {
 // ════════════════════════════════════════════════════════════════════════════
 
 describe("Integration: Deep Analysis Patterns", () => {
-  let repomixAvailable = false;
-
-  beforeAll(async () => {
-    repomixAvailable = await isRepomixAvailable();
-  }, 60000);
-
-  it(
+  it.skipIf(!repomixAvailable)(
     "should include source code with deep patterns",
     async () => {
-      if (!repomixAvailable) return;
-
       const deepPatterns = getDeepIncludePatterns();
 
       const result = await packRemoteRepository({
@@ -332,17 +300,9 @@ describe("Integration: Deep Analysis Patterns", () => {
 // ════════════════════════════════════════════════════════════════════════════
 
 describe("Integration: Real Repository Content", () => {
-  let repomixAvailable = false;
-
-  beforeAll(async () => {
-    repomixAvailable = await isRepomixAvailable();
-  }, 60000);
-
-  it(
+  it.skipIf(!repomixAvailable)(
     "should read actual file contents from repository",
     async () => {
-      if (!repomixAvailable) return;
-
       // Pack the Hello-World repo which has known content
       const result = await packRemoteRepository({
         url: TEST_REPO,
@@ -359,11 +319,9 @@ describe("Integration: Real Repository Content", () => {
     INTEGRATION_TIMEOUT
   );
 
-  it(
+  it.skipIf(!repomixAvailable)(
     "should pack multiple files when patterns match",
     async () => {
-      if (!repomixAvailable) return;
-
       // Use a repo with multiple files
       // vercel/ms is a small, stable repo with src/ files
       const result = await packRemoteRepository({

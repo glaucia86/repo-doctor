@@ -16,6 +16,19 @@ import * as os from "os";
 // Types
 // ─────────────────────────────────────────────────────────────
 
+/**
+ * Structured error reason codes for PackResult.
+ * These provide reliable error categorization without fragile string matching.
+ */
+export type PackErrorReason =
+  | "TIMEOUT"           // Execution exceeded timeout limit
+  | "REPO_NOT_FOUND"    // Repository doesn't exist or is private (HTTP 404)
+  | "RATE_LIMITED"      // GitHub rate limit hit (HTTP 403/429)
+  | "CLONE_FAILED"      // Git clone operation failed
+  | "NPX_NOT_FOUND"     // npx command not available
+  | "EXECUTION_FAILED"  // Repomix exited with non-zero code
+  | "UNKNOWN";          // Unclassified error
+
 export interface PackOptions {
   /** GitHub URL or owner/repo shorthand */
   url: string;
@@ -41,6 +54,8 @@ export interface PackResult {
   truncated: boolean;
   originalSize: number;
   error?: string;
+  /** Structured error reason code for reliable error handling */
+  errorReason?: PackErrorReason;
   metadata?: {
     files: number;
     tokens?: number;
@@ -245,11 +260,16 @@ export async function packRemoteRepository(
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Unknown error occurred";
+    
+    // Categorize the error at the source for reliable error handling
+    const errorReason = categorizeError(message);
+    
     return {
       success: false,
       truncated: false,
       originalSize: 0,
       error: sanitizeError(message),
+      errorReason,
     };
   } finally {
     // Cleanup temp directory
@@ -263,19 +283,45 @@ export async function packRemoteRepository(
   }
 }
 
+// ─────────────────────────────────────────────────────────────
+// Repomix Availability Cache
+// ─────────────────────────────────────────────────────────────
+
+/** Cached result for Repomix availability check (null = not yet checked) */
+let repomixAvailabilityCache: boolean | null = null;
+
 /**
  * Quick check if Repomix is available via npx.
+ * Result is cached for the duration of the CLI session to avoid
+ * repeated 30-second timeout delays on consecutive deep analyses.
+ *
+ * @param forceRefresh - If true, bypasses the cache and re-checks availability
  */
-export async function isRepomixAvailable(): Promise<boolean> {
+export async function isRepomixAvailable(forceRefresh = false): Promise<boolean> {
+  // Return cached result if available and not forcing refresh
+  if (repomixAvailabilityCache !== null && !forceRefresh) {
+    return repomixAvailabilityCache;
+  }
+
   try {
     execSync("npx repomix --version", {
       timeout: 30000,
       stdio: "pipe",
     });
+    repomixAvailabilityCache = true;
     return true;
   } catch {
+    repomixAvailabilityCache = false;
     return false;
   }
+}
+
+/**
+ * Clear the Repomix availability cache.
+ * Useful for testing or when environment changes.
+ */
+export function clearRepomixAvailabilityCache(): void {
+  repomixAvailabilityCache = null;
 }
 
 /**
@@ -356,31 +402,28 @@ function buildRepomixArgs(opts: RepomixArgs): string[] {
 
 async function executeRepomix(args: string[], timeout: number): Promise<void> {
   return new Promise((resolve, reject) => {
-    // Build the full command as a single string for cross-platform compatibility
-    // This is necessary because Node.js v25+ has issues with spawn('npx.cmd', args) on Windows
+    // SECURITY: Use shell: false with direct executable to avoid shell injection
+    // vulnerabilities. When shell: true, special characters like & | ; could be
+    // interpreted as command separators even inside quotes.
     const isWindows = process.platform === "win32";
-    
-    // Escape arguments that contain special characters
-    const escapeArg = (arg: string): string => {
-      if (isWindows) {
-        // On Windows with shell, wrap in quotes if contains special chars
-        if (/[\s*?{}\[\]()!^"&|<>]/.test(arg)) {
-          return `"${arg.replace(/"/g, '\\"')}"`;
-        }
-        return arg;
-      }
-      // On Unix, escape special characters
-      if (/[\s*?{}\[\]()!^"'&|<>;$`\\]/.test(arg)) {
-        return `'${arg.replace(/'/g, "'\\''")}'`;
-      }
-      return arg;
-    };
-    
-    const escapedArgs = args.map(escapeArg);
-    const command = `npx ${escapedArgs.join(" ")}`;
+    const npxExecutable = isWindows ? "npx.cmd" : "npx";
 
-    const child = spawn(command, [], {
-      shell: true,
+    // Validate arguments to ensure no obviously malicious patterns
+    // This is defense-in-depth since we're using shell: false
+    for (const arg of args) {
+      if (arg.includes("\0") || arg.includes("\r") || arg.includes("\n")) {
+        reject(new Error("Invalid characters in argument"));
+        return;
+      }
+    }
+
+    // stdio configuration:
+    // - stdin: "ignore" - no interactive input needed
+    // - stdout: "ignore" - Repomix writes packed content to --output file, not stdout.
+    //   Progress messages go to stderr. Safe to ignore stdout completely.
+    // - stderr: "pipe" - capture for error diagnostics and progress info
+    const child = spawn(npxExecutable, args, {
+      shell: false,
       stdio: ["ignore", "ignore", "pipe"],
       windowsHide: true,
       env: { 
@@ -531,4 +574,85 @@ function sanitizeError(message: string): string {
     .replace(/Bearer [a-zA-Z0-9\-._~+/]+=*/g, "Bearer [REDACTED]")
     .replace(/token=[a-zA-Z0-9]+/gi, "token=[REDACTED]")
     .slice(0, 1000); // Limit error message length
+}
+
+/**
+ * Categorizes an error message into a structured error reason.
+ * 
+ * This function uses specific patterns that are more robust than simple
+ * substring matching. Patterns are designed to match:
+ * - Explicit error codes/statuses (e.g., "HTTP 404", "status code 403")
+ * - Well-known error messages from git/npm/repomix
+ * - Structural patterns unlikely to appear in regular content
+ */
+function categorizeError(message: string): PackErrorReason {
+  const lower = message.toLowerCase();
+  
+  // Timeout errors - check for explicit timeout indicators
+  if (
+    lower.includes("timed out") ||
+    lower.includes("timeout") ||
+    lower.includes("etimedout") ||
+    lower.includes("esockettimedout")
+  ) {
+    return "TIMEOUT";
+  }
+  
+  // Repository not found - check for HTTP 404 or explicit "not found" patterns
+  // Use more specific patterns to avoid false positives
+  if (
+    /\b(http\s*)?404\b/.test(lower) ||
+    /status\s*(code\s*)?404/.test(lower) ||
+    lower.includes("repository not found") ||
+    lower.includes("repo not found") ||
+    lower.includes("could not find repository") ||
+    lower.includes("does not exist")
+  ) {
+    return "REPO_NOT_FOUND";
+  }
+  
+  // Rate limiting - check for HTTP 403/429 or explicit rate limit messages
+  if (
+    /\b(http\s*)?403\b/.test(lower) ||
+    /\b(http\s*)?429\b/.test(lower) ||
+    /status\s*(code\s*)?(403|429)/.test(lower) ||
+    lower.includes("rate limit") ||
+    lower.includes("rate-limit") ||
+    lower.includes("too many requests") ||
+    lower.includes("api rate limit exceeded")
+  ) {
+    return "RATE_LIMITED";
+  }
+  
+  // Clone failures - check for git clone specific errors
+  if (
+    lower.includes("failed to clone") ||
+    lower.includes("clone failed") ||
+    lower.includes("could not clone") ||
+    lower.includes("git clone") ||
+    lower.includes("fatal: repository") ||
+    lower.includes("authentication failed for")
+  ) {
+    return "CLONE_FAILED";
+  }
+  
+  // npx/command not found errors
+  if (
+    lower.includes("npx command not found") ||
+    lower.includes("enoent") ||
+    lower.includes("command not found") ||
+    lower.includes("is not recognized as")
+  ) {
+    return "NPX_NOT_FOUND";
+  }
+  
+  // Repomix execution failures (exited with non-zero code)
+  if (
+    /exited with code \d+/.test(lower) ||
+    lower.includes("failed to execute repomix")
+  ) {
+    return "EXECUTION_FAILED";
+  }
+  
+  return "UNKNOWN";
 }
