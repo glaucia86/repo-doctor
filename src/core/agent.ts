@@ -14,13 +14,16 @@ import {
 // Import extracted modules (SOLID refactoring)
 import {
   SYSTEM_PROMPT,
+  QUICK_SYSTEM_PROMPT,
+  DEEP_SYSTEM_PROMPT,
+  getSystemPrompt,
   buildAnalysisPrompt,
   createGuardrails,
   createEventHandler,
 } from "./agent/index.js";
 
 // Re-export for backward compatibility
-export { SYSTEM_PROMPT };
+export { SYSTEM_PROMPT, QUICK_SYSTEM_PROMPT, DEEP_SYSTEM_PROMPT, getSystemPrompt };
 
 // ════════════════════════════════════════════════════════════════════════════
 // TYPES
@@ -96,13 +99,16 @@ export async function analyzeRepositoryWithCopilot(options: AnalyzeOptions): Pro
       ? [...baseTools, ...deepAnalysisTools({ maxBytes: 512000 })]
       : baseTools;
 
+    // Select the appropriate system prompt based on analysis mode
+    const systemPrompt = getSystemPrompt(isDeep ? "deep" : "quick");
+
     const session = await client.createSession({
       model: model,
       streaming: true,
       tools,
       systemMessage: {
         mode: "append",
-        content: SYSTEM_PROMPT,
+        content: systemPrompt,
       },
       // Enable infinite sessions for long-running analyses (v0.1.18+)
       // Automatically compacts context when buffer approaches limits

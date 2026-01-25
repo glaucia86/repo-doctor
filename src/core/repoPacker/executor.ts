@@ -3,7 +3,7 @@
  * Single Responsibility: Execute Repomix CLI commands
  */
 
-import { spawn } from "child_process";
+import spawn from "cross-spawn";
 import type { RepomixArgs } from "./types.js";
 
 // ─────────────────────────────────────────────────────────────
@@ -78,11 +78,9 @@ export function buildRepomixArgs(opts: RepomixArgs): string[] {
  */
 export async function executeRepomix(args: string[], timeout: number): Promise<void> {
   return new Promise((resolve, reject) => {
-    // SECURITY: Use shell: false with direct executable to avoid shell injection
-    // vulnerabilities. When shell: true, special characters like & | ; could be
-    // interpreted as command separators even inside quotes.
-    const isWindows = process.platform === "win32";
-    const npxExecutable = isWindows ? "npx.cmd" : "npx";
+    // cross-spawn handles Windows .cmd files correctly without shell: true
+    // This avoids the EINVAL error that occurs when spawn tries to execute
+    // .cmd files directly on Windows
 
     // Validate arguments to ensure no obviously malicious patterns
     // This is defense-in-depth since we're using shell: false
@@ -98,10 +96,8 @@ export async function executeRepomix(args: string[], timeout: number): Promise<v
     // - stdout: "ignore" - Repomix writes packed content to --output file, not stdout.
     //   Progress messages go to stderr. Safe to ignore stdout completely.
     // - stderr: "pipe" - capture for error diagnostics and progress info
-    const child = spawn(npxExecutable, args, {
-      shell: false,
+    const child = spawn("npx", args, {
       stdio: ["ignore", "ignore", "pipe"],
-      windowsHide: true,
       env: {
         ...process.env,
         FORCE_COLOR: "0",

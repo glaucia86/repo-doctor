@@ -297,8 +297,9 @@ export async function runChatMode(
     const command = parseCommand(input);
 
     // For async commands, pause readline to prevent input issues during analysis
+    // "model" is included because its handler creates its own readline
     if (command.type === "analyze" || command.type === "deep" || 
-        command.type === "export" || command.type === "copy" || 
+        command.type === "export" || command.type === "copy" ||
         command.type === "model") {
       isProcessing = true;
       rl.pause();

@@ -1,17 +1,19 @@
 /**
  * Unit Tests for repoPacker
  *
- * Tests the Repomix integration with mocked child_process and fs.
+ * Tests the Repomix integration with mocked cross-spawn and fs.
  * These tests run fast and don't require network access.
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import * as childProcess from "child_process";
+import crossSpawn from "cross-spawn";
 import * as fs from "fs/promises";
 import { EventEmitter } from "events";
 
-// Mock child_process and fs before importing the module
+// Mock child_process (for execSync used in isRepomixAvailable), cross-spawn and fs before importing the module
 vi.mock("child_process");
+vi.mock("cross-spawn");
 vi.mock("fs/promises");
 
 // Import after mocking
@@ -280,7 +282,7 @@ describe("packRemoteRepository", () => {
   describe("successful packing", () => {
     beforeEach(() => {
       // Mock successful repomix execution
-      vi.mocked(childProcess.spawn).mockReturnValue(
+      vi.mocked(crossSpawn).mockReturnValue(
         createMockChildProcess(0) as any
       );
 
@@ -301,18 +303,16 @@ describe("packRemoteRepository", () => {
       expect(result.error).toBeUndefined();
     });
 
-    it("should use shell: false for security (avoid shell injection)", async () => {
+    it("should use cross-spawn for Windows compatibility", async () => {
       await packRemoteRepository({
         url: "owner/repo",
         timeout: 10000,
       });
 
-      expect(childProcess.spawn).toHaveBeenCalled();
-      const spawnCall = vi.mocked(childProcess.spawn).mock.calls[0];
-      const options = spawnCall[2] as { shell: boolean };
-
-      // SECURITY: shell must be false to prevent command injection
-      expect(options.shell).toBe(false);
+      expect(crossSpawn).toHaveBeenCalled();
+      const spawnCall = vi.mocked(crossSpawn).mock.calls[0];
+      // cross-spawn is called with (command, args, options)
+      expect(spawnCall[0]).toBe("npx");
     });
 
     it("should normalize owner/repo to full URL", async () => {
@@ -321,9 +321,9 @@ describe("packRemoteRepository", () => {
         timeout: 10000,
       });
 
-      expect(childProcess.spawn).toHaveBeenCalled();
-      const spawnCall = vi.mocked(childProcess.spawn).mock.calls[0];
-      // With shell: false, spawn receives (executable, args, options)
+      expect(crossSpawn).toHaveBeenCalled();
+      const spawnCall = vi.mocked(crossSpawn).mock.calls[0];
+      // With cross-spawn, spawn receives (executable, args, options)
       const args = spawnCall[1] as string[];
 
       expect(args.join(" ")).toContain("https://github.com/owner/repo");
@@ -336,7 +336,7 @@ describe("packRemoteRepository", () => {
         timeout: 10000,
       });
 
-      const spawnCall = vi.mocked(childProcess.spawn).mock.calls[0];
+      const spawnCall = vi.mocked(crossSpawn).mock.calls[0];
       const args = spawnCall[1] as string[];
 
       expect(args.join(" ")).toContain("https://github.com/owner/repo/tree/develop");
@@ -349,7 +349,7 @@ describe("packRemoteRepository", () => {
         timeout: 10000,
       });
 
-      const spawnCall = vi.mocked(childProcess.spawn).mock.calls[0];
+      const spawnCall = vi.mocked(crossSpawn).mock.calls[0];
       const args = spawnCall[1] as string[];
 
       expect(args).toContain("--include");
@@ -362,7 +362,7 @@ describe("packRemoteRepository", () => {
         timeout: 10000,
       });
 
-      const spawnCall = vi.mocked(childProcess.spawn).mock.calls[0];
+      const spawnCall = vi.mocked(crossSpawn).mock.calls[0];
       const args = spawnCall[1] as string[];
 
       expect(args).toContain("--style");
@@ -375,7 +375,7 @@ describe("packRemoteRepository", () => {
         timeout: 10000,
       });
 
-      const spawnCall = vi.mocked(childProcess.spawn).mock.calls[0];
+      const spawnCall = vi.mocked(crossSpawn).mock.calls[0];
       const args = spawnCall[1] as string[];
 
       expect(args).toContain("--no-security-check");
@@ -388,7 +388,7 @@ describe("packRemoteRepository", () => {
         timeout: 10000,
       });
 
-      const spawnCall = vi.mocked(childProcess.spawn).mock.calls[0];
+      const spawnCall = vi.mocked(crossSpawn).mock.calls[0];
       const args = spawnCall[1] as string[];
 
       expect(args).toContain("--compress");
@@ -431,7 +431,7 @@ describe("packRemoteRepository", () => {
   describe("truncation", () => {
     beforeEach(() => {
       // Mock successful repomix execution
-      vi.mocked(childProcess.spawn).mockReturnValue(
+      vi.mocked(crossSpawn).mockReturnValue(
         createMockChildProcess(0) as any
       );
 
@@ -455,7 +455,7 @@ describe("packRemoteRepository", () => {
 
   describe("error handling", () => {
     it("should return error when spawn fails", async () => {
-      vi.mocked(childProcess.spawn).mockImplementation(() => {
+      vi.mocked(crossSpawn).mockImplementation(() => {
         throw new Error("spawn ENOENT");
       });
 
@@ -469,7 +469,7 @@ describe("packRemoteRepository", () => {
     });
 
     it("should return error when repomix exits with non-zero code", async () => {
-      vi.mocked(childProcess.spawn).mockReturnValue(
+      vi.mocked(crossSpawn).mockReturnValue(
         createMockChildProcess(1, "Error: Repository not found") as any
       );
 
@@ -483,7 +483,7 @@ describe("packRemoteRepository", () => {
     });
 
     it("should clean temp directory after error", async () => {
-      vi.mocked(childProcess.spawn).mockReturnValue(
+      vi.mocked(crossSpawn).mockReturnValue(
         createMockChildProcess(1, "Error") as any
       );
 
@@ -507,7 +507,7 @@ describe("packRemoteRepository", () => {
         slowProcess.emit("exit", null);
       });
 
-      vi.mocked(childProcess.spawn).mockReturnValue(slowProcess);
+      vi.mocked(crossSpawn).mockReturnValue(slowProcess);
 
       const result = await packRemoteRepository({
         url: "owner/repo",
@@ -520,7 +520,7 @@ describe("packRemoteRepository", () => {
     });
 
     it("should sanitize tokens from error messages", async () => {
-      vi.mocked(childProcess.spawn).mockReturnValue(
+      vi.mocked(crossSpawn).mockReturnValue(
         createMockChildProcess(
           1,
           "Error: Authentication failed for ghp_abc123secret"
@@ -539,7 +539,7 @@ describe("packRemoteRepository", () => {
 
   describe("output cleaning", () => {
     beforeEach(() => {
-      vi.mocked(childProcess.spawn).mockReturnValue(
+      vi.mocked(crossSpawn).mockReturnValue(
         createMockChildProcess(0) as any
       );
     });
