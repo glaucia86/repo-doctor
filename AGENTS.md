@@ -54,10 +54,37 @@ src/
 │
 ├── core/
 │   ├── agent.ts               # SDK session management
+│   ├── repoPacker.ts          # Re-exports from repoPacker/
+│   ├── repoPacker/            # Repomix integration (modular)
+│   │   ├── index.ts           # Public API exports
+│   │   ├── types.ts           # PackOptions, PackResult, PackErrorReason
+│   │   ├── packer.ts          # packRemoteRepository main function
+│   │   ├── executor.ts        # Repomix process execution
+│   │   ├── errors.ts          # Error categorization & sanitization
+│   │   ├── patterns.ts        # Include/exclude patterns
+│   │   ├── cleaner.ts         # Temp directory cleanup
+│   │   └── availability.ts    # npx/repomix availability check
 │   └── agent/                 # Agent modules
-│       ├── prompts/           # Isolated prompts
-│       │   ├── systemPrompt.ts # SYSTEM_PROMPT (~500 lines)
-│       │   └── analysisPrompt.ts
+│       ├── prompts/           # Modular prompt system (OCP)
+│       │   ├── systemPrompt.ts     # Legacy SYSTEM_PROMPT (deprecated)
+│       │   ├── analysisPrompt.ts   # buildAnalysisPrompt() function
+│       │   ├── base/               # Base prompt modules
+│       │   │   ├── securityDirective.ts
+│       │   │   ├── expertiseProfile.ts
+│       │   │   ├── reconnaissance.ts
+│       │   │   ├── languageDetection.ts
+│       │   │   ├── strategicReading.ts
+│       │   │   ├── analysisCriteria.ts
+│       │   │   ├── scoring.ts
+│       │   │   ├── evidenceRules.ts
+│       │   │   ├── outputFormat.ts
+│       │   │   ├── constraints.ts
+│       │   │   └── errorHandling.ts
+│       │   ├── modes/              # Mode-specific extensions
+│       │   │   ├── quick.ts        # Quick analysis mode
+│       │   │   └── deep.ts         # Deep analysis mode
+│       │   └── composers/          # Prompt composition
+│       │       └── systemPromptComposer.ts
 │       ├── eventHandler.ts    # Session event handling
 │       ├── toolCallTracker.ts # Loop detection (tracks tool calls)
 │       └── guardrails.ts      # Safety mechanisms (step limits, loop prevention)
@@ -71,11 +98,19 @@ src/
 │
 ├── ui/
 │   ├── display.ts             # Re-exports from display/
-│   └── display/               # Display modules (SRP)
-│       ├── spinner.ts
-│       ├── messages.ts
-│       ├── menus.ts
-│       └── ...
+│   ├── themes.ts              # Re-exports from themes/
+│   ├── display/               # Display modules (SRP)
+│   │   ├── spinner.ts
+│   │   ├── messages.ts
+│   │   ├── menus.ts
+│   │   └── ...
+│   └── themes/                # Theme system (modular)
+│       ├── index.ts           # Public API exports
+│       ├── colors.ts          # COLORS palette & chalk helpers
+│       ├── icons.ts           # ICON, category/priority mappings
+│       ├── box.ts             # Box drawing utilities
+│       ├── badges.ts          # Progress bars, health scores
+│       └── logo.ts            # Logo renderers
 │
 ├── types/
 │   ├── schema.ts              # Zod schemas
@@ -88,11 +123,28 @@ src/
 
 ---
 
-## 2. System Prompt
+## 2. System Prompt (Modular Architecture)
 
-The system prompt is extensive (~600 lines) and defines the complete agent behavior. Below is a summary of the main sections:
+The system prompt is now composed from modular pieces, following the Open/Closed Principle. This allows easy extension without modifying base modules.
 
-### 2.1. System Prompt Structure
+### 2.1. Prompt Composition
+
+```typescript
+import { getSystemPrompt, composeSystemPrompt } from "./prompts/composers/systemPromptComposer.js";
+
+// Use pre-built prompts for performance
+const quickPrompt = getSystemPrompt("quick");  // ~350 lines
+const deepPrompt = getSystemPrompt("deep");    // ~550 lines
+
+// Or compose dynamically with options
+const customPrompt = composeSystemPrompt({
+  mode: "deep",
+  additionalRules: "Custom rules here",
+  maxFileReads: 30,
+});
+```
+
+### 2.2. System Prompt Structure
 
 ```typescript
 const SYSTEM_PROMPT = `You are **Repo Doctor**, an expert-level GitHub repository health analyzer.
@@ -140,7 +192,30 @@ const SYSTEM_PROMPT = `You are **Repo Doctor**, an expert-level GitHub repositor
 `;
 ```
 
-### 2.2. Security Directives
+### 2.3. Base Modules
+
+| Module | File | Purpose |
+|--------|------|---------||
+| Security | `securityDirective.ts` | Prompt injection protection |
+| Expertise | `expertiseProfile.ts` | Agent capabilities |
+| Recon | `reconnaissance.ts` | Phase 1: metadata gathering |
+| Languages | `languageDetection.ts` | Phase 2: stack detection |
+| Reading | `strategicReading.ts` | Phase 3: file prioritization |
+| Criteria | `analysisCriteria.ts` | Phase 4: P0/P1/P2 definitions |
+| Scoring | `scoring.ts` | Phase 5: category weights |
+| Evidence | `evidenceRules.ts` | Fact-based finding rules |
+| Output | `outputFormat.ts` | Phase 6: report template |
+| Constraints | `constraints.ts` | Analysis boundaries |
+| Errors | `errorHandling.ts` | Error recovery |
+
+### 2.4. Analysis Modes
+
+| Mode | File | Focus |
+|------|------|-------|
+| Quick | `modes/quick.ts` | Governance files only (~20 files) |
+| Deep | `modes/deep.ts` | Full source code analysis |
+
+### 2.5. Security Directives
 
 The agent includes protections against prompt injection:
 
@@ -148,7 +223,7 @@ The agent includes protections against prompt injection:
 - Suspicious patterns are detected and reported as P0
 - Sanitization via `utils/sanitizer.ts`
 
-### 2.3. Multi-Language Analysis
+### 2.6. Multi-Language Analysis
 
 The agent automatically detects the repository stack:
 
@@ -808,12 +883,34 @@ npm run test:coverage # Coverage report
 | `src/cli/parsers/` | URL parsing, report extraction |
 | **Core Layer** | |
 | `src/core/agent.ts` | Copilot SDK session management |
-| `src/core/agent/prompts/systemPrompt.ts` | SYSTEM_PROMPT (~500 lines) |
-| `src/core/agent/prompts/analysisPrompt.ts` | buildAnalysisPrompt() function |
 | `src/core/agent/eventHandler.ts` | Session event handling |
 | `src/core/agent/toolCallTracker.ts` | Loop detection (tracks tool calls) |
 | `src/core/agent/guardrails.ts` | Safety mechanisms (step limits, loop prevention) |
-| `src/core/repoPacker.ts` | Repomix integration for deep analysis |
+| **Prompt System (Modular)** | |
+| `src/core/agent/prompts/composers/systemPromptComposer.ts` | Prompt composition (main API) |
+| `src/core/agent/prompts/base/securityDirective.ts` | Prompt injection protection |
+| `src/core/agent/prompts/base/expertiseProfile.ts` | Agent capabilities definition |
+| `src/core/agent/prompts/base/reconnaissance.ts` | Phase 1: metadata gathering |
+| `src/core/agent/prompts/base/languageDetection.ts` | Phase 2: stack detection |
+| `src/core/agent/prompts/base/strategicReading.ts` | Phase 3: file prioritization |
+| `src/core/agent/prompts/base/analysisCriteria.ts` | Phase 4: P0/P1/P2 definitions |
+| `src/core/agent/prompts/base/scoring.ts` | Phase 5: category weights |
+| `src/core/agent/prompts/base/evidenceRules.ts` | Fact-based finding rules |
+| `src/core/agent/prompts/base/outputFormat.ts` | Phase 6: report template |
+| `src/core/agent/prompts/base/constraints.ts` | Analysis boundaries |
+| `src/core/agent/prompts/base/errorHandling.ts` | Error recovery |
+| `src/core/agent/prompts/modes/quick.ts` | Quick analysis mode rules |
+| `src/core/agent/prompts/modes/deep.ts` | Deep analysis mode rules |
+| `src/core/agent/prompts/systemPrompt.ts` | Legacy SYSTEM_PROMPT (deprecated) |
+| **RepoPacker (Modular)** | |
+| `src/core/repoPacker/index.ts` | Public API exports |
+| `src/core/repoPacker/types.ts` | PackOptions, PackResult, PackErrorReason |
+| `src/core/repoPacker/packer.ts` | packRemoteRepository main function |
+| `src/core/repoPacker/executor.ts` | Repomix process execution |
+| `src/core/repoPacker/errors.ts` | Error categorization & sanitization |
+| `src/core/repoPacker/patterns.ts` | Include/exclude patterns |
+| `src/core/repoPacker/cleaner.ts` | Temp directory cleanup |
+| `src/core/repoPacker/availability.ts` | npx/repomix availability check |
 | **Tools Layer** | |
 | `src/tools/repoTools.ts` | Tool factory (re-exports) |
 | `src/tools/getRepoMeta.ts` | get_repo_meta tool |
@@ -822,9 +919,17 @@ npm run test:coverage # Coverage report
 | `src/tools/packRepository.ts` | pack_repository tool |
 | **UI Layer** | |
 | `src/ui/display.ts` | Re-exports from display/ |
+| `src/ui/themes.ts` | Re-exports from themes/ |
 | `src/ui/display/messages.ts` | printSuccess, printError, etc. |
 | `src/ui/display/menus.ts` | Command menus, model selection |
 | `src/ui/display/spinner.ts` | Spinner management |
+| **Theme System (Modular)** | |
+| `src/ui/themes/index.ts` | Public API exports |
+| `src/ui/themes/colors.ts` | COLORS palette & chalk helpers |
+| `src/ui/themes/icons.ts` | ICON, category/priority mappings |
+| `src/ui/themes/box.ts` | Box drawing utilities |
+| `src/ui/themes/badges.ts` | Progress bars, health scores |
+| `src/ui/themes/logo.ts` | Logo renderers |
 | **Types & Utils** | |
 | `src/types/schema.ts` | Zod schemas for all data types |
 | `src/types/interfaces.ts` | Shared interfaces (IAppState, etc.) |
@@ -832,12 +937,14 @@ npm run test:coverage # Coverage report
 | `src/utils/clipboard.ts` | Cross-platform clipboard |
 | `src/providers/github.ts` | Octokit factory, token resolution |
 | **Tests** | |
-| `tests/cli/state/appState.test.ts` | AppState unit tests (16) |
-| `tests/cli/parsers/*.test.ts` | Parser tests (21) |
-| `tests/core/agent/analysisPrompt.test.ts` | Prompt building tests (8) |
-| `tests/core/agent/eventHandler.test.ts` | Event handling tests (17) |
-| `tests/core/agent/toolCallTracker.test.ts` | Loop detection tests (13) |
-| `tests/core/agent/guardrails.test.ts` | Safety mechanism tests (11) |
+| `tests/cli/state/appState.test.ts` | AppState unit tests |
+| `tests/cli/parsers/*.test.ts` | Parser tests |
+| `tests/core/agent/analysisPrompt.test.ts` | Prompt building tests |
+| `tests/core/agent/eventHandler.test.ts` | Event handling tests |
+| `tests/core/agent/toolCallTracker.test.ts` | Loop detection tests |
+| `tests/core/agent/guardrails.test.ts` | Safety mechanism tests |
+| `tests/tools/repoPacker.test.ts` | RepoPacker unit tests |
+| `tests/tools/repoPacker.integration.test.ts` | RepoPacker integration tests |
 
 ---
 
