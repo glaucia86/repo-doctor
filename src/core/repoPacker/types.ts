@@ -12,13 +12,15 @@
  * These provide reliable error categorization without fragile string matching.
  */
 export type PackErrorReason =
-  | "TIMEOUT"           // Execution exceeded timeout limit
-  | "REPO_NOT_FOUND"    // Repository doesn't exist or is private (HTTP 404)
-  | "RATE_LIMITED"      // GitHub rate limit hit (HTTP 403/429)
-  | "CLONE_FAILED"      // Git clone operation failed
-  | "NPX_NOT_FOUND"     // npx command not available
-  | "EXECUTION_FAILED"  // Repomix exited with non-zero code
-  | "UNKNOWN";          // Unclassified error
+  | "TIMEOUT"               // Execution exceeded timeout limit
+  | "REPO_NOT_FOUND"        // Repository doesn't exist or is private (HTTP 404)
+  | "RATE_LIMITED"          // GitHub rate limit hit (HTTP 403/429)
+  | "CLONE_FAILED"          // Git clone operation failed
+  | "NPX_NOT_FOUND"         // npx command not available
+  | "REPOMIX_NOT_AVAILABLE" // npx exists but repomix --version failed
+  | "EXECUTION_FAILED"      // Repomix exited with non-zero code
+  | "EXCEPTION"             // Unexpected exception during execution
+  | "UNKNOWN";              // Unclassified error
 
 // ─────────────────────────────────────────────────────────────
 // Options & Results

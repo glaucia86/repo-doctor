@@ -40,8 +40,12 @@ function getErrorSuggestion(reason: PackErrorReason): string {
       "Failed to clone repository. Check network connection and repository accessibility.",
     NPX_NOT_FOUND:
       "npx command not found. Ensure Node.js >= 18 is installed and in PATH.",
+    REPOMIX_NOT_AVAILABLE:
+      "Repomix is not available. Ensure Node.js >= 18 and npx are working correctly. Fall back to standard file-by-file analysis.",
     EXECUTION_FAILED:
       "Repomix execution failed. Fall back to standard file-by-file analysis using read_repo_file.",
+    EXCEPTION:
+      "Repomix failed unexpectedly. Fall back to standard file-by-file analysis using read_repo_file.",
     UNKNOWN:
       "Repomix failed. Fall back to standard file-by-file analysis using read_repo_file.",
   };
@@ -103,12 +107,12 @@ Returns consolidated content with file markers and structure.`,
         // Pre-check: verify Repomix is available
         const repomixReady = await isRepomixAvailable();
         if (!repomixReady) {
+          const reason: PackErrorReason = "REPOMIX_NOT_AVAILABLE";
           return {
             success: false,
             error: "Repomix is not available. npx repomix --version failed.",
-            reason: "REPOMIX_NOT_AVAILABLE",
-            suggestion:
-              "Fall back to standard file-by-file analysis using read_repo_file. Ensure Node.js >= 18 and npx are working correctly.",
+            reason,
+            suggestion: getErrorSuggestion(reason),
           };
         }
 
@@ -155,12 +159,12 @@ Returns consolidated content with file markers and structure.`,
         };
       } catch (error: any) {
         const errorMsg = error.message?.slice(0, 500) ?? "Unknown error";
+        const reason: PackErrorReason = "EXCEPTION";
         return {
           success: false,
           error: errorMsg,
-          reason: "EXCEPTION",
-          suggestion:
-            "Repomix failed unexpectedly. Fall back to standard file-by-file analysis using read_repo_file.",
+          reason,
+          suggestion: getErrorSuggestion(reason),
         };
       }
     },
