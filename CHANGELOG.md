@@ -28,6 +28,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.1.1] - 2026-01-24
+
+### Added
+
+- **Infinite Sessions Support** (Copilot SDK v0.1.18)
+  - Automatic context compaction for long-running analyses
+  - Background compaction triggers at 80% buffer usage
+  - Buffer exhaustion threshold at 95% for blocking protection
+  - New events: `session.compaction_start`, `session.compaction_complete`
+  - Verbose mode shows compaction progress and tokens freed
+
+### Changed
+
+- **Copilot SDK**: Upgraded from v0.1.15 to v0.1.18
+- **Guardrails**: Increased limits for more reliable agent execution
+  - `maxToolCalls`: 30 → 50 (standard), 40 → 80 (deep)
+  - `maxConsecutiveRepeats`: 3 → 5
+  - `minSequenceLength`: 2 → 3 (reduces false positives)
+  - `timeWindowMs`: 60s → 120s
+  - Fixed sequence matching to compare tool name AND args hash
+
+### Fixed
+
+- **Repomix Integration**: Windows/Node.js v25+ shell compatibility
+- **Regex Patterns**: Escaped square brackets in character classes
+- **Unused Variables**: Removed stdout collection in repoPacker.ts
+
+---
+
 ## [2.1.0] - 2026-01-23
 
 ### Added

@@ -24,11 +24,37 @@ src/
 │       └── appState.ts        # IAppState interface + AppState class
 ├── core/
 │   ├── agent.ts               # Copilot SDK session management
-│   ├── repoPacker.ts          # Repomix integration for deep analysis
+│   ├── repoPacker.ts          # Re-exports from repoPacker/
+│   ├── repoPacker/            # Repomix integration (modular)
+│   │   ├── index.ts           # Public API exports
+│   │   ├── types.ts           # PackOptions, PackResult, PackErrorReason
+│   │   ├── packer.ts          # packRemoteRepository main function
+│   │   ├── executor.ts        # Repomix process execution
+│   │   ├── errors.ts          # Error categorization & sanitization
+│   │   ├── patterns.ts        # Include/exclude patterns
+│   │   ├── cleaner.ts         # Temp directory cleanup
+│   │   └── availability.ts    # npx/repomix availability check
 │   └── agent/                 # Agent modules
-│       ├── prompts/           # Isolated prompts (OCP)
-│       │   ├── systemPrompt.ts # SYSTEM_PROMPT (~500 lines)
-│       │   └── analysisPrompt.ts
+│       ├── prompts/           # Modular prompt system (OCP)
+│       │   ├── systemPrompt.ts     # Legacy SYSTEM_PROMPT (deprecated)
+│       │   ├── analysisPrompt.ts   # buildAnalysisPrompt() function
+│       │   ├── base/               # Base prompt modules
+│       │   │   ├── securityDirective.ts
+│       │   │   ├── expertiseProfile.ts
+│       │   │   ├── reconnaissance.ts
+│       │   │   ├── languageDetection.ts
+│       │   │   ├── strategicReading.ts
+│       │   │   ├── analysisCriteria.ts
+│       │   │   ├── scoring.ts
+│       │   │   ├── evidenceRules.ts
+│       │   │   ├── outputFormat.ts
+│       │   │   ├── constraints.ts
+│       │   │   └── errorHandling.ts
+│       │   ├── modes/              # Mode-specific extensions
+│       │   │   ├── quick.ts        # Quick analysis mode
+│       │   │   └── deep.ts         # Deep analysis mode
+│       │   └── composers/          # Prompt composition
+│       │       └── systemPromptComposer.ts
 │       ├── eventHandler.ts    # Session event handling
 │       ├── toolCallTracker.ts # Loop detection (tracks tool calls)
 │       └── guardrails.ts      # Safety mechanisms (step limits, loop prevention)
@@ -44,10 +70,19 @@ src/
 │   ├── schema.ts              # Zod schemas for all data types
 │   └── interfaces.ts          # Shared interfaces (IAppState, etc.)
 ├── ui/                        # Terminal display
-│   └── display/               # Modular UI components (SRP)
-│       ├── messages.ts        # printSuccess, printError, etc.
-│       ├── menus.ts           # Command menus, model selection
-│       └── spinner.ts         # Spinner management
+│   ├── display.ts             # Re-exports from display/
+│   ├── themes.ts              # Re-exports from themes/
+│   ├── display/               # Modular UI components (SRP)
+│   │   ├── messages.ts        # printSuccess, printError, etc.
+│   │   ├── menus.ts           # Command menus, model selection
+│   │   └── spinner.ts         # Spinner management
+│   └── themes/                # Theme system (modular)
+│       ├── index.ts           # Public API exports
+│       ├── colors.ts          # COLORS palette & chalk helpers
+│       ├── icons.ts           # ICON, category/priority mappings
+│       ├── box.ts             # Box drawing utilities
+│       ├── badges.ts          # Progress bars, health scores
+│       └── logo.ts            # Logo renderers
 └── utils/
     ├── sanitizer.ts           # Security: prompt injection detection
     └── clipboard.ts           # Cross-platform clipboard
@@ -68,10 +103,17 @@ const session = await client.createSession({
   streaming: true,
   tools: repoTools({ token, maxFiles, maxBytes }),
   systemMessage: { mode: "append", content: SYSTEM_PROMPT },
+  // Infinite Sessions (v0.1.18+) - auto-compacts context for long analyses
+  infiniteSessions: {
+    enabled: true,
+    backgroundCompactionThreshold: 0.80,  // Start compaction at 80%
+    bufferExhaustionThreshold: 0.95,      // Block at 95%
+  },
 });
 
 session.on((event: SessionEvent) => {
   // Handle: assistant.message_delta, tool.execution_start, session.idle
+  // Compaction events (v0.1.18+): session.compaction_start, session.compaction_complete
 });
 
 await session.sendAndWait({ prompt }, timeout);
@@ -174,7 +216,7 @@ const result = await packRemoteRepository({
 
 ### Include Patterns
 
-Two modes defined in [repoPacker.ts](src/core/repoPacker.ts):
+Two modes defined in [repoPacker/patterns.ts](src/core/repoPacker/patterns.ts):
 
 - **`governance`** (default): Config files, docs, workflows only
   - `README.md`, `LICENSE`, `CONTRIBUTING.md`, `package.json`, `.github/**`
@@ -209,7 +251,7 @@ Two modes defined in [repoPacker.ts](src/core/repoPacker.ts):
 
 ## Testing
 
-The project uses **Vitest** for unit testing with **86 tests** across 7 test files.
+The project uses **Vitest** for unit testing with **100+ tests** across 9 test files.
 
 ### Running Tests
 
@@ -217,19 +259,22 @@ The project uses **Vitest** for unit testing with **86 tests** across 7 test fil
 npm test              # Run all tests
 npm run test:watch    # Watch mode for development
 npm run test:coverage # Generate coverage report
+npm run test:integration # Run integration tests (requires network)
 ```
 
 ### Test Files
 
-| Test File | Tests | Coverage |
-|-----------|-------|----------|
-| `tests/cli/parsers/repoParser.test.ts` | 12 | URL parsing |
-| `tests/cli/parsers/reportExtractor.test.ts` | 9 | Report extraction |
-| `tests/cli/state/appState.test.ts` | 16 | State management |
-| `tests/core/agent/analysisPrompt.test.ts` | 8 | Prompt building |
-| `tests/core/agent/eventHandler.test.ts` | 17 | Event handling |
-| `tests/core/agent/toolCallTracker.test.ts` | 13 | Loop detection |
-| `tests/core/agent/guardrails.test.ts` | 11 | Safety mechanisms |
+| Test File | Coverage |
+|-----------|----------|
+| `tests/cli/parsers/repoParser.test.ts` | URL parsing |
+| `tests/cli/parsers/reportExtractor.test.ts` | Report extraction |
+| `tests/cli/state/appState.test.ts` | State management |
+| `tests/core/agent/analysisPrompt.test.ts` | Prompt building |
+| `tests/core/agent/eventHandler.test.ts` | Event handling |
+| `tests/core/agent/toolCallTracker.test.ts` | Loop detection |
+| `tests/core/agent/guardrails.test.ts` | Safety mechanisms |
+| `tests/tools/repoPacker.test.ts` | RepoPacker unit tests |
+| `tests/tools/repoPacker.integration.test.ts` | RepoPacker integration |
 
 ### Manual Testing
 
@@ -254,9 +299,10 @@ npm run dev -- /deep owner/repo # Deep analysis
 ## Files to Read First
 
 When understanding this codebase, read in order:
-1. [systemPrompt.ts](src/core/agent/prompts/systemPrompt.ts) — SYSTEM_PROMPT for agent behavior
+1. [systemPromptComposer.ts](src/core/agent/prompts/composers/systemPromptComposer.ts) — Modular prompt composition
 2. [agent.ts](src/core/agent.ts) — Copilot SDK session management
 3. [repoTools.ts](src/tools/repoTools.ts) — Available tools for analysis
 4. [cli.ts](src/cli.ts) — Commander setup (entry point)
 5. [chatLoop.ts](src/cli/chatLoop.ts) — Interactive REPL
 6. [guardrails.ts](src/core/agent/guardrails.ts) — Safety mechanisms
+7. [repoPacker/index.ts](src/core/repoPacker/index.ts) — Repomix integration

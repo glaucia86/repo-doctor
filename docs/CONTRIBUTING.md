@@ -65,11 +65,17 @@ npm run dev
 ### Running Tests
 
 ```bash
-# Run all tests
+# Run all unit tests
 npm test
 
 # Run tests in watch mode
 npm run test:watch
+
+# Generate coverage report
+npm run test:coverage
+
+# Run integration tests (requires network)
+npm run test:integration
 ```
 
 ---
@@ -80,25 +86,55 @@ npm run test:watch
 repo-doctor/
 ├── src/
 │   ├── index.ts                # Entry point (shebang for CLI)
-│   ├── cli.ts                  # Commander setup + interactive chat loop
+│   ├── cli.ts                  # Commander setup (~186 lines)
+│   ├── cli/                    # CLI Layer (SRP)
+│   │   ├── chatLoop.ts         # Interactive REPL
+│   │   ├── handlers/           # Command handlers (one per command)
+│   │   ├── parsers/            # Input parsing utilities
+│   │   └── state/              # Application state
 │   ├── core/
 │   │   ├── agent.ts            # GitHub Copilot SDK integration
 │   │   ├── analyzer.ts         # Repository analysis engine
 │   │   ├── markdownReporter.ts # Markdown report generation
-│   │   ├── repoPacker.ts       # Repomix integration for deep analysis
-│   │   └── reporter.ts         # Output formatting utilities
+│   │   ├── repoPacker.ts       # Re-exports from repoPacker/
+│   │   ├── repoPacker/         # Repomix integration (modular)
+│   │   │   ├── packer.ts       # Main pack function
+│   │   │   ├── errors.ts       # Error categorization
+│   │   │   └── patterns.ts     # Include/exclude patterns
+│   │   ├── reporter.ts         # Output formatting utilities
+│   │   └── agent/              # Agent modules
+│   │       ├── prompts/        # Modular prompt system
+│   │       │   ├── base/       # Base prompt modules (11 files)
+│   │       │   ├── modes/      # quick.ts, deep.ts
+│   │       │   └── composers/  # systemPromptComposer.ts
+│   │       ├── eventHandler.ts # Session event handling
+│   │       ├── guardrails.ts   # Safety mechanisms
+│   │       └── toolCallTracker.ts # Loop detection
 │   ├── providers/
 │   │   └── github.ts           # GitHub API client (Octokit)
-│   ├── tools/
-│   │   └── repoTools.ts        # Custom AI agent tools
+│   ├── tools/                  # Individual tool files
+│   │   ├── repoTools.ts        # Tool factory
+│   │   ├── getRepoMeta.ts      # get_repo_meta tool
+│   │   ├── listRepoFiles.ts    # list_repo_files tool
+│   │   ├── readRepoFile.ts     # read_repo_file tool
+│   │   └── packRepository.ts   # pack_repository tool
 │   ├── types/
-│   │   └── schema.ts           # TypeScript type definitions
+│   │   ├── schema.ts           # TypeScript type definitions
+│   │   └── interfaces.ts       # Shared interfaces
 │   └── ui/
 │       ├── commands.ts         # Slash command parsing
-│       ├── display.ts          # Terminal screen rendering
+│       ├── display.ts          # Re-exports from display/
+│       ├── display/            # Modular UI components
 │       ├── index.ts            # UI exports barrel
 │       ├── prompts.ts          # Interactive prompts (readline)
-│       └── themes.ts           # Colors, icons, and styling
+│       ├── themes.ts           # Re-exports from themes/
+│       └── themes/             # Theme system (modular)
+│           ├── colors.ts       # Color palette
+│           ├── icons.ts        # Category/priority icons
+│           ├── box.ts          # Box drawing utilities
+│           ├── badges.ts       # Progress bars
+│           └── logo.ts         # Logo renderers
+├── tests/                      # Vitest test files
 ├── docs/                       # Documentation
 ├── resources/                  # Images and assets
 ├── ai-documents/               # AI agent documentation
@@ -111,11 +147,13 @@ repo-doctor/
 
 | File | Purpose |
 |------|---------|
-| `src/cli.ts` | Main CLI logic, command handling, chat loop |
+| `src/cli.ts` | Commander setup (entry point) |
+| `src/cli/chatLoop.ts` | Interactive REPL |
 | `src/core/agent.ts` | Copilot SDK session management |
-| `src/core/repoPacker.ts` | Repomix integration for `/deep` command |
-| `src/ui/commands.ts` | Slash command definitions |
-| `src/ui/themes.ts` | Terminal colors and styling |
+| `src/core/agent/prompts/composers/systemPromptComposer.ts` | Modular prompt composition |
+| `src/core/agent/guardrails.ts` | Safety mechanisms (loop prevention) |
+| `src/core/repoPacker/` | Repomix integration for `/deep` command |
+| `src/ui/themes/` | Terminal colors and styling |
 
 ---
 

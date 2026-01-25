@@ -86,7 +86,7 @@ describe("ToolCallTracker", () => {
   });
 
   describe("detectLoop - sequence loops", () => {
-    it("should detect A→B→A→B pattern", () => {
+    it("should detect A→B→A→B pattern with same args", () => {
       tracker.recordCall("tool_a", {});
       tracker.recordCall("tool_b", {});
       tracker.recordCall("tool_a", {});
@@ -97,7 +97,7 @@ describe("ToolCallTracker", () => {
       expect(result.type).toBe("sequence-loop");
     });
 
-    it("should detect A→B→C→A→B→C pattern", () => {
+    it("should detect A→B→C→A→B→C pattern with same args", () => {
       tracker.recordCall("tool_a", {});
       tracker.recordCall("tool_b", {});
       tracker.recordCall("tool_c", {});
@@ -108,6 +108,30 @@ describe("ToolCallTracker", () => {
       const result = tracker.detectLoop();
       expect(result.isLoop).toBe(true);
       expect(result.type).toBe("sequence-loop");
+    });
+
+    it("should NOT trigger when same tool reads different files (expected behavior)", () => {
+      // This simulates the agent reading multiple files during analysis
+      // which is expected behavior and should NOT be flagged as a loop
+      tracker.recordCall("read_repo_file", { path: "README.md" });
+      tracker.recordCall("read_repo_file", { path: "LICENSE" });
+      tracker.recordCall("read_repo_file", { path: "package.json" });
+      tracker.recordCall("read_repo_file", { path: "CONTRIBUTING.md" });
+      
+      const result = tracker.detectLoop();
+      expect(result.isLoop).toBe(false);
+      expect(result.type).toBe("none");
+    });
+
+    it("should NOT trigger for sequence with different args", () => {
+      // Same tool sequence but with different arguments
+      tracker.recordCall("read_repo_file", { path: "file1" });
+      tracker.recordCall("list_repo_files", { dir: "/" });
+      tracker.recordCall("read_repo_file", { path: "file2" });
+      tracker.recordCall("list_repo_files", { dir: "/src" });
+      
+      const result = tracker.detectLoop();
+      expect(result.isLoop).toBe(false);
     });
 
     it("should not trigger for non-repeating sequences", () => {

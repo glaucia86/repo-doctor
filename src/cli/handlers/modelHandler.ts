@@ -8,6 +8,7 @@ import {
   AVAILABLE_MODELS,
   findModel,
   findModelByIndex,
+  type ModelInfo,
 } from "../state/appState.js";
 import {
   printSuccess,
@@ -18,6 +19,85 @@ import {
 } from "../../ui/index.js";
 
 // ════════════════════════════════════════════════════════════════════════════
+// INTERACTIVE MODEL PROMPT
+// ════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Show model menu and prompt for selection using stdin directly
+ * Works even when chatLoop's readline is paused
+ */
+function promptModelSelection(): Promise<ModelInfo | null> {
+  return new Promise((resolve) => {
+    console.log();
+    console.log("  " + c.whiteBold(ICON.model + " Select AI Model"));
+    console.log("  " + c.border("─".repeat(50)));
+    console.log();
+
+    AVAILABLE_MODELS.forEach((model, index) => {
+      const isCurrent = model.id === appState.currentModel;
+      const num = c.info(`[${index + 1}]`);
+      const premiumIcon = model.premium ? c.premium(" ⚡") : c.healthy(" ✓ FREE");
+      const currentIndicator = isCurrent ? c.dim(" (current)") : "";
+      const prefix = isCurrent ? c.healthy("● ") : "  ";
+
+      console.log(
+        `  ${prefix}${num} ${c.text(model.name)}${premiumIcon}${currentIndicator}`
+      );
+    });
+
+    console.log();
+    console.log("  " + c.dim("Enter number, name, or press Enter to cancel:"));
+    console.log();
+    process.stdout.write(c.brand("  ❯ "));
+
+    // Resume stdin if paused (chatLoop pauses it)
+    process.stdin.resume();
+    process.stdin.setEncoding("utf8");
+
+    let inputBuffer = "";
+
+    const onData = (chunk: string) => {
+      inputBuffer += chunk;
+      
+      // Check for newline (Enter pressed)
+      if (inputBuffer.includes("\n") || inputBuffer.includes("\r")) {
+        cleanup();
+        const answer = inputBuffer.replace(/[\r\n]/g, "").trim();
+        processAnswer(answer);
+      }
+    };
+
+    const cleanup = () => {
+      process.stdin.removeListener("data", onData);
+    };
+
+    const processAnswer = (trimmed: string) => {
+      if (!trimmed) {
+        resolve(null);
+        return;
+      }
+
+      const index = parseInt(trimmed, 10);
+      if (!isNaN(index) && index >= 1 && index <= AVAILABLE_MODELS.length) {
+        resolve(AVAILABLE_MODELS[index - 1]!);
+        return;
+      }
+
+      // Try to find by name or id
+      const found = AVAILABLE_MODELS.find(
+        (m) =>
+          m.id.toLowerCase() === trimmed.toLowerCase() ||
+          m.name.toLowerCase().includes(trimmed.toLowerCase())
+      );
+      
+      resolve(found || null);
+    };
+
+    process.stdin.on("data", onData);
+  });
+}
+
+// ════════════════════════════════════════════════════════════════════════════
 // HANDLER
 // ════════════════════════════════════════════════════════════════════════════
 
@@ -26,8 +106,24 @@ import {
  */
 export async function handleModel(modelName?: string): Promise<void> {
   if (!modelName) {
-    // Show model menu with numbers for selection
-    showModelMenu();
+    // Interactive model selection
+    const selected = await promptModelSelection();
+    
+    if (!selected) {
+      console.log();
+      printWarning("Model selection cancelled.");
+      console.log();
+      return;
+    }
+
+    appState.setModel(selected.id, selected.premium);
+    console.log();
+    printSuccess(`Switched to ${selected.name}`);
+    printChatStatusBar(
+      appState.currentModel,
+      appState.isPremium,
+      appState.lastRepo || undefined
+    );
     return;
   }
 
@@ -54,40 +150,4 @@ export async function handleModel(modelName?: string): Promise<void> {
     appState.isPremium,
     appState.lastRepo || undefined
   );
-}
-
-// ════════════════════════════════════════════════════════════════════════════
-// UI HELPERS
-// ════════════════════════════════════════════════════════════════════════════
-
-/**
- * Show model selection menu
- */
-function showModelMenu(): void {
-  console.log();
-  console.log("  " + c.whiteBold(ICON.model + " Select AI Model"));
-  console.log("  " + c.border("─".repeat(50)));
-  console.log();
-
-  AVAILABLE_MODELS.forEach((model, index) => {
-    const isCurrent = model.id === appState.currentModel;
-    const num = c.info(`[${index + 1}]`);
-    const premiumIcon = model.premium ? c.premium(" ⚡") : c.healthy(" ✓ FREE");
-    const currentIndicator = isCurrent ? c.dim(" (current)") : "";
-    const prefix = isCurrent ? c.healthy("● ") : "  ";
-
-    console.log(
-      `  ${prefix}${num} ${c.text(model.name)}${premiumIcon}${currentIndicator}`
-    );
-  });
-
-  console.log();
-  console.log(
-    "  " +
-      c.dim("Type: ") +
-      c.info("/model <number>") +
-      c.dim(" or ") +
-      c.info("/model <name>")
-  );
-  console.log();
 }

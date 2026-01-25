@@ -4,12 +4,14 @@
  */
 
 import { analyzeRepositoryWithCopilot } from "../../core/agent.js";
+import { isRepomixAvailable } from "../../core/repoPacker.js";
 import { parseRepoRef, buildRepoUrl, buildRepoSlug } from "../parsers/repoParser.js";
 import { appState } from "../state/appState.js";
 import {
   printRepo,
   printModel,
   printError,
+  printWarning,
   c,
 } from "../../ui/index.js";
 
@@ -58,6 +60,16 @@ export async function handleAnalyze(
   printModel(appState.currentModel, appState.isPremium);
   if (deep) {
     console.log("  " + c.warning("Mode: Deep Analysis (Repomix)"));
+    
+    // Check if Repomix is available before starting
+    // Note: Result is cached per session to avoid repeated 30s timeout delays
+    const repomixReady = await isRepomixAvailable();
+    if (!repomixReady) {
+      printWarning("Repomix not available. Deep analysis will use file-by-file fallback.");
+      console.log(c.dim("  To enable full deep analysis, ensure Node.js and npx are working."));
+      console.log(c.dim("  Test with: npx repomix --version"));
+      console.log();
+    }
   }
   console.log();
 

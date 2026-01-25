@@ -30,10 +30,10 @@ export interface GuardrailsConfig extends TrackerConfig {
 // ════════════════════════════════════════════════════════════════════════════
 
 export const DEFAULT_GUARDRAILS_CONFIG: GuardrailsConfig = {
-  maxToolCalls: 30,
-  maxConsecutiveRepeats: 3,
-  minSequenceLength: 2,
-  timeWindowMs: 60000,
+  maxToolCalls: 50,
+  maxConsecutiveRepeats: 5,
+  minSequenceLength: 3,
+  timeWindowMs: 120000,
   verbose: false,
   onLoopAction: "warn",
 };
@@ -192,18 +192,21 @@ export function createGuardrails(
 ): AgentGuardrails {
   const configs: Record<string, Partial<GuardrailsConfig>> = {
     standard: {
-      maxToolCalls: 30,
-      maxConsecutiveRepeats: 3,
+      maxToolCalls: 50,
+      maxConsecutiveRepeats: 5,
+      minSequenceLength: 3,
       onLoopAction: "warn",
     },
     deep: {
-      maxToolCalls: 40,        // Allow more for deep analysis
-      maxConsecutiveRepeats: 4,
+      maxToolCalls: 80,        // Allow more for deep analysis
+      maxConsecutiveRepeats: 6,
+      minSequenceLength: 4,
       onLoopAction: "warn",
     },
     strict: {
-      maxToolCalls: 20,
-      maxConsecutiveRepeats: 2,
+      maxToolCalls: 30,
+      maxConsecutiveRepeats: 3,
+      minSequenceLength: 2,
       onLoopAction: "abort",
     },
   };

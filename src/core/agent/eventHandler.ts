@@ -46,7 +46,32 @@ export interface EventHandlerState {
   aborted: boolean;
   /** Reason for abort (if aborted) */
   abortReason: string;
+  /** Track the current tool being executed (for correlating start/complete events) */
+  currentToolName: string | null;
 }
+
+// ════════════════════════════════════════════════════════════════════════════
+// TOOL RESULT SCHEMA
+// ════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Tools that follow the structured result schema with { success, error, reason, suggestion }
+ * Only these tools will have their failure status displayed prominently.
+ * 
+ * Expected result structure:
+ * {
+ *   success: boolean;
+ *   error?: string;       // Human-readable error message
+ *   reason?: string;      // Error code like "TIMEOUT", "REPO_NOT_FOUND", etc.
+ *   suggestion?: string;  // Actionable suggestion for recovery
+ * }
+ */
+const TOOLS_WITH_STRUCTURED_RESULTS = new Set([
+  "pack_repository",
+  "get_repo_meta",
+  "read_repo_file",
+  "list_repo_files",
+]);
 
 // ════════════════════════════════════════════════════════════════════════════
 // DEFAULT PHASES
@@ -90,6 +115,7 @@ export function createEventHandler(options: EventHandlerOptions): {
     phases: createPhases(),
     aborted: false,
     abortReason: "",
+    currentToolName: null,
   };
 
   const handler = (event: SessionEvent): void => {
@@ -132,6 +158,9 @@ export function createEventHandler(options: EventHandlerOptions): {
         state.toolCallCount++;
         const toolName = event.data?.toolName || "tool";
         const toolArgs = event.data?.arguments || {};
+        
+        // Track current tool for correlating with execution_complete event
+        state.currentToolName = toolName;
 
         // Check guardrails for loop detection (if provided)
         if (guardrails) {
@@ -152,9 +181,48 @@ export function createEventHandler(options: EventHandlerOptions): {
         break;
 
       case "tool.execution_complete":
-        if (verbose && !json) {
-          const icon = c.healthy(ICON.check);
-          console.log(`  ${icon} ${c.dim("Tool completed")}`);
+        {
+          // Get the tool name from tracking state (set during execution_start)
+          const completedToolName = state.currentToolName;
+          state.currentToolName = null; // Clear for next tool
+          
+          // Only apply structured error display to tools that follow the expected schema
+          // This prevents false positives from tools with different result formats
+          const isStructuredTool = completedToolName && TOOLS_WITH_STRUCTURED_RESULTS.has(completedToolName);
+          
+          // The result may contain tool-specific data
+          const resultData = event.data?.result;
+          
+          // Try to parse result content if it's a JSON string
+          let parsedResult: Record<string, unknown> | null = null;
+          if (isStructuredTool && resultData && typeof resultData.content === "string") {
+            try {
+              parsedResult = JSON.parse(resultData.content) as Record<string, unknown>;
+            } catch {
+              // Not JSON, that's fine
+            }
+          }
+
+          // Log failures prominently for tools with structured results
+          if (parsedResult && parsedResult.success === false) {
+            const errorReason = String(parsedResult.reason || "UNKNOWN");
+            const errorMsg = String(parsedResult.error || "");
+            
+            if (!silent && !json) {
+              console.log(
+                `\n  ${c.warning("⚠️")} ${c.warningBold("Tool failed:")} ${c.dim(errorReason)}`
+              );
+              if (errorMsg) {
+                console.log(`  ${c.dim(`   Error: ${errorMsg.slice(0, 200)}`)}`);
+              }
+              if (parsedResult.suggestion) {
+                console.log(`  ${c.dim(`   → ${parsedResult.suggestion}`)}`);
+              }
+            }
+          } else if (verbose && !json) {
+            const icon = c.healthy(ICON.check);
+            console.log(`  ${icon} ${c.dim("Tool completed")}`);
+          }
         }
         break;
 
@@ -167,6 +235,28 @@ export function createEventHandler(options: EventHandlerOptions): {
         }
         if (!silent && !json) {
           console.log("\n");
+        }
+        break;
+
+      // Infinite Sessions compaction events (v0.1.18+)
+      case "session.compaction_start":
+        if (verbose && !json) {
+          console.log(`\n  ${c.dim(`${ICON.refresh} Context compaction started...`)}`);
+        }
+        break;
+
+      case "session.compaction_complete":
+        {
+          const compactionData = event.data as { tokensRemoved?: number; success?: boolean } | undefined;
+          if (verbose && !json) {
+            const tokensRemoved = compactionData?.tokensRemoved ?? 0;
+            const success = compactionData?.success ?? true;
+            if (success) {
+              console.log(`  ${c.healthy(ICON.check)} ${c.dim(`Compaction complete (${tokensRemoved} tokens freed)`)}`);
+            } else {
+              console.log(`  ${c.warning(ICON.warn)} ${c.dim("Compaction completed with issues")}`);
+            }
+          }
         }
         break;
 

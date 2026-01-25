@@ -8,6 +8,8 @@ import {
   packRemoteRepository,
   getDefaultIncludePatterns,
   getDeepIncludePatterns,
+  isRepomixAvailable,
+  type PackErrorReason,
 } from "../core/repoPacker.js";
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -16,6 +18,39 @@ import {
 
 export interface PackRepositoryOptions {
   maxBytes?: number;
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// ERROR SUGGESTIONS
+// ════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Maps structured error reasons to user-friendly suggestions.
+ * Centralized here to keep suggestions consistent and easy to update.
+ */
+function getErrorSuggestion(reason: PackErrorReason): string {
+  const suggestions: Record<PackErrorReason, string> = {
+    TIMEOUT:
+      "Repository too large or network too slow. Use standard file-by-file analysis instead.",
+    REPO_NOT_FOUND:
+      "Repository not found or is private. Check the URL and ensure you have access.",
+    RATE_LIMITED:
+      "GitHub rate limit hit. Wait a few minutes or use a token with higher limits.",
+    CLONE_FAILED:
+      "Failed to clone repository. Check network connection and repository accessibility.",
+    NPX_NOT_FOUND:
+      "npx command not found. Ensure Node.js >= 18 is installed and in PATH.",
+    REPOMIX_NOT_AVAILABLE:
+      "Repomix is not available. Ensure Node.js >= 18 and npx are working correctly. Fall back to standard file-by-file analysis.",
+    EXECUTION_FAILED:
+      "Repomix execution failed. Fall back to standard file-by-file analysis using read_repo_file.",
+    EXCEPTION:
+      "Repomix failed unexpectedly. Fall back to standard file-by-file analysis using read_repo_file.",
+    UNKNOWN:
+      "Repomix failed. Fall back to standard file-by-file analysis using read_repo_file.",
+  };
+  
+  return suggestions[reason] || suggestions.UNKNOWN;
 }
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -69,6 +104,18 @@ Returns consolidated content with file markers and structure.`,
       const { repoUrl, ref, mode = "governance", compress = false } = args;
 
       try {
+        // Pre-check: verify Repomix is available
+        const repomixReady = await isRepomixAvailable();
+        if (!repomixReady) {
+          const reason: PackErrorReason = "REPOMIX_NOT_AVAILABLE";
+          return {
+            success: false,
+            error: "Repomix is not available. npx repomix --version failed.",
+            reason,
+            suggestion: getErrorSuggestion(reason),
+          };
+        }
+
         // Select include patterns based on mode
         const include =
           mode === "deep"
@@ -85,11 +132,16 @@ Returns consolidated content with file markers and structure.`,
         });
 
         if (!result.success) {
+          // Use the structured error reason from PackResult
+          // This avoids fragile string matching on error messages
+          const reason = result.errorReason || "UNKNOWN";
+          const suggestion = getErrorSuggestion(reason);
+
           return {
             success: false,
             error: result.error,
-            suggestion:
-              "Repomix failed. Fall back to standard file-by-file analysis using read_repo_file.",
+            reason,
+            suggestion,
           };
         }
 
@@ -106,11 +158,13 @@ Returns consolidated content with file markers and structure.`,
             : "Full repository content included.",
         };
       } catch (error: any) {
+        const errorMsg = error.message?.slice(0, 500) ?? "Unknown error";
+        const reason: PackErrorReason = "EXCEPTION";
         return {
           success: false,
-          error: error.message?.slice(0, 500) ?? "Unknown error",
-          suggestion:
-            "Repomix failed. Fall back to standard file-by-file analysis using read_repo_file.",
+          error: errorMsg,
+          reason,
+          suggestion: getErrorSuggestion(reason),
         };
       }
     },

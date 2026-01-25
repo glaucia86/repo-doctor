@@ -5,10 +5,16 @@
 // Prompts
 export {
   SYSTEM_PROMPT,
+  QUICK_SYSTEM_PROMPT,
+  DEEP_SYSTEM_PROMPT,
+  composeSystemPrompt,
+  getSystemPrompt,
   buildSystemPrompt,
   buildAnalysisPrompt,
   type PromptOptions,
   type AnalysisPromptOptions,
+  type AnalysisMode,
+  type PromptComposerOptions,
 } from "./prompts/index.js";
 
 // Event handling
