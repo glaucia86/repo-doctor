@@ -28,7 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [2.1.1] - 2026-01-24
+## [2.2.0] - 2026-01-24
 
 ### Added
 
@@ -39,6 +39,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - New events: `session.compaction_start`, `session.compaction_complete`
   - Verbose mode shows compaction progress and tokens freed
 
+- **Modular Theme System** (`src/ui/themes/`)
+  - `colors.ts`: COLORS palette & chalk helpers
+  - `icons.ts`: ICON, category/priority mappings
+  - `box.ts`: Box drawing utilities
+  - `badges.ts`: Progress bars, health scores
+  - `logo.ts`: Logo renderers
+  - Reduced `src/ui/themes.ts` from monolithic to re-exports
+
+- **Modular Repomix Integration** (`src/core/repoPacker/`)
+  - `packer.ts`: Main `packRemoteRepository` function
+  - `executor.ts`: Repomix process execution
+  - `errors.ts`: Error categorization & sanitization
+  - `patterns.ts`: Include/exclude patterns (governance vs deep)
+  - `cleaner.ts`: Temp directory cleanup
+  - `availability.ts`: npx/repomix availability check
+  - `types.ts`: PackOptions, PackResult, PackErrorReason
+
+- **Modular Prompt System** (`src/core/agent/prompts/`)
+  - Base modules: securityDirective, expertiseProfile, reconnaissance, languageDetection, strategicReading, analysisCriteria, scoring, evidenceRules, outputFormat, constraints, errorHandling
+  - Mode-specific extensions: `modes/quick.ts`, `modes/deep.ts`
+  - Prompt composition: `composers/systemPromptComposer.ts`
+  - Follows Open/Closed Principle (OCP) for easy extension
+
+- **Integration Tests**: `tests/tools/repoPacker.integration.test.ts`
+- **Unit Tests**: `tests/tools/repoPacker.test.ts` (598 lines)
+
 ### Changed
 
 - **Copilot SDK**: Upgraded from v0.1.15 to v0.1.18
@@ -48,6 +74,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `minSequenceLength`: 2 → 3 (reduces false positives)
   - `timeWindowMs`: 60s → 120s
   - Fixed sequence matching to compare tool name AND args hash
+- **Architecture**: Major refactoring following SOLID principles
+  - `src/ui/themes.ts`: Monolithic → modular re-exports
+  - `src/core/repoPacker.ts`: Monolithic → modular re-exports
+  - `src/core/agent/prompts/systemPrompt.ts`: Simplified to legacy exports
 
 ### Fixed
 
@@ -154,6 +184,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+[2.2.0]: https://github.com/glaucia86/repo-doctor/compare/v2.1.0...v2.2.0
 [2.1.0]: https://github.com/glaucia86/repo-doctor/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/glaucia86/repo-doctor/compare/v1.0.0...v2.0.0
 [1.0.0]: https://github.com/glaucia86/repo-doctor/releases/tag/v1.0.0
