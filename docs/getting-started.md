@@ -149,8 +149,8 @@ To use advanced features like creating issues or commenting on PRs, you need a G
 # Set token as environment variable (recommended)
 export GITHUB_TOKEN=ghp_your_token_here
 
-# Or use directly with commands
-repo-doctor analyze owner/repo --issue --token ghp_your_token_here
+# Or pass it only for a single command (avoids storing it in shell history)
+GITHUB_TOKEN=ghp_your_token_here repo-doctor analyze owner/repo --issue
 ```
 
 #### Security Notes
@@ -267,7 +267,11 @@ repo-doctor analyze your-username/your-repo --issue
 #### Interactive Mode
 
 ```bash
-repo-doctor chat --token ghp_your_token_here
+# Set token securely for the session
+export GITHUB_TOKEN=ghp_your_token_here
+
+# Then start interactive mode
+repo-doctor chat
 # Then type:
 /analyze facebook/react --issue
 /deep microsoft/vscode
@@ -301,8 +305,11 @@ Want to try the publishing features? Here's a complete step-by-step guide:
 ### Step 2: Test with Interactive Mode
 
 ```bash
-# Start interactive mode with your token
-repo-doctor chat --token ghp_your_token_here
+# Set your token securely
+export GITHUB_TOKEN=ghp_your_token_here
+
+# Start interactive mode
+repo-doctor chat
 ```
 
 ### Step 3: Test Issue Creation
@@ -452,7 +459,7 @@ With a GitHub Personal Access Token, you can automatically publish analysis repo
 
 ```bash
 # Create a GitHub issue with the complete analysis
-repo-doctor analyze owner/repo --issue --token ghp_your_token
+GITHUB_TOKEN=ghp_your_token repo-doctor analyze owner/repo --issue
 
 # The issue includes:
 # - Title: "Repo Doctor Report: owner/repo"
