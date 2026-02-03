@@ -117,7 +117,14 @@ repo-doctor analyze owner/repo --issue
 
 #### 💬 Interactive Mode
 ```bash
-repo-doctor chat --token ghp_token
+# Set token securely (recommended)
+export GITHUB_TOKEN=ghp_your_token_here
+
+# Or use gh CLI auth
+gh auth login
+
+# Then start interactive mode
+repo-doctor chat
 /analyze facebook/react --issue
 /deep microsoft/vscode
 ```
