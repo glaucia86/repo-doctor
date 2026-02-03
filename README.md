@@ -76,6 +76,17 @@
 </td>
 <td width="50%">
 
+### Auto-Publish Issues
+- **One-Click Issue Creation** — `--issue` flag creates structured GitHub issues
+- **Prioritized Findings** — P0/P1/P2 labels with detailed descriptions
+- **Team Collaboration** — Automated tracking of repository health issues
+- **CI/CD Integration** — Perfect for automated health checks
+
+</td>
+</tr>
+<tr>
+<td width="50%">
+
 ### 🔐 Security First
 - **Prompt Injection Protection** — File content treated as data
 - **Token Management** — Secure GitHub authentication
@@ -85,9 +96,70 @@
 </tr>
 </table>
 
+### 📢 Publishing Features
+
+**Automatically publish analysis reports to GitHub as structured issues:**
+
+#### 🚀 Auto-Create Issues for Each Problem Found
+```bash
+repo-doctor analyze owner/repo --issue --token ghp_xxx
+# Creates: 🔴 [Repo Doctor] docs: Missing README
+#         🟠 [Repo Doctor] ci: No CI/CD Pipeline
+#         🟡 [Repo Doctor] dx: Code Quality Issues
+```
+
+**Each issue includes:**
+- **Detailed description** with evidence and impact assessment
+- **Actionable fix instructions** with code examples
+- **Priority labels** (P0/P1/P2) and category tags
+- **Full analysis context** for team collaboration
+
+#### 💬 Interactive Mode
+```bash
+repo-doctor chat --token ghp_token
+/analyze facebook/react --issue
+/deep microsoft/vscode
+```
+
+> [!TIP]
+> Perfect for automated repository health tracking and team collaboration!
+
+[📖 Learn how to set up GitHub tokens](docs/getting-started.md#testing-publishing-features)
+
 ---
 
-## 🔍 What Gets Analyzed?
+## � Quick Start (5 minutes)
+
+Want to see Repo Doctor create GitHub issues automatically?
+
+```bash
+# 1. Get a GitHub token (see detailed setup below)
+# 2. Set it as environment variable
+export GITHUB_TOKEN=ghp_your_token_here
+
+# 3. Analyze and create issues automatically!
+repo-doctor analyze your-username/your-repo --issue
+```
+
+**Result:** Multiple GitHub issues created with detailed analysis, impact assessment, and fix instructions! 🎉
+
+### 🔑 Setting up GitHub Token
+
+For the `--issue` feature, you'll need a GitHub Personal Access Token with specific permissions:
+
+1. **Go to** [github.com/settings/tokens](https://github.com/settings/tokens)
+2. **Generate** a new "Tokens (classic)"
+3. **Select these scopes**:
+   - `repo` (full repository access) **OR** the following granular permissions:
+     - `metadata` — Read repository metadata
+     - `contents` — Read repository contents
+     - `issues` — Create and manage issues
+4. **Copy** the token (starts with `ghp_`)
+
+> [!IMPORTANT]
+> [📖 Complete setup guide with screenshots](docs/getting-started.md#testing-publishing-features)
+
+---
 
 | Category | What's Checked | Example Findings |
 |----------|----------------|------------------|
@@ -134,7 +206,13 @@ repo-doctor vercel/next.js
 
 # Deep analysis with premium model
 repo-doctor vercel/next.js --model claude-sonnet-4 --deep
+
+# 🚀 Auto-create GitHub issues for each problem found
+repo-doctor vercel/next.js --issue
 ```
+
+> [!NOTE]
+> `--issue` requires a GitHub token. [Learn how to set it up](docs/getting-started.md#testing-publishing-features).
 
 ---
 

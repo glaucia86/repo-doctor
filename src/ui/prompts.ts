@@ -319,7 +319,10 @@ export async function runInteractiveMode(): Promise<{
   format: "pretty" | "json" | "minimal";
 }> {
   clearScreen();
-  printHeader();
+  await printHeader(false, true); // not compact, animated
+
+  console.log("  " + c.brand(ICON.sparkle) + " " + c.text("Welcome to Repo Doctor!"));
+  console.log();
 
   console.log("  " + c.brand(ICON.sparkle) + " " + c.text("Welcome to Repo Doctor!"));
   console.log();

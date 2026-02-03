@@ -57,6 +57,10 @@ export function extractReportOnly(content: string): string {
     // Deep analysis section (fallback if no health report header found)
     // This should only match if there's no health report section
     /^##?\s*🔬\s*Deep Analysis/mi,
+    // Phase headers (if the report starts with phases)
+    /^\*\*PHASE \d+.*\*\*/m,
+    // Any markdown header that might be the start
+    /^##\s+[A-Z]/m,
   ];
 
   for (const pattern of reportStartPatterns) {

@@ -5,6 +5,9 @@
 
 import type { AnalysisResult } from "../../types/schema.js";
 import type { AnalysisOutput } from "../../core/agent.js";
+import { createRequire } from "node:module";
+
+const require = createRequire(import.meta.url);
 
 // ════════════════════════════════════════════════════════════════════════════
 // TYPES
@@ -53,15 +56,101 @@ export const AVAILABLE_MODELS: ModelInfo[] = [
   // Premium models
   { id: "claude-sonnet-4", name: "Claude Sonnet 4", premium: true },
   { id: "claude-sonnet-4.5", name: "Claude Sonnet 4.5", premium: true },
+  { id: "claude-haiku-4.5", name: "Claude Haiku 4.5", premium: true },
   { id: "claude-opus-4.5", name: "Claude Opus 4.5 (Rate Limit: 3x)", premium: true },
   { id: "gpt-5", name: "GPT-5 (Preview)", premium: true },
+  { id: "gpt-5.1", name: "GPT-5.1 (Preview)", premium: true },
+  { id: "gpt-5.2", name: "GPT-5.2 (Preview)", premium: true },
   { id: "gpt-5.1-codex", name: "GPT-5.1-Codex", premium: true },
   { id: "gpt-5.2-codex", name: "GPT-5.2-Codex", premium: true },
+  { id: "gpt-5.1-codex-max", name: "GPT-5.1-Codex-Max", premium: true },
+  { id: "gpt-5.1-codex-mini", name: "GPT-5.1-Codex-Mini", premium: true },
   { id: "o3", name: "o3 (Reasoning)", premium: true },
+  { id: "gemini-3-pro-preview", name: "Gemini 3 Pro Preview", premium: true },
 ];
 
 export const DEFAULT_MODEL = "claude-sonnet-4";
 export const MAX_HISTORY_SIZE = 10;
+
+// ════════════════════════════════════════════════════════════════════════════
+// DYNAMIC MODEL LIST
+// ════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Try to read available models from GitHub Copilot CLI.
+ * Falls back to the static list when unavailable.
+ */
+export function getAvailableModels(): ModelInfo[] {
+  try {
+    // Lazy import to avoid hard dependency during module load
+    const { getCopilotCliModels } = require("../../providers/copilotModels.js") as typeof import("../../providers/copilotModels.js");
+    const models = getCopilotCliModels();
+    if (models && models.length > 0) {
+      const premiumMap = new Map(AVAILABLE_MODELS.map((model) => [model.id.toLowerCase(), model.premium]));
+        const mapped = models.map((model) => {
+          // Try exact id match first (case-insensitive)
+          const idKey = model.id.toLowerCase();
+          const mId = model.id.toLowerCase();
+          const mName = model.name.toLowerCase();
+
+          // Attempt tolerant matching against AVAILABLE_MODELS
+          let alt: ModelInfo | undefined;
+          const exactAlt = AVAILABLE_MODELS.find((a) => a.id.toLowerCase() === mId);
+          if (exactAlt) {
+            alt = exactAlt;
+          } else {
+            alt = AVAILABLE_MODELS.find((a) => {
+              const aId = a.id.toLowerCase();
+              const aName = a.name.toLowerCase();
+              return (
+                mId.startsWith(aId) ||
+                aId.startsWith(mId) ||
+                aName === mName ||
+                aName.includes(mName) ||
+                mName.includes(aName)
+              );
+            });
+          }
+
+          // Determine premium: prefer exact id match from the map, then alt, then default to premium
+          let premium = true;
+          if (exactAlt) {
+            premium = exactAlt.premium;
+          } else if (premiumMap.has(idKey)) {
+            premium = premiumMap.get(idKey)!;
+          }
+
+          return {
+            id: model.id,
+            // Use the static AVAILABLE_MODELS name when we have a mapping (preserves rate notes)
+            name: alt ? alt.name : model.name,
+            premium: Boolean(premium),
+          };
+        });
+
+        // Deduplicate by id (case-insensitive), preserving order and merging premium flags.
+        const result: ModelInfo[] = [];
+        const seenById = new Map<string, ModelInfo>();
+        for (const m of mapped) {
+          const idKey = m.id.toLowerCase();
+          if (!seenById.has(idKey)) {
+            const copy = { ...m };
+            seenById.set(idKey, copy);
+            result.push(copy);
+          } else {
+            const existing = seenById.get(idKey)!;
+            if (!existing.premium && m.premium) existing.premium = true;
+          }
+        }
+
+        return result;
+    }
+  } catch {
+    // ignore and fall back
+  }
+
+  return AVAILABLE_MODELS;
+}
 
 // ════════════════════════════════════════════════════════════════════════════
 // APP STATE CLASS
@@ -156,17 +245,17 @@ export const appState = new AppState();
 /**
  * Find a model by ID or name
  */
-export function findModel(query: string): ModelInfo | undefined {
+export function findModel(query: string, models: ModelInfo[] = getAvailableModels()): ModelInfo | undefined {
   const normalizedQuery = query.toLowerCase();
   
   // Try exact ID match first
-  const exactMatch = AVAILABLE_MODELS.find(
+  const exactMatch = models.find(
     m => m.id.toLowerCase() === normalizedQuery
   );
   if (exactMatch) return exactMatch;
   
   // Try partial name match
-  return AVAILABLE_MODELS.find(
+  return models.find(
     m => m.name.toLowerCase().includes(normalizedQuery)
   );
 }
@@ -174,9 +263,9 @@ export function findModel(query: string): ModelInfo | undefined {
 /**
  * Find a model by index (1-based for user display)
  */
-export function findModelByIndex(index: number): ModelInfo | undefined {
-  if (index >= 1 && index <= AVAILABLE_MODELS.length) {
-    return AVAILABLE_MODELS[index - 1];
+export function findModelByIndex(index: number, models: ModelInfo[] = getAvailableModels()): ModelInfo | undefined {
+  if (index >= 1 && index <= models.length) {
+    return models[index - 1];
   }
   return undefined;
 }
