@@ -102,7 +102,8 @@
 
 #### 🚀 Auto-Create Issues for Each Problem Found
 ```bash
-repo-doctor analyze owner/repo --issue --token ghp_xxx
+export GITHUB_TOKEN=ghp_xxx          # or REPO_DOCTOR_GITHUB_TOKEN, as configured
+repo-doctor analyze owner/repo --issue
 # Creates: 🔴 [Repo Doctor] docs: Missing README
 #         🟠 [Repo Doctor] ci: No CI/CD Pipeline
 #         🟡 [Repo Doctor] dx: Code Quality Issues
