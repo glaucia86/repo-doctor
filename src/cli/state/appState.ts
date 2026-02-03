@@ -76,11 +76,21 @@ export const MAX_HISTORY_SIZE = 10;
 // DYNAMIC MODEL LIST
 // ════════════════════════════════════════════════════════════════════════════
 
+// Cache for memoized model list (process lifetime)
+let cachedModels: ModelInfo[] | null = null;
+
 /**
  * Try to read available models from GitHub Copilot CLI.
  * Falls back to the static list when unavailable.
+ * 
+ * Memoized for process lifetime to avoid repeated shell-outs.
  */
 export function getAvailableModels(): ModelInfo[] {
+  // Return cached result if available
+  if (cachedModels !== null) {
+    return cachedModels;
+  }
+
   try {
     // Lazy import to avoid hard dependency during module load
     const { getCopilotCliModels } = require("../../providers/copilotModels.js") as typeof import("../../providers/copilotModels.js");
@@ -143,13 +153,24 @@ export function getAvailableModels(): ModelInfo[] {
           }
         }
 
+        // Cache and return the result
+        cachedModels = result;
         return result;
     }
   } catch {
     // ignore and fall back
   }
 
+  // Cache and return the static list
+  cachedModels = AVAILABLE_MODELS;
   return AVAILABLE_MODELS;
+}
+
+/**
+ * Clear the cached model list (useful for testing or forced refresh).
+ */
+export function clearModelCache(): void {
+  cachedModels = null;
 }
 
 // ════════════════════════════════════════════════════════════════════════════
