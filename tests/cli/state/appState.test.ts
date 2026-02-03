@@ -138,12 +138,7 @@ describe("findModelByIndex", () => {
 
 describe("getAvailableModels memoization", () => {
   beforeEach(() => {
-    // Clear cache before each test
-    clearModelCache();
-  });
-
-  afterEach(() => {
-    // Clear cache after each test
+    // Clear cache before each test to ensure isolation
     clearModelCache();
     vi.restoreAllMocks();
   });
