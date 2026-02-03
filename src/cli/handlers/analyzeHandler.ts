@@ -16,6 +16,7 @@ import {
   c,
 } from "../../ui/index.js";
 import { publishReport } from "../../core/publish/index.js";
+import { isAuthenticated } from "../../providers/github.js";
 
 // ════════════════════════════════════════════════════════════════════════════
 // TYPES
@@ -72,12 +73,12 @@ export async function handleAnalyze(
   deep: boolean = false
 ): Promise<void> {
   const parsedFlags = extractPublishFlags(repoRef);
-  const effectiveIssue = options.issue || parsedFlags.issue;
+  let effectiveIssue = options.issue || parsedFlags.issue;
 
-  if (effectiveIssue && !options.token) {
+  if (effectiveIssue && !isAuthenticated(options.token)) {
     printWarning("GitHub token required for publishing issues. Use --token or set GITHUB_TOKEN environment variable.");
     console.log(c.dim("  Skipping issue creation."));
-    return;
+    effectiveIssue = false;
   }
 
   const parsed = parseRepoRef(parsedFlags.repoRef);
