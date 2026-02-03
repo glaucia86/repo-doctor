@@ -324,9 +324,6 @@ export async function runInteractiveMode(): Promise<{
   console.log("  " + c.brand(ICON.sparkle) + " " + c.text("Welcome to Repo Doctor!"));
   console.log();
 
-  console.log("  " + c.brand(ICON.sparkle) + " " + c.text("Welcome to Repo Doctor!"));
-  console.log();
-
   // Get repository
   const repoRef = await promptForRepo();
 
