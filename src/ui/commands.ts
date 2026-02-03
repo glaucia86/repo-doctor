@@ -42,7 +42,7 @@ export const COMMANDS: CommandDefinition[] = [
     command: "/analyze",
     aliases: ["/a", "/scan", "/check"],
     description: "Analyze a GitHub repository",
-    usage: "/analyze <repo-url or owner/repo> [--comment-pr|--issue]",
+    usage: "/analyze <repo-url or owner/repo> [--issue]",
     example: "/analyze vercel/next.js --issue",
     category: "analysis",
   },
@@ -50,8 +50,8 @@ export const COMMANDS: CommandDefinition[] = [
     command: "/deep",
     aliases: ["/d", "/full"],
     description: "Deep analysis with full source code review (uses Repomix)",
-    usage: "/deep <repo-url or owner/repo> [--comment-pr|--issue]",
-    example: "/deep vercel/swr --comment-pr",
+    usage: "/deep <repo-url or owner/repo> [--issue]",
+    example: "/deep vercel/swr --issue",
     category: "analysis",
   },
   {
@@ -342,4 +342,3 @@ export function getQuickReference(): string {
     .map((c) => `${c.cmd} ${c.desc}`)
     .join("  •  ");
 }
-
