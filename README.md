@@ -263,6 +263,8 @@ In the app:
 
 ---
 
+For the complete step-by-step guide (including PAT creation screens and diagnostics), see [docs/issue-publishing.md](docs/issue-publishing.md).
+
 ---
 
 | Category | What's Checked | Example Findings |

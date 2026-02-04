@@ -194,3 +194,14 @@ Different models have different rate limit costs:
 - Some models are slower
 - Increase timeout: `--timeout 180000`
 - Try a faster model for large repos
+
+### "Failed to list models: 401"
+
+This is a Copilot SDK auth error. Re-authenticate with GitHub CLI and export the OAuth token:
+
+```bash
+gh auth login
+export GH_TOKEN="$(gh auth token)"
+```
+
+See [issue-publishing.md](issue-publishing.md) for full steps.

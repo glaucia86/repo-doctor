@@ -113,6 +113,8 @@ Then authenticate:
 gh auth login
 ```
 
+> **Tip:** For model access, Repo Doctor uses the GitHub CLI OAuth token. If you see `Failed to list models: 401`, follow the Copilot auth steps in [issue-publishing.md](issue-publishing.md).
+
 ### 5. GitHub Personal Access Token (For Publishing Features)
 
 To use advanced features like creating issues or commenting on PRs, you need a GitHub Personal Access Token:
@@ -152,6 +154,8 @@ export GITHUB_TOKEN=ghp_your_token_here
 # Or pass it only for a single command (avoids storing it in shell history)
 GITHUB_TOKEN=ghp_your_token_here repo-doctor analyze owner/repo --issue
 ```
+
+> **Full guide:** See [issue-publishing.md](issue-publishing.md) for step-by-step `--issue` setup and 401 troubleshooting.
 
 #### Security Notes
 

@@ -645,6 +645,10 @@ function sanitizeFilePath(path: string): string | null {
 - Environment variables are preferred
 - GitHub CLI integration for secure auth
 
+Repo Doctor uses two auth paths:
+- Copilot SDK auth via GitHub CLI OAuth token (exported as `GH_TOKEN`)
+- GitHub API auth for repo access and `--issue` via PAT (`GITHUB_TOKEN` or `--token`)
+
 ---
 
 ## Extension Points

@@ -1,5 +1,5 @@
 import type { PublishableReport } from "../../types/publish.js";
-import { extractReportOnly, generateCondensedSummary } from "../../cli/parsers/reportExtractor.js";
+import { extractReportOnly, generateCondensedSummary } from "../../utils/reportExtractor.js";
 
 export interface BuildReportInput {
   content: string;
