@@ -28,7 +28,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [2.2.0] - 2026-01-24
+## [2.3.0] - 2026-02-04
+
+### Changed
+
+- **Issue Publishing**: Improved priority label handling in `publishReport.ts` (removed unnecessary `.toLowerCase()`)
+- **Documentation**: Enhanced `--issue` feature documentation with setup instructions and 401 troubleshooting
+- **Documentation**: Updated AI model recommendations, highlighting Claude Sonnet 4.5 for best report quality with `--issue`
+- **Documentation**: Improved token handling instructions for security best practices
+- **Documentation**: Updated interactive mode instructions for secure token handling
+
+### Fixed
+
+- **Priority Labels**: Ensured consistent case handling for issue priority labels
+
+---
 
 ### Added
 
@@ -184,6 +198,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+[2.3.0]: https://github.com/glaucia86/repo-doctor/compare/v2.2.0...v2.3.0
 [2.2.0]: https://github.com/glaucia86/repo-doctor/compare/v2.1.0...v2.2.0
 [2.1.0]: https://github.com/glaucia86/repo-doctor/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/glaucia86/repo-doctor/compare/v1.0.0...v2.0.0
