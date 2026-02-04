@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **CI**: GitHub Actions workflow for lint/build/tests
+- **Governance**: LICENSE, SECURITY.md, CODE_OF_CONDUCT
+- **DX**: .nvmrc for Node version pinning
+- **Automation**: Dependabot config
+- **Linting/Format**: ESLint config, Prettier config, tsconfig.eslint.json
+
+### Changed
+
+- **Tooling**: TypeScript pinned to a version supported by typescript-eslint
+- **CLI**: Safer option parsing to avoid unsafe `any` usage
+- **Repo Packer**: Repomix availability check made sync and tests updated
+- **README**: Added npm version and coverage badges
+
+### Fixed
+
+- **Lint**: Removed no-control-regex violations and unsafe type usages
+- **Sanitizer**: Regex handling and path validation fixes
+
 ---
 
 ## 🗺️ Roadmap
@@ -203,3 +225,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [2.1.0]: https://github.com/glaucia86/repo-doctor/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/glaucia86/repo-doctor/compare/v1.0.0...v2.0.0
 [1.0.0]: https://github.com/glaucia86/repo-doctor/releases/tag/v1.0.0
+[Unreleased]: https://github.com/glaucia86/repo-doctor/compare/v2.3.0...HEAD
