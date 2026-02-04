@@ -95,15 +95,16 @@ created_at, updated_at, pushed_at, license info.`,
             ? { key: data.license.key, name: data.license.name }
             : null,
         };
-      } catch (error: any) {
-        if (error.status === 404) {
+      } catch (error: unknown) {
+        const err = error as { status?: number };
+        if (err.status === 404) {
           return {
             error: "Repository not found",
             status: 404,
             message: "The repository does not exist or you don't have access.",
           };
         }
-        if (error.status === 403) {
+        if (err.status === 403) {
           return {
             error: "Access denied",
             status: 403,

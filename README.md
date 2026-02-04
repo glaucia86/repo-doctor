@@ -16,6 +16,15 @@
   <a href="https://github.com/glaucia86/repo-doctor/fork">
     <img src="https://img.shields.io/github/forks/glaucia86/repo-doctor?style=for-the-badge&logo=github&color=blue" alt="Forks"/>
   </a>
+  <a href="https://github.com/glaucia86/repo-doctor/actions/workflows/ci.yml">
+    <img src="https://github.com/glaucia86/repo-doctor/actions/workflows/ci.yml/badge.svg?style=for-the-badge" alt="CI"/>
+  </a>
+  <a href="https://www.npmjs.com/package/repo-doctor">
+    <img src="https://img.shields.io/npm/v/repo-doctor?style=for-the-badge&color=cb3837" alt="npm version"/>
+  </a>
+  <a href="https://codecov.io/gh/glaucia86/repo-doctor">
+    <img src="https://img.shields.io/codecov/c/github/glaucia86/repo-doctor?style=for-the-badge" alt="Coverage"/>
+  </a>
   <a href="LICENSE">
     <img src="https://img.shields.io/badge/license-MIT-green?style=for-the-badge" alt="License"/>
   </a>

@@ -28,8 +28,8 @@ export function resolvePrContext(): PrContext | null {
   if (eventPath && existsSync(eventPath)) {
     try {
       const raw = readFileSync(eventPath, "utf8");
-      const payload = JSON.parse(raw);
-      const prNumber = payload?.pull_request?.number;
+      const payload = JSON.parse(raw) as { pull_request?: { number?: unknown } };
+      const prNumber = payload.pull_request?.number;
       if (typeof prNumber === "number" && prNumber > 0) {
         return { prNumber, source: "github_event" };
       }

@@ -64,6 +64,21 @@ const HIDDEN_CONTENT_PATTERNS = [
   /[\u202A-\u202E\u2066-\u2069]/g,
 ];
 
+const SPECIAL_CHAR_REGEX = new RegExp(
+  "[^\\w\\s.,;:!?\"'()\\[\\]{}\\/\\\\@#$%^&*+=<>-]",
+  "g"
+);
+const INVALID_PATH_CHARS_REGEX = new RegExp("[<>:\"|?*]");
+
+const hasControlChars = (value: string): boolean => {
+  for (let i = 0; i < value.length; i += 1) {
+    if (value.charCodeAt(i) < 32) {
+      return true;
+    }
+  }
+  return false;
+};
+
 // ════════════════════════════════════════════════════════════════════════════
 // SANITIZATION RESULT
 // ════════════════════════════════════════════════════════════════════════════
@@ -86,7 +101,6 @@ export interface SanitizationResult {
 /**
  * Sanitizes content from repository files to prevent prompt injection
  * 
- * Strategy:
  * 1. Detect suspicious patterns (don't remove, just flag)
  * 2. Wrap content in clear delimiters
  * 3. Add context markers for the LLM
@@ -124,7 +138,7 @@ export function sanitizeFileContent(
   }
 
   // Check for excessive special characters (potential obfuscation)
-  const specialCharRatio = (content.match(/[^\w\s.,;:!?'"()\-\[\]{}\/\\@#$%^&*+=<>]/g) || []).length / content.length;
+  const specialCharRatio = (content.match(SPECIAL_CHAR_REGEX) || []).length / content.length;
   if (specialCharRatio > 0.3 && content.length > 100) {
     warnings.push(`High special character ratio in ${filePath}`);
     detectedPatterns++;
@@ -212,9 +226,9 @@ export function sanitizeMetadata(
         : truncated;
     } else if (Array.isArray(value)) {
       // Sanitize array items (e.g., topics)
-      sanitized[key] = value.map(item => 
-        typeof item === "string" ? item.slice(0, 100) : item
-      );
+        sanitized[key] = value.map((item: unknown) =>
+          typeof item === "string" ? item.slice(0, 100) : item
+        );
     } else {
       sanitized[key] = value;
     }
@@ -245,7 +259,7 @@ export function sanitizeFilePath(path: string): string | null {
   const normalized = path.replace(/\\/g, "/");
   
   // Reject if still contains suspicious patterns
-  if (/[<>:"|?*\x00-\x1f]/.test(normalized)) {
+  if (INVALID_PATH_CHARS_REGEX.test(normalized) || hasControlChars(normalized)) {
     return null;
   }
   

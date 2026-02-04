@@ -19,7 +19,7 @@ let repomixAvailabilityCache: boolean | null = null;
  *
  * @param forceRefresh - If true, bypasses the cache and re-checks availability
  */
-export async function isRepomixAvailable(forceRefresh = false): Promise<boolean> {
+export function isRepomixAvailable(forceRefresh = false): boolean {
   // Return cached result if available and not forcing refresh
   if (repomixAvailabilityCache !== null && !forceRefresh) {
     return repomixAvailabilityCache;

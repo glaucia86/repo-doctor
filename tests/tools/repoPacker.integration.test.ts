@@ -30,7 +30,7 @@ const INTEGRATION_TIMEOUT = 120000; // 2 minutes
 // Check Repomix availability once at module load time
 // This enables proper use of Vitest's skipIf for better test reporting
 clearRepomixAvailabilityCache();
-const repomixAvailable = await isRepomixAvailable();
+const repomixAvailable = isRepomixAvailable();
 
 if (!repomixAvailable) {
   console.warn("⚠️ Repomix not available - integration tests will be skipped");
@@ -41,9 +41,9 @@ if (!repomixAvailable) {
 // ════════════════════════════════════════════════════════════════════════════
 
 describe("Integration: Pre-flight", () => {
-  it("should have Repomix available via npx", async () => {
+  it("should have Repomix available via npx", () => {
     // This test validates the availability check itself
-    const available = await isRepomixAvailable();
+    const available = isRepomixAvailable();
     expect(available).toBe(true);
   }, 60000);
 });

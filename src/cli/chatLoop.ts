@@ -302,19 +302,23 @@ export async function runChatMode(
   // Flag to prevent re-entrance during async operations
   let isProcessing = false;
 
-  rl.on("line", async (input) => {
+  const handleLine = async (input: string): Promise<void> => {
     // Prevent multiple simultaneous command executions
     if (isProcessing) {
       return;
     }
-    
+
     const command = parseCommand(input);
 
     // For async commands, pause readline to prevent input issues during analysis
     // "model" is included because its handler creates its own readline
-    if (command.type === "analyze" || command.type === "deep" || 
-        command.type === "export" || command.type === "copy" ||
-        command.type === "model") {
+    if (
+      command.type === "analyze" ||
+      command.type === "deep" ||
+      command.type === "export" ||
+      command.type === "copy" ||
+      command.type === "model"
+    ) {
       isProcessing = true;
       rl.pause();
     }
@@ -385,6 +389,10 @@ export async function runChatMode(
     if (appState.isRunning) {
       promptUser();
     }
+  };
+
+  rl.on("line", (input) => {
+    void handleLine(input);
   });
 
   rl.on("close", () => {

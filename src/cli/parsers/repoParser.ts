@@ -37,7 +37,7 @@ export function parseRepoRef(repoRef: string): ParsedRepo | null {
   // HTTPS URL: https://github.com/owner/repo
   // Stop at query string (?), fragment (#), or whitespace
   const httpsMatch = trimmed.match(
-    /(?:https?:\/\/)?github\.com\/([^\/]+)\/([^\/\s?#]+)/
+    /(?:https?:\/\/)?github\.com\/([^/]+)\/([^/\s?#]+)/
   );
   if (httpsMatch) {
     return {
@@ -47,7 +47,7 @@ export function parseRepoRef(repoRef: string): ParsedRepo | null {
   }
 
   // SSH URL: git@github.com:owner/repo.git
-  const sshMatch = trimmed.match(/git@github\.com:([^\/]+)\/([^\/\s]+)/);
+  const sshMatch = trimmed.match(/git@github\.com:([^/]+)\/([^/\s]+)/);
   if (sshMatch) {
     return {
       owner: sshMatch[1]!,
@@ -56,7 +56,7 @@ export function parseRepoRef(repoRef: string): ParsedRepo | null {
   }
 
   // Slug: owner/repo
-  const slugMatch = trimmed.match(/^([^\/]+)\/([^\/\s]+)$/);
+  const slugMatch = trimmed.match(/^([^/]+)\/([^/\s]+)$/);
   if (slugMatch) {
     return {
       owner: slugMatch[1]!,

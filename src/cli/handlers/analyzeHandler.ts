@@ -103,7 +103,7 @@ export async function handleAnalyze(
     
     // Check if Repomix is available before starting
     // Note: Result is cached per session to avoid repeated 30s timeout delays
-    const repomixReady = await isRepomixAvailable();
+    const repomixReady = isRepomixAvailable();
     if (!repomixReady) {
       printWarning("Repomix not available. Deep analysis will use file-by-file fallback.");
       console.log(c.dim("  To enable full deep analysis, ensure Node.js and npx are working."));

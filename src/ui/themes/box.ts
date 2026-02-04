@@ -45,10 +45,13 @@ export const BOX = {
  * Strip ANSI escape codes from a string
  */
 export function stripAnsi(str: string): string {
-  return str.replace(
-    /[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g,
-    ""
+  const esc = String.fromCharCode(27);
+  const csi = String.fromCharCode(155);
+  const ansiRegex = new RegExp(
+    `[${esc}${csi}][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]`,
+    "g"
   );
+  return str.replace(ansiRegex, "");
 }
 
 /**

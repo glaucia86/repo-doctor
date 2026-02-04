@@ -103,10 +103,10 @@ describe("isRepomixAvailable", () => {
     clearRepomixAvailabilityCache();
   });
 
-  it("should return true when npx repomix --version succeeds", async () => {
+  it("should return true when npx repomix --version succeeds", () => {
     vi.mocked(childProcess.execSync).mockReturnValue(Buffer.from("1.11.1"));
 
-    const result = await isRepomixAvailable();
+    const result = isRepomixAvailable();
 
     expect(result).toBe(true);
     expect(childProcess.execSync).toHaveBeenCalledWith(
@@ -115,67 +115,67 @@ describe("isRepomixAvailable", () => {
     );
   });
 
-  it("should return false when npx repomix --version fails", async () => {
+  it("should return false when npx repomix --version fails", () => {
     vi.mocked(childProcess.execSync).mockImplementation(() => {
       throw new Error("Command not found");
     });
 
-    const result = await isRepomixAvailable();
+    const result = isRepomixAvailable();
 
     expect(result).toBe(false);
   });
 
-  it("should return false when execSync throws ETIMEDOUT error", async () => {
+  it("should return false when execSync throws ETIMEDOUT error", () => {
     vi.mocked(childProcess.execSync).mockImplementation(() => {
       const error = new Error("ETIMEDOUT") as Error & { code: string };
       error.code = "ETIMEDOUT";
       throw error;
     });
 
-    const result = await isRepomixAvailable();
+    const result = isRepomixAvailable();
 
     expect(result).toBe(false);
   });
 
-  it("should cache the result after first call", async () => {
+  it("should cache the result after first call", () => {
     vi.mocked(childProcess.execSync).mockReturnValue(Buffer.from("1.11.1"));
 
     // First call - should execute the check
-    await isRepomixAvailable();
+    isRepomixAvailable();
     expect(childProcess.execSync).toHaveBeenCalledTimes(1);
 
     // Second call - should use cached result
-    await isRepomixAvailable();
+    isRepomixAvailable();
     expect(childProcess.execSync).toHaveBeenCalledTimes(1); // Still 1
   });
 
-  it("should bypass cache when forceRefresh is true", async () => {
+  it("should bypass cache when forceRefresh is true", () => {
     vi.mocked(childProcess.execSync).mockReturnValue(Buffer.from("1.11.1"));
 
     // First call
-    await isRepomixAvailable();
+    isRepomixAvailable();
     expect(childProcess.execSync).toHaveBeenCalledTimes(1);
 
     // Force refresh
-    await isRepomixAvailable(true);
+    isRepomixAvailable(true);
     expect(childProcess.execSync).toHaveBeenCalledTimes(2);
   });
 
-  it("should update cached result on forceRefresh", async () => {
+  it("should update cached result on forceRefresh", () => {
     // First call succeeds
     vi.mocked(childProcess.execSync).mockReturnValue(Buffer.from("1.11.1"));
-    const result1 = await isRepomixAvailable();
+    const result1 = isRepomixAvailable();
     expect(result1).toBe(true);
 
     // Now make it fail and force refresh
     vi.mocked(childProcess.execSync).mockImplementation(() => {
       throw new Error("Command not found");
     });
-    const result2 = await isRepomixAvailable(true);
+    const result2 = isRepomixAvailable(true);
     expect(result2).toBe(false);
 
     // Subsequent call should use the new cached value (false)
-    const result3 = await isRepomixAvailable();
+    const result3 = isRepomixAvailable();
     expect(result3).toBe(false);
     expect(childProcess.execSync).toHaveBeenCalledTimes(2); // Only 2 actual calls
   });

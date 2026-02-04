@@ -48,6 +48,8 @@ function getToken(explicitToken?: string): string | undefined {
  */
 export function createOctokit(explicitToken?: string): Octokit {
   const token = getToken(explicitToken);
+  const formatRateLimitMessage = (options: { method: string; url: string }): string =>
+    `${options.method} ${options.url}`;
   
   return new Octokit({
     auth: token || undefined,
@@ -58,15 +60,15 @@ export function createOctokit(explicitToken?: string): Octokit {
       retries: 3,
     },
     throttle: {
-      onRateLimit: (retryAfter: number, options: any) => {
+      onRateLimit: (retryAfter: number, options: { method: string; url: string }) => {
         console.warn(
-          `Rate limit hit for ${options.method} ${options.url}. Retrying after ${retryAfter}s`
+          `Rate limit hit for ${formatRateLimitMessage(options)}. Retrying after ${retryAfter}s`
         );
         return true; // Retry
       },
-      onSecondaryRateLimit: (retryAfter: number, options: any) => {
+      onSecondaryRateLimit: (retryAfter: number, options: { method: string; url: string }) => {
         console.warn(
-          `Secondary rate limit for ${options.method} ${options.url}. Retrying after ${retryAfter}s`
+          `Secondary rate limit for ${formatRateLimitMessage(options)}. Retrying after ${retryAfter}s`
         );
         return true; // Retry
       },

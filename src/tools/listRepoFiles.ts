@@ -51,6 +51,13 @@ const LOCK_FILES = [
   "pnpm-lock.yaml",
 ];
 
+const isBlobWithPath = (node: {
+  type?: string;
+  path?: string;
+  size?: number | null;
+}): node is { type: "blob"; path: string; size?: number | null } =>
+  node.type === "blob" && typeof node.path === "string";
+
 // ════════════════════════════════════════════════════════════════════════════
 // TOOL FACTORY
 // ════════════════════════════════════════════════════════════════════════════
@@ -116,9 +123,9 @@ Automatically filters out common noise (node_modules, dist, .git, etc).`,
 
         // Filter and process files
         const allFiles = (tree.data.tree || [])
-          .filter((n) => n.type === "blob" && typeof n.path === "string")
+          .filter(isBlobWithPath)
           .filter((n) => {
-            const path = n.path!;
+            const path = n.path;
             // Filter out noise directories
             if (NOISE_PATTERNS.some((pattern) => path.includes(pattern))) {
               return false;
@@ -136,7 +143,7 @@ Automatically filters out common noise (node_modules, dist, .git, etc).`,
 
         const files = allFiles
           .slice(0, maxFilesLimit)
-          .map((n) => ({ path: n.path!, size: n.size ?? null }));
+          .map((n) => ({ path: n.path, size: n.size ?? null }));
 
         return {
           branch,
@@ -146,14 +153,15 @@ Automatically filters out common noise (node_modules, dist, .git, etc).`,
           truncated: allFiles.length > maxFilesLimit,
           files,
         };
-      } catch (error: any) {
-        if (error.status === 404) {
+      } catch (error: unknown) {
+        const err = error as { status?: number };
+        if (err.status === 404) {
           return {
             error: "Repository not found",
             status: 404,
           };
         }
-        if (error.status === 403) {
+        if (err.status === 403) {
           return {
             error: "Rate limited or access denied",
             status: 403,

@@ -105,7 +105,7 @@ Returns consolidated content with file markers and structure.`,
 
       try {
         // Pre-check: verify Repomix is available
-        const repomixReady = await isRepomixAvailable();
+        const repomixReady = isRepomixAvailable();
         if (!repomixReady) {
           const reason: PackErrorReason = "REPOMIX_NOT_AVAILABLE";
           return {
@@ -157,8 +157,10 @@ Returns consolidated content with file markers and structure.`,
             ? "Content was truncated to fit context limits. Most important files are included based on patterns."
             : "Full repository content included.",
         };
-      } catch (error: any) {
-        const errorMsg = error.message?.slice(0, 500) ?? "Unknown error";
+      } catch (error: unknown) {
+        const errorMsg = error instanceof Error
+          ? error.message.slice(0, 500)
+          : String(error).slice(0, 500);
         const reason: PackErrorReason = "EXCEPTION";
         return {
           success: false,

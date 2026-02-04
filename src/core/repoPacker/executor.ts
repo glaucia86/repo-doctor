@@ -109,8 +109,12 @@ export async function executeRepomix(args: string[], timeout: number): Promise<v
     let stderr = "";
     let settled = false;
 
-    child.stderr?.on("data", (data) => {
-      stderr += data.toString();
+    child.stderr?.on("data", (data: Buffer | string) => {
+      if (typeof data === "string") {
+        stderr += data;
+      } else {
+        stderr += data.toString();
+      }
     });
 
     child.on("error", (error) => {

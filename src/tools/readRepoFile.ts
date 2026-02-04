@@ -135,8 +135,9 @@ Returns 404 info if file not found (use as evidence of missing file).`,
           found: true,
           note: "Content not available for this type.",
         };
-      } catch (error: any) {
-        if (error.status === 404) {
+      } catch (error: unknown) {
+        const err = error as { status?: number };
+        if (err.status === 404) {
           // This is not an error - it's evidence!
           return {
             path: args.path,
@@ -145,7 +146,7 @@ Returns 404 info if file not found (use as evidence of missing file).`,
             note: "File not found in repository.",
           };
         }
-        if (error.status === 403) {
+        if (err.status === 403) {
           return {
             path: args.path,
             found: false,

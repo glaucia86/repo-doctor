@@ -149,7 +149,7 @@ export function createEventHandler(options: EventHandlerOptions): {
         }
         break;
 
-      case "tool.execution_start":
+      case "tool.execution_start": {
         // Skip if aborted
         if (state.aborted) {
           return;
@@ -179,6 +179,7 @@ export function createEventHandler(options: EventHandlerOptions): {
           updateSpinner(`Analyzing... (${state.toolCallCount} API calls)`);
         }
         break;
+      }
 
       case "tool.execution_complete":
         {
@@ -215,7 +216,7 @@ export function createEventHandler(options: EventHandlerOptions): {
               if (errorMsg) {
                 console.log(`  ${c.dim(`   Error: ${errorMsg.slice(0, 200)}`)}`);
               }
-              if (parsedResult.suggestion) {
+              if (typeof parsedResult.suggestion === "string") {
                 console.log(`  ${c.dim(`   → ${parsedResult.suggestion}`)}`);
               }
             }

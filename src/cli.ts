@@ -14,7 +14,7 @@ if (process.platform === "win32") {
   process.stderr.setDefaultEncoding?.("utf8");
 }
 
-import { Command } from "commander";
+import { Command, type OptionValues } from "commander";
 import {
   clearScreen,
   printHeader,
@@ -50,6 +50,38 @@ const defaultOptions: AnalyzeOptions = {
   verbosity: "normal",
   format: "pretty",
   issue: false,
+};
+
+const getStringOption = (opts: OptionValues, key: string): string | undefined => {
+  const value: unknown = opts[key];
+  return typeof value === "string" ? value : undefined;
+};
+
+const getBooleanOption = (opts: OptionValues, key: string): boolean | undefined => {
+  const value: unknown = opts[key];
+  if (typeof value === "boolean") return value;
+  if (typeof value === "string") return value.toLowerCase() === "true";
+  return undefined;
+};
+
+const getNumberOption = (opts: OptionValues, key: string): number | undefined => {
+  const value: unknown = opts[key];
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string") {
+    const parsed = Number.parseInt(value, 10);
+    return Number.isFinite(parsed) ? parsed : undefined;
+  }
+  return undefined;
+};
+
+const getEnumOption = <T extends string>(
+  opts: OptionValues,
+  key: string,
+  allowed: readonly T[],
+  fallback: T
+): T => {
+  const value = getStringOption(opts, key);
+  return value && allowed.includes(value as T) ? (value as T) : fallback;
 };
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -179,10 +211,11 @@ program
   .argument("[repoRef]", "Optional repository URL or slug to analyze immediately")
   .option("--token <TOKEN>", "GitHub token for private repositories")
   .option("--model <name>", "AI model to use", "claude-sonnet-4")
-  .action(async (repoRef: string | undefined, opts) => {
+  .action(async (repoRef: string | undefined, opts: OptionValues) => {
     // Set model if provided
-    if (opts.model) {
-      const model = findModel(opts.model);
+    const modelOption = getStringOption(opts, "model");
+    if (modelOption) {
+      const model = findModel(modelOption);
       if (model) {
         appState.setModel(model.id, model.premium);
       }
@@ -190,7 +223,7 @@ program
 
     const options: AnalyzeOptions = {
       ...defaultOptions,
-      token: opts.token || process.env.GITHUB_TOKEN,
+      token: getStringOption(opts, "token") || process.env.GITHUB_TOKEN,
     };
     await runChatMode(options, repoRef);
   });
@@ -210,24 +243,35 @@ program
   .option("--model <name>", "AI model to use", "claude-sonnet-4")
   .option("--deep", "Enable deep analysis with full source code review", false)
   .option("--export", "Export report to markdown after analysis", false)
-  .action(async (repoRef: string, opts) => {
+  .action(async (repoRef: string, opts: OptionValues) => {
     // Set model from CLI option
-    if (opts.model) {
-      const model = findModel(opts.model);
+    const modelOption = getStringOption(opts, "model");
+    if (modelOption) {
+      const model = findModel(modelOption);
       if (model) {
         appState.setModel(model.id, model.premium);
       }
     }
     
     const options: AnalyzeOptions = {
-      token: opts.token || process.env.GITHUB_TOKEN,
-      maxFiles: parseInt(opts.maxFiles, 10),
-      maxBytes: parseInt(opts.maxBytes, 10),
-      timeout: parseInt(opts.timeout, 10),
-      verbosity: opts.verbosity as AnalyzeOptions["verbosity"],
-      format: opts.format as AnalyzeOptions["format"],
-      deep: opts.deep || false,
-      issue: opts.issue || false,
+      token: getStringOption(opts, "token") || process.env.GITHUB_TOKEN,
+      maxFiles: getNumberOption(opts, "maxFiles") ?? defaultOptions.maxFiles,
+      maxBytes: getNumberOption(opts, "maxBytes") ?? defaultOptions.maxBytes,
+      timeout: getNumberOption(opts, "timeout") ?? defaultOptions.timeout,
+      verbosity: getEnumOption(
+        opts,
+        "verbosity",
+        ["silent", "normal", "verbose"] as const,
+        defaultOptions.verbosity
+      ),
+      format: getEnumOption(
+        opts,
+        "format",
+        ["pretty", "json", "minimal"] as const,
+        defaultOptions.format
+      ),
+      deep: getBooleanOption(opts, "deep") ?? false,
+      issue: getBooleanOption(opts, "issue") ?? false,
     };
     await runDirectAnalyze(repoRef, options);
   });

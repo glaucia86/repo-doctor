@@ -65,8 +65,8 @@ describe("repoParser", () => {
     });
 
     it("should return null for null/undefined input", () => {
-      expect(parseRepoRef(null as any)).toBeNull();
-      expect(parseRepoRef(undefined as any)).toBeNull();
+      expect(parseRepoRef(null as unknown as string)).toBeNull();
+      expect(parseRepoRef(undefined as unknown as string)).toBeNull();
     });
   });
 

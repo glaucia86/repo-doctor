@@ -178,7 +178,7 @@ export class Reporter {
 
     if (repoMeta.languages && Object.keys(repoMeta.languages).length > 0) {
       const topLangs = Object.entries(repoMeta.languages)
-        .sort((a, b) => (b[1] as number) - (a[1] as number))
+        .sort((a, b) => b[1] - a[1])
         .slice(0, 5)
         .map(([lang]) => lang)
         .join(", ");

@@ -11,6 +11,9 @@
  * Clean Repomix output by removing debug messages and noise
  */
 export function cleanRepomixOutput(content: string): string {
+  const esc = String.fromCharCode(27);
+  const ansiRegex = new RegExp(`${esc}\\[[0-9;]*m`, "g");
+
   return content
     // Remove npm warnings
     .replace(/npm warn.*\n?/gi, "")
@@ -25,7 +28,7 @@ export function cleanRepomixOutput(content: string): string {
     .replace(/\[INFO\].*\n?/gi, "")
     .replace(/\[WARN\].*\n?/gi, "")
     // Remove ANSI escape codes
-    .replace(/\x1b\[[0-9;]*m/g, "")
+    .replace(ansiRegex, "")
     // Remove carriage returns (Windows line endings artifacts)
     .replace(/\r/g, "")
     // Collapse multiple blank lines
