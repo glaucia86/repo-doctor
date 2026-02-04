@@ -160,6 +160,7 @@ repo-doctor [repository] [options]
 Options:
   --token <TOKEN>     GitHub token for private repos (or set GITHUB_TOKEN env)
   --model <name>      AI model to use (default: claude-sonnet-4)
+  --issue             Publish analysis as GitHub issue(s)
   --max-files <N>     Maximum files to analyze (default: 800)
   --max-bytes <N>     Maximum bytes per file (default: 200KB)
   --timeout <ms>      Analysis timeout (default: 120000)
@@ -217,6 +218,24 @@ repo-doctor my-org/private-repo --token ghp_xxxxxxxxxxxxxxxxxxxx
 4. Copy the generated token and use it as shown above
 
 > ⚠️ **Security Tip:** Never commit your token to version control. Use environment variables or a secrets manager.
+
+---
+
+## Publishing Issues (`--issue`)
+
+Use `--issue` to create GitHub issues with the analysis output. This requires a PAT with issue write access and Copilot SDK auth for model access.
+
+> **Tip:** If you plan to use `--issue`, the best model for report quality is **Claude Sonnet 4.5**.
+
+```bash
+# Copilot SDK auth (recommended)
+export GH_TOKEN="$(gh auth token)"
+
+# Create issues during analysis
+repo-doctor analyze owner/repo --issue --token ghp_your_pat_here
+```
+
+For a full step-by-step guide and 401 troubleshooting, see [issue-publishing.md](issue-publishing.md).
 
 ---
 

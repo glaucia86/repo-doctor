@@ -261,6 +261,25 @@ Yes. The analysis uses:
 - No code storage on third-party servers
 - No logging of code content
 
+### Why do I get "Failed to list models: 401"?
+
+This is a Copilot SDK auth error (model listing), not a GitHub API error. Re-authenticate with GitHub CLI and export the OAuth token:
+
+```bash
+gh auth login
+export GH_TOKEN="$(gh auth token)"
+```
+
+See [issue-publishing.md](issue-publishing.md) for the full step-by-step guide.
+
+### Why does `--issue` return 401/403?
+
+Your PAT lacks write access to issues or does not have repo access.
+
+- Classic PAT: ensure `repo` (or `public_repo`) is selected
+- Fine-grained PAT: ensure **Metadata (read)**, **Contents (read)**, **Issues (read/write)**
+- Confirm you have permission to create issues in that repo
+
 ---
 
 ## Pricing & Limits

@@ -53,3 +53,4 @@ Findings: P0 (critical), P1 (high), P2 (suggestions).
 | Session Config | [docs/ai/SESSION.md](docs/ai/SESSION.md) |
 | Security | [docs/ai/SECURITY.md](docs/ai/SECURITY.md) |
 | Testing | [docs/ai/TESTING.md](docs/ai/TESTING.md) |
+| Issue Publishing and 401 Troubleshooting | [docs/issue-publishing.md](docs/issue-publishing.md) |

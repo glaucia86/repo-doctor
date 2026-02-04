@@ -9,7 +9,7 @@ import { parseCommand, type CommandType } from "../ui/commands.js";
 import { parseRepoRef, buildRepoUrl, buildRepoSlug } from "./parsers/repoParser.js";
 import {
   appState,
-  AVAILABLE_MODELS,
+  getAvailableModels,
   type ModelInfo,
 } from "./state/appState.js";
 import {
@@ -77,6 +77,8 @@ function promptRepoUrl(): Promise<string> {
  */
 function promptModelSelection(): Promise<ModelInfo> {
   return new Promise((resolve) => {
+    const models = getAvailableModels();
+
     const rl = readline.createInterface({
       input: process.stdin,
       output: process.stdout,
@@ -87,7 +89,7 @@ function promptModelSelection(): Promise<ModelInfo> {
     console.log("  " + c.border("─".repeat(50)));
     console.log();
 
-    AVAILABLE_MODELS.forEach((model, index) => {
+    models.forEach((model, index) => {
       const num = c.info(`[${index + 1}]`);
       const premiumIcon = model.premium ? c.premium(" ⚡") : c.healthy(" ✓ FREE");
       const isDefault = model.id === "claude-sonnet-4";
@@ -105,21 +107,21 @@ function promptModelSelection(): Promise<ModelInfo> {
 
       if (!trimmed) {
         // Default: claude-sonnet-4
-        resolve(AVAILABLE_MODELS.find((m) => m.id === "claude-sonnet-4")!);
+        resolve(models.find((m) => m.id === "claude-sonnet-4") || models[0]!);
         return;
       }
 
       const index = parseInt(trimmed, 10);
-      if (!isNaN(index) && index >= 1 && index <= AVAILABLE_MODELS.length) {
-        resolve(AVAILABLE_MODELS[index - 1]!);
+      if (!isNaN(index) && index >= 1 && index <= models.length) {
+        resolve(models[index - 1]!);
       } else {
         // Try to find by name
-        const found = AVAILABLE_MODELS.find(
+        const found = models.find(
           (m) =>
             m.id.toLowerCase() === trimmed.toLowerCase() ||
             m.name.toLowerCase().includes(trimmed.toLowerCase())
         );
-        resolve(found || AVAILABLE_MODELS.find((m) => m.id === "claude-sonnet-4")!);
+        resolve(found || models.find((m) => m.id === "claude-sonnet-4") || models[0]!);
       }
     });
   });
@@ -188,8 +190,12 @@ export async function runChatMode(
   options: AnalyzeOptions,
   initialRepoRef?: string
 ): Promise<void> {
+  options.issue = options.issue ?? false;
+  // Ensure token is initialized from environment if not explicitly provided
+  options.token = options.token || process.env.GITHUB_TOKEN;
+
   clearScreen();
-  printChatHeader();
+  await printChatHeader();
   printWelcome();
   printQuickCommands();
 
@@ -214,7 +220,11 @@ export async function runChatMode(
         console.log();
         printSuccess(`Model: ${selectedModel.name}`);
         console.log();
-        await runInitialAnalysis(command.repoRef, options);
+        await handleAnalyze(
+          command.repoRef,
+          { ...options, issue: command.issue },
+          false
+        );
       } else if (command.type === "deep") {
         // Run deep analysis
         const selectedModel = await promptModelSelection();
@@ -222,7 +232,11 @@ export async function runChatMode(
         console.log();
         printSuccess(`Model: ${selectedModel.name}`);
         console.log();
-        await handleAnalyze(command.repoRef, options, true);
+        await handleAnalyze(
+          command.repoRef,
+          { ...options, issue: command.issue },
+          true
+        );
       } else {
         // Other commands - skip to chat loop
         console.log();
@@ -308,11 +322,11 @@ export async function runChatMode(
     try {
       switch (command.type) {
         case "analyze":
-          await handleAnalyze(command.repoRef, options, false);
+          await handleAnalyze(command.repoRef, { ...options, issue: command.issue }, false);
           break;
 
         case "deep":
-          await handleAnalyze(command.repoRef, options, true);
+          await handleAnalyze(command.repoRef, { ...options, issue: command.issue }, true);
           break;
 
         case "export":
@@ -340,7 +354,7 @@ export async function runChatMode(
           break;
 
         case "clear":
-          handleClear();
+          await handleClear();
           break;
 
         case "help":

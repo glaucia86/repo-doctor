@@ -88,9 +88,9 @@ export function handleLast(): void {
 /**
  * Handle /clear command
  */
-export function handleClear(): void {
+export async function handleClear(): Promise<void> {
   clearScreen();
-  printChatHeader();
+  await printChatHeader();
   printChatStatusBar(
     appState.currentModel,
     appState.isPremium,

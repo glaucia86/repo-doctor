@@ -109,6 +109,7 @@ If no repository is provided, Repo Doctor starts in interactive mode.
 |--------|-------|------|---------|-------------|
 | `--model` | `-m` | string | `claude-sonnet-4` | AI model to use |
 | `--token` | `-t` | string | — | GitHub personal access token |
+| `--issue` | — | boolean | `false` | Publish analysis as GitHub issue(s) |
 | `--deep` | `-d` | boolean | `false` | Enable deep analysis mode |
 | `--export` | `-e` | boolean | `false` | Auto-export report after analysis |
 | `--max-files` | — | number | `800` | Maximum files to analyze |
@@ -116,6 +117,8 @@ If no repository is provided, Repo Doctor starts in interactive mode.
 | `--timeout` | — | number | `120000` | Analysis timeout in ms |
 | `--help` | `-h` | — | — | Show help information |
 | `--version` | `-v` | — | — | Show version number |
+
+> **Tip:** If you plan to use `--issue`, the best model for report quality is **Claude Sonnet 4.5**.
 
 ---
 
@@ -394,6 +397,7 @@ Configure Repo Doctor behavior using environment variables:
 | Variable | Description | Example |
 |----------|-------------|---------|
 | `GITHUB_TOKEN` | GitHub personal access token | `ghp_xxxx` |
+| `GH_TOKEN` | GitHub CLI OAuth token for Copilot SDK | `gho_xxxx` |
 | `REPO_DOCTOR_MODEL` | Default AI model | `gpt-4o` |
 | `REPO_DOCTOR_TIMEOUT` | Analysis timeout (ms) | `180000` |
 | `REPO_DOCTOR_EXPORT_PATH` | Default export path | `~/reports` |
@@ -403,6 +407,7 @@ Configure Repo Doctor behavior using environment variables:
 ```bash
 # Set in .bashrc or .zshrc
 export GITHUB_TOKEN=ghp_xxxxxxxxxxxx
+export GH_TOKEN="$(gh auth token)"
 export REPO_DOCTOR_MODEL=gpt-4o
 
 # Or inline

@@ -10,6 +10,8 @@ export {
   MAX_HISTORY_SIZE,
   findModel,
   findModelByIndex,
+  getAvailableModels,
+  clearModelCache,
   type IAppState,
   type HistoryEntry,
   type ModelInfo,

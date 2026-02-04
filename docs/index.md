@@ -26,6 +26,7 @@ Repo Doctor is your repository's AI doctor that diagnoses issues and prescribes 
 | Document | Description |
 |----------|-------------|
 | [🚀 Getting Started](getting-started.md) | Installation, setup, and your first analysis |
+| [🧭 Issue Publishing](issue-publishing.md) | Step-by-step `--issue` setup and 401 troubleshooting |
 | [📖 User Guide](GUIDE.md) | Complete usage guide with examples |
 | [🤖 AI Models](AI-MODELS.md) | Available models and recommendations |
 

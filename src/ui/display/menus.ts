@@ -40,6 +40,7 @@ export function printHelp(): void {
       "",
       c.whiteBold("Options:"),
       `  ${c.key("--token")} ${c.dim("<TOKEN>")}    ${c.text("GitHub token for private repos")}`,
+      `  ${c.key("--issue")}             ${c.text("Publish report as a GitHub issue")}`,
       `  ${c.key("--deep")}               ${c.text("Deep analysis with full source code (Repomix)")}`,
       `  ${c.key("--max-files")} ${c.dim("<N>")}   ${c.text("Max files to list (default: 800)")}`,
       `  ${c.key("--max-bytes")} ${c.dim("<N>")}   ${c.text("Max bytes per file (default: 200KB)")}`,
@@ -71,22 +72,53 @@ export function printHelp(): void {
 /**
  * Print the chat-style header with big colorful logo
  */
-export function printChatHeader(): void {
+export async function printChatHeader(): Promise<void> {
   console.log();
   console.log();
-  
-  // Render the big colorful logo
+
+  // Render the big colorful logo with elegant line-by-line reveal
   const logo = renderBigLogo();
-  for (const line of logo) {
-    console.log("  " + line);
+  const isInteractive = Boolean(process.stdout.isTTY) && !process.env.CI;
+
+  if (!isInteractive) {
+    for (const line of logo) {
+      console.log("  " + line);
+    }
+    console.log();
+  } else {
+    // Dynamic energy effect: lines pulse with energy before settling
+    for (let i = 0; i < logo.length; i++) {
+      const line = logo[i];
+
+      // Energy pulse: brighter flash
+      process.stdout.write("  " + c.premium(line) + "\r");
+      await new Promise((resolve) => setTimeout(resolve, 30));
+
+      // Quick dim
+      process.stdout.write("  " + c.dim(line) + "\r");
+      await new Promise((resolve) => setTimeout(resolve, 20));
+
+      // Energy surge: even brighter
+      process.stdout.write("  " + c.brand(line) + "\r");
+      await new Promise((resolve) => setTimeout(resolve, 25));
+
+      // Settle to normal with cascade timing
+      console.log("  " + line);
+
+      // Dynamic pause: faster for lower lines (energy cascade)
+      const pause = Math.max(25, 60 - i * 8);
+      await new Promise((resolve) => setTimeout(resolve, pause));
+    }
+
+    console.log();
   }
-  
+
   console.log();
-  
+
   // Separator line with gradient effect
   const separator = c.brand("━".repeat(55));
   console.log("  " + separator);
-  
+
   // Tagline
   console.log(
     "  " +
@@ -94,14 +126,10 @@ export function printChatHeader(): void {
       c.dim(" │ ") +
       c.premium("v2.0")
   );
-  
-  console.log("  " + separator);
+
+  console.log("  " + c.dim("─".repeat(86)));
   console.log();
 }
-
-/**
- * Print chat status bar with enhanced styling
- */
 export function printChatStatusBar(
   model: string,
   isPremium: boolean,
@@ -152,11 +180,19 @@ export function printCommandMenu(): void {
   console.log(`   ${c.info("/last")}            ${c.muted("Show last analysis")}`);
   console.log(`   ${c.info("/history")}         ${c.muted("Recent analyses")}`);
   console.log();
+  console.log(`   ${c.dim("Examples:")} ${c.muted("/analyze vercel/next.js --issue")}`);
+  console.log(`             ${c.muted("/deep facebook/react --issue")}`);
+  console.log();
   
   // Output Commands
   console.log("  " + c.brand(ICON.save + " Output"));
   console.log(`   ${c.info("/export")} ${c.dim("[path]")}   ${c.muted("Export report to file")}`);
   console.log(`   ${c.info("/copy")}            ${c.muted("Copy report to clipboard")}`);
+  console.log();
+  
+  // Publishing Options
+  console.log("  " + c.brand("📋 Publishing"));
+  console.log(`   ${c.info("--issue")}           ${c.muted("Publish report as GitHub issue")}`);
   console.log();
   
   // Utility Commands
@@ -247,7 +283,7 @@ export function printModelMenu(
  */
 export function printWelcome(): void {
   console.log(
-    "  " + c.brand(ICON.doctor) + " " + c.brandBold("Enter Repository URL")
+    "  " + c.brandBold("Enter Repository URL")
   );
   console.log();
 }
@@ -264,6 +300,9 @@ export function printQuickCommands(): void {
   console.log(`    ${c.info("/deep")} ${c.dim("<repo>")}     ${c.muted("Deep analysis with source code")}`);
   console.log(`    ${c.info("/model")}           ${c.muted("Switch AI model")}`);
   console.log(`    ${c.info("/help")}            ${c.muted("See all commands")}`);
+  console.log();
+  console.log("  " + c.whiteBold("📋 Publishing Options"));
+  console.log(`    ${c.info("--issue")}           ${c.muted("Publish report as GitHub issue")}`);
   console.log();
   console.log("  " + c.dim("💡 Tip: Paste a GitHub URL directly to analyze"));
   console.log();

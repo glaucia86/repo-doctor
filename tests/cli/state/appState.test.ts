@@ -2,7 +2,8 @@
  * Tests for Application State
  */
 
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
+import { getCopilotCliModels } from "../../../src/providers/copilotModels.js";
 import {
   AppState,
   AVAILABLE_MODELS,
@@ -10,7 +11,17 @@ import {
   MAX_HISTORY_SIZE,
   findModel,
   findModelByIndex,
+  getAvailableModels,
+  clearModelCache,
 } from "../../../src/cli/state/appState.js";
+
+vi.mock("../../../src/providers/copilotModels.js", () => ({
+  getCopilotCliModels: vi.fn(),
+}));
+
+beforeEach(() => {
+  vi.mocked(getCopilotCliModels).mockReturnValue(null);
+});
 
 describe("AppState", () => {
   let state: AppState;
@@ -131,5 +142,42 @@ describe("findModelByIndex", () => {
   it("should return undefined for out of range index", () => {
     expect(findModelByIndex(0)).toBeUndefined();
     expect(findModelByIndex(100)).toBeUndefined();
+  });
+});
+
+describe("getAvailableModels memoization", () => {
+  beforeEach(() => {
+    // Clear cache before each test to ensure isolation
+    clearModelCache();
+    vi.restoreAllMocks();
+    vi.mocked(getCopilotCliModels).mockReturnValue(null);
+  });
+
+  it("should return models on first call", () => {
+    const models = getAvailableModels();
+    expect(models).toBeDefined();
+    expect(Array.isArray(models)).toBe(true);
+    expect(models.length).toBeGreaterThan(0);
+  });
+
+  it("should return the same cached result on subsequent calls", () => {
+    const firstCall = getAvailableModels();
+    const secondCall = getAvailableModels();
+    const thirdCall = getAvailableModels();
+    
+    // Should return the exact same array reference (memoized)
+    expect(secondCall).toBe(firstCall);
+    expect(thirdCall).toBe(firstCall);
+  });
+
+  it("should refresh cache after clearModelCache is called", () => {
+    const firstCall = getAvailableModels();
+    clearModelCache();
+    const secondCall = getAvailableModels();
+    
+    // After clearing cache, should get models again (could be same reference if fallback)
+    expect(secondCall).toBeDefined();
+    // Should have the same content
+    expect(secondCall).toEqual(firstCall);
   });
 });

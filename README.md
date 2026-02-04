@@ -76,6 +76,17 @@
 </td>
 <td width="50%">
 
+### Auto-Publish Issues
+- **One-Click Issue Creation** — `--issue` flag creates structured GitHub issues
+- **Prioritized Findings** — P0/P1/P2 labels with detailed descriptions
+- **Team Collaboration** — Automated tracking of repository health issues
+- **CI/CD Integration** — Perfect for automated health checks
+
+</td>
+</tr>
+<tr>
+<td width="50%">
+
 ### 🔐 Security First
 - **Prompt Injection Protection** — File content treated as data
 - **Token Management** — Secure GitHub authentication
@@ -85,9 +96,176 @@
 </tr>
 </table>
 
+### 📢 Publishing Features
+
+**Automatically publish analysis reports to GitHub as structured issues:**
+
+#### 🚀 Auto-Create Issues for Each Problem Found
+```bash
+export GITHUB_TOKEN=ghp_xxx          # or REPO_DOCTOR_GITHUB_TOKEN, as configured
+repo-doctor analyze owner/repo --issue
+# Creates: 🔴 [Repo Doctor] docs: Missing README
+#         🟠 [Repo Doctor] ci: No CI/CD Pipeline
+#         🟡 [Repo Doctor] dx: Code Quality Issues
+```
+
+**Each issue includes:**
+- **Detailed description** with evidence and impact assessment
+- **Actionable fix instructions** with code examples
+- **Priority labels** (P0/P1/P2) and category tags
+- **Full analysis context** for team collaboration
+
+#### 💬 Interactive Mode
+```bash
+# Set token securely (recommended)
+export GITHUB_TOKEN=ghp_your_token_here
+
+# Or use gh CLI auth
+gh auth login
+
+# Then start interactive mode
+repo-doctor chat
+/analyze facebook/react --issue
+/deep microsoft/vscode
+```
+
+> [!TIP]
+> Perfect for automated repository health tracking and team collaboration!
+
+[📖 Learn how to set up GitHub tokens](docs/getting-started.md#testing-publishing-features)
+
 ---
 
-## 🔍 What Gets Analyzed?
+## � Quick Start (5 minutes)
+
+Want to see Repo Doctor create GitHub issues automatically?
+
+```bash
+# 1. Get a GitHub token (see detailed setup below)
+# 2. Set it as environment variable
+export GITHUB_TOKEN=ghp_your_token_here
+
+# 3. Analyze and create issues automatically!
+repo-doctor analyze your-username/your-repo --issue
+```
+
+**Result:** Multiple GitHub issues created with detailed analysis, impact assessment, and fix instructions! 🎉
+
+### 🔑 Setting up GitHub Token
+
+For the `--issue` feature, you'll need a GitHub Personal Access Token with specific permissions:
+
+1. **Go to** [github.com/settings/tokens](https://github.com/settings/tokens)
+2. **Generate** a new "Tokens (classic)"
+3. **Select these scopes**:
+   - `repo` (full repository access) **OR** the following granular permissions:
+     - `metadata` — Read repository metadata
+     - `contents` — Read repository contents
+     - `issues` — Create and manage issues
+4. **Copy** the token (starts with `ghp_`)
+
+> [!IMPORTANT]
+> [📖 Complete setup guide with screenshots](docs/getting-started.md#testing-publishing-features)
+
+---
+
+## 🧭 Detailed --issue Setup (and 401 Troubleshooting)
+
+This section explains, step by step, how to create the right token, avoid 401 errors, and run `--issue` safely. It also clarifies the two authentication paths used by Repo Doctor.
+
+### 1) Understand the two auth paths
+
+- **Copilot SDK auth (models and analysis)** uses GitHub Copilot access. If this fails, you will see: `Failed to list models: 401`.
+- **GitHub API auth (repo read + issue creation)** uses your PAT. If this fails, you will see 401/403 when listing files or creating issues.
+
+### 2) Clean environment (important)
+
+Do this before testing to avoid old tokens interfering.
+
+```powershell
+Remove-Item Env:GITHUB_TOKEN, Env:GH_TOKEN -ErrorAction SilentlyContinue
+```
+
+### 3) Authenticate Copilot SDK (fixes "Failed to list models: 401")
+
+Use GitHub CLI login to get an OAuth token that Copilot accepts.
+
+```powershell
+gh auth logout
+gh auth login
+```
+
+Choose:
+- Host: GitHub.com
+- Login via web
+- Git operations: HTTPS
+
+Confirm login:
+
+```powershell
+gh auth status
+```
+
+Export the token for Repo Doctor:
+
+```powershell
+$env:GH_TOKEN = (gh auth token)
+```
+
+### 4) Create a PAT for `--issue` (GitHub API)
+
+You have two supported paths. Classic PAT is the most reliable.
+
+#### Option A: Classic PAT (recommended)
+
+1. GitHub -> Settings -> Developer settings -> Personal access tokens -> **Tokens (classic)**
+2. Click **Generate new token (classic)**
+3. Select scopes:
+  - `repo` (private + public) **or** `public_repo` (public only)
+4. Generate and copy the token once
+
+#### Option B: Fine-grained PAT
+
+1. GitHub -> Settings -> Developer settings -> Personal access tokens -> **Fine-grained tokens**
+2. **Repository access**:
+  - **All repositories** (if you want to create issues in any repo you own)
+  - or **Only select repositories** (recommended for least privilege)
+3. **Repository permissions** (minimum):
+  - **Metadata**: Read-only (Required)
+  - **Contents**: Read-only
+  - **Issues**: Read and write
+4. **Account permissions**: keep **No access**
+
+### 5) Run Repo Doctor with `--issue`
+
+Use `GH_TOKEN` for Copilot and pass the PAT only for issue creation.
+
+```powershell
+# Copilot SDK auth (models/analysis)
+$env:GH_TOKEN = (gh auth token)
+
+# Run in dev (chat) and create issues
+npm run dev
+```
+
+In the app:
+
+```
+/deep owner/repo --issue --token <YOUR_PAT>
+```
+
+### 6) Quick diagnosis checklist
+
+- **401 on models**: Copilot auth failed -> redo Step 3 (gh auth + GH_TOKEN)
+- **401/403 on issue creation**: PAT lacks access or `Issues: Read/Write`
+- **Public repo but want issues**: PAT still needs `Issues: Read/Write`
+- **Org repo**: your account must have permission to create issues in that repo
+
+---
+
+For the complete step-by-step guide (including PAT creation screens and diagnostics), see [docs/issue-publishing.md](docs/issue-publishing.md).
+
+---
 
 | Category | What's Checked | Example Findings |
 |----------|----------------|------------------|
@@ -134,7 +312,13 @@ repo-doctor vercel/next.js
 
 # Deep analysis with premium model
 repo-doctor vercel/next.js --model claude-sonnet-4 --deep
+
+# 🚀 Auto-create GitHub issues for each problem found
+repo-doctor vercel/next.js --issue
 ```
+
+> [!NOTE]
+> `--issue` requires a GitHub token. [Learn how to set it up](docs/getting-started.md#testing-publishing-features).
 
 ---
 

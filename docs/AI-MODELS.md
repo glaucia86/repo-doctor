@@ -153,6 +153,7 @@ Select AI Model:
 | Quick daily checks | `gpt-4o` |
 | Free tier users | `gpt-4o` or `gpt-4.1` |
 | Detailed audits | `claude-sonnet-4` |
+| Publishing with `--issue` | `claude-sonnet-4.5` |
 | Complex monorepos | `claude-opus-4.5` |
 | Code-focused analysis | `gpt-5.1-codex` |
 | Deep reasoning needed | `o3` |
@@ -194,3 +195,14 @@ Different models have different rate limit costs:
 - Some models are slower
 - Increase timeout: `--timeout 180000`
 - Try a faster model for large repos
+
+### "Failed to list models: 401"
+
+This is a Copilot SDK auth error. Re-authenticate with GitHub CLI and export the OAuth token:
+
+```bash
+gh auth login
+export GH_TOKEN="$(gh auth token)"
+```
+
+See [issue-publishing.md](issue-publishing.md) for full steps.

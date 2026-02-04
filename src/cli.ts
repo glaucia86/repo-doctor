@@ -20,12 +20,15 @@ import {
   printHeader,
   printHelp,
   printError,
+  printSuccess,
+  printWarning,
   printRepo,
   printModel,
   c,
   ICON,
 } from "./ui/index.js";
 import { analyzeRepositoryWithCopilot } from "./core/agent.js";
+import { publishReport } from "./core/publish/index.js";
 
 // Import from refactored modules
 import {
@@ -46,6 +49,7 @@ const defaultOptions: AnalyzeOptions = {
   timeout: 120000,
   verbosity: "normal",
   format: "pretty",
+  issue: false,
 };
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -61,7 +65,7 @@ async function runDirectAnalyze(
   // Show header (skip for JSON output)
   if (!isJson) {
     clearScreen();
-    printHeader();
+    await printHeader();
   }
 
   // Parse repository reference
@@ -94,7 +98,7 @@ async function runDirectAnalyze(
   // Run analysis
   try {
     const repoUrl = `https://github.com/${owner}/${repo}`;
-    await analyzeRepositoryWithCopilot({ 
+    const result = await analyzeRepositoryWithCopilot({ 
       repoUrl,
       token: options.token,
       model: appState.currentModel,
@@ -105,6 +109,41 @@ async function runDirectAnalyze(
       format: options.format,
       deep: options.deep,
     });
+
+    const target = options.issue ? "issue" : undefined;
+
+    if (target) {
+      const publishResult = await publishReport({
+        target,
+        repo: {
+          owner,
+          name: repo,
+          fullName: `${owner}/${repo}`,
+          url: repoUrl,
+        },
+        analysisContent: result.content,
+        token: options.token,
+      });
+
+      if (!isJson) {
+        if (publishResult?.ok) {
+          if (publishResult.targetUrls && publishResult.targetUrls.length > 0) {
+            printSuccess(`Report published: ${publishResult.targetUrls.length} issues created.`);
+            publishResult.targetUrls.forEach((url: string) => {
+              console.log(c.dim(`  ${url}`));
+            });
+          } else {
+            printSuccess(
+              publishResult.targetUrl
+                ? `Report published: ${publishResult.targetUrl}`
+                : "Report published successfully."
+            );
+          }
+        } else if (publishResult?.error) {
+          printWarning(`Publish skipped: ${publishResult.error.message}`);
+        }
+      }
+    }
   } catch (error) {
     if (isJson) {
       console.log(JSON.stringify({ 
@@ -162,6 +201,7 @@ program
   .description("Analyze a GitHub repository directly")
   .argument("<repoRef>", "Repository URL, SSH, or owner/repo slug")
   .option("--token <TOKEN>", "GitHub token for private repositories")
+  .option("--issue", "Publish report as a GitHub issue", false)
   .option("--max-files <N>", "Maximum files to list", "800")
   .option("--max-bytes <N>", "Maximum bytes per file", "204800")
   .option("--timeout <ms>", "Analysis timeout in milliseconds", "120000")
@@ -187,6 +227,7 @@ program
       verbosity: opts.verbosity as AnalyzeOptions["verbosity"],
       format: opts.format as AnalyzeOptions["format"],
       deep: opts.deep || false,
+      issue: opts.issue || false,
     };
     await runDirectAnalyze(repoRef, options);
   });
@@ -195,9 +236,9 @@ program
 program
   .command("help")
   .description("Show detailed help")
-  .action(() => {
+  .action(async () => {
     clearScreen();
-    printHeader(true);
+    await printHeader(true, false); // compact and no animation
     printHelp();
   });
 

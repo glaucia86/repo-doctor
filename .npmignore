@@ -1,0 +1,29 @@
+node_modules/
+
+# Source and tests
+src/
+tests/
+
+# Specs and docs (kept out of package output)
+specs/
+docs/
+ai-documents/
+
+# Tooling
+.specify/
+.codex/
+.vscode/
+.idea/
+
+# Coverage and logs
+coverage/
+.nyc_output/
+*.log
+
+# Env
+.env
+.env.*
+
+# Misc
+*.tmp
+*.swp

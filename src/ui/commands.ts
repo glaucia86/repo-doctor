@@ -10,8 +10,8 @@ import { c, ICON } from "./themes.js";
 // ════════════════════════════════════════════════════════════════════════════
 
 export type CommandType =
-  | { type: "analyze"; repoRef: string }
-  | { type: "deep"; repoRef: string }
+  | { type: "analyze"; repoRef: string; issue?: boolean }
+  | { type: "deep"; repoRef: string; issue?: boolean }
   | { type: "summary" }
   | { type: "last" }
   | { type: "export"; format?: "md" | "json"; path?: string }
@@ -42,16 +42,16 @@ export const COMMANDS: CommandDefinition[] = [
     command: "/analyze",
     aliases: ["/a", "/scan", "/check"],
     description: "Analyze a GitHub repository",
-    usage: "/analyze <repo-url or owner/repo>",
-    example: "/analyze vercel/next.js",
+    usage: "/analyze <repo-url or owner/repo> [--issue]",
+    example: "/analyze vercel/next.js --issue",
     category: "analysis",
   },
   {
     command: "/deep",
     aliases: ["/d", "/full"],
     description: "Deep analysis with full source code review (uses Repomix)",
-    usage: "/deep <repo-url or owner/repo>",
-    example: "/deep vercel/swr",
+    usage: "/deep <repo-url or owner/repo> [--issue]",
+    example: "/deep vercel/swr --issue",
     category: "analysis",
   },
   {
@@ -130,6 +130,28 @@ export const COMMANDS: CommandDefinition[] = [
 // ════════════════════════════════════════════════════════════════════════════
 
 /**
+ * Parse arguments for analyze/deep commands, extracting flags and repo ref
+ */
+function parseAnalyzeArgs(args: string[]): { repoRef: string; issue?: boolean } {
+  let repoRef = "";
+  let issue = false;
+
+  for (const arg of args) {
+    const normalizedFlag = arg.toLowerCase();
+    const isIssueFlag = /^[-–—]+issue$/.test(normalizedFlag);
+
+    if (normalizedFlag === "--issue" || isIssueFlag) {
+      issue = true;
+    } else {
+      // Assume it's part of the repo ref
+      repoRef += (repoRef ? " " : "") + arg;
+    }
+  }
+
+  return { repoRef: repoRef.trim(), issue };
+}
+
+/**
  * Parse user input into a command
  */
 export function parseCommand(input: string): CommandType {
@@ -169,17 +191,29 @@ export function parseCommand(input: string): CommandType {
 
   // Parse specific commands
   switch (commandDef.command) {
-    case "/analyze":
+    case "/analyze": {
       if (args.length === 0) {
         return { type: "unknown", input: trimmed };
       }
-      return { type: "analyze", repoRef: args.join(" ") };
+      try {
+        const { repoRef, issue } = parseAnalyzeArgs(args);
+        return { type: "analyze", repoRef, issue };
+      } catch (error) {
+        return { type: "unknown", input: trimmed };
+      }
+    }
 
-    case "/deep":
+    case "/deep": {
       if (args.length === 0) {
         return { type: "unknown", input: trimmed };
       }
-      return { type: "deep", repoRef: args.join(" ") };
+      try {
+        const { repoRef, issue } = parseAnalyzeArgs(args);
+        return { type: "deep", repoRef, issue };
+      } catch (error) {
+        return { type: "unknown", input: trimmed };
+      }
+    }
 
     case "/export": {
       // Parse args: could be path, format, or both
@@ -308,4 +342,3 @@ export function getQuickReference(): string {
     .map((c) => `${c.cmd} ${c.desc}`)
     .join("  •  ");
 }
-

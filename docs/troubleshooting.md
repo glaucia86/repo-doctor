@@ -141,6 +141,15 @@ curl -H "Authorization: token $GITHUB_TOKEN" \
 # 3. Use authenticated requests (5000/hour vs 60/hour)
 export GITHUB_TOKEN=ghp_xxxxxxxxxxxx
 
+
+### "Failed to list models: 401"
+
+This error comes from Copilot SDK authentication (model listing), not the GitHub API.
+
+**Solutions:**
+
+```bash
+# Re-authenticate via GitHub CLI (OAuth)
 # 4. Use /analyze instead of /deep (fewer requests)
 ```
 
@@ -149,6 +158,17 @@ export GITHUB_TOKEN=ghp_xxxxxxxxxxxx
 You don't have access to this repository.
 
 **Solutions:**
+
+See the full step-by-step guide in [issue-publishing.md](issue-publishing.md).
+
+### "--issue" returns 401/403
+
+Your PAT lacks access or write permissions.
+
+**Fix:**
+- Classic PAT: ensure `repo` (or `public_repo`) is selected
+- Fine-grained PAT: ensure **Metadata (read)**, **Contents (read)**, **Issues (read/write)**
+- Confirm you have write access to the target repo
 
 - Verify the repository exists and is spelled correctly
 - Check if it's private (need token with `repo` scope)

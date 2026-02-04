@@ -12,8 +12,11 @@ import {
   printModel,
   printError,
   printWarning,
+  printSuccess,
   c,
 } from "../../ui/index.js";
+import { publishReport } from "../../core/publish/index.js";
+import { isAuthenticated } from "../../providers/github.js";
 
 // ════════════════════════════════════════════════════════════════════════════
 // TYPES
@@ -27,6 +30,34 @@ export interface AnalyzeOptions {
   verbosity: "silent" | "normal" | "verbose";
   format: "pretty" | "json" | "minimal";
   deep?: boolean;
+  issue?: boolean;
+}
+
+interface PublishFlagParseResult {
+  repoRef: string;
+  issue: boolean;
+}
+
+function extractPublishFlags(input: string): PublishFlagParseResult {
+  const tokens = input.trim().split(/\s+/).filter(Boolean);
+  let issue = false;
+  const repoParts: string[] = [];
+
+  for (const token of tokens) {
+    const normalized = token.toLowerCase();
+    const isIssue = /^[-–—]+issue$/.test(normalized);
+
+    if (normalized === "--issue" || isIssue) {
+      issue = true;
+    } else {
+      repoParts.push(token);
+    }
+  }
+
+  return {
+    repoRef: repoParts.join(" "),
+    issue,
+  };
 }
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -41,7 +72,16 @@ export async function handleAnalyze(
   options: AnalyzeOptions,
   deep: boolean = false
 ): Promise<void> {
-  const parsed = parseRepoRef(repoRef);
+  const parsedFlags = extractPublishFlags(repoRef);
+  let effectiveIssue = options.issue || parsedFlags.issue;
+
+  if (effectiveIssue && !isAuthenticated(options.token)) {
+    printWarning("GitHub token required for publishing issues. Use --token or set GITHUB_TOKEN environment variable.");
+    console.log(c.dim("  Skipping issue creation."));
+    effectiveIssue = false;
+  }
+
+  const parsed = parseRepoRef(parsedFlags.repoRef);
   if (!parsed) {
     printError("Invalid repository reference.");
     console.log(c.dim("  Expected formats:"));
@@ -99,6 +139,42 @@ export async function handleAnalyze(
       result: null,
     });
 
+    const target = effectiveIssue ? "issue" : undefined;
+
+    if (target) {
+      console.log();
+      console.log(c.dim(`  Publishing report as GitHub issue(s)...`));
+      const publishResult = await publishReport({
+        target,
+        repo: {
+          owner,
+          name: repo,
+          fullName: `${owner}/${repo}`,
+          url: repoUrl,
+        },
+        analysisContent: result.content,
+        token: options.token!,
+      });
+
+      if (publishResult?.ok) {
+        if (publishResult.targetUrls && publishResult.targetUrls.length > 0) {
+          printSuccess(`Report published: ${publishResult.targetUrls.length} issue(s) created.`);
+          publishResult.targetUrls.forEach((url) => {
+            console.log(c.dim(`  ${url}`));
+          });
+        } else {
+          printSuccess(
+            publishResult.targetUrl
+              ? `Report published: ${publishResult.targetUrl}`
+              : "Report published successfully."
+          );
+        }
+      } else if (publishResult?.error) {
+        printWarning(`Publish failed: ${publishResult.error.message}`);
+        console.log(c.dim(`  Error type: ${publishResult.error.type}`));
+      }
+    }
+
     // Show post-analysis options
     showPostAnalysisOptions();
 
@@ -106,10 +182,6 @@ export async function handleAnalyze(
     printError(error instanceof Error ? error.message : "Analysis failed");
   }
 }
-
-// ════════════════════════════════════════════════════════════════════════════
-// UI HELPERS
-// ════════════════════════════════════════════════════════════════════════════
 
 /**
  * Show available actions after analysis completes

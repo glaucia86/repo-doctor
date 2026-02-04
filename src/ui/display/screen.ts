@@ -22,14 +22,28 @@ export function clearScreen(): void {
 }
 
 /**
- * Print the logo header
+ * Print the logo header with optional animation
  */
-export function printHeader(compact = false): void {
+export async function printHeader(compact = false, animated = true): Promise<void> {
   console.log();
   const logo = compact ? renderCompactLogo() : renderLogo();
-  for (const line of logo) {
-    console.log("  " + line);
+  const isInteractive = Boolean(process.stdout.isTTY) && !process.env.CI;
+
+  if (animated && !compact && isInteractive) {
+    // Animated version - show lines one by one with async timing
+    for (const line of logo) {
+      console.log("  " + line);
+      // Force flush and wait 200ms between lines
+      process.stdout.write('');
+      await new Promise(resolve => setTimeout(resolve, 200));
+    }
+  } else {
+    // Static version - show all at once
+    for (const line of logo) {
+      console.log("  " + line);
+    }
   }
+
   if (!compact) {
     console.log();
     console.log("  " + c.dim("─".repeat(86)));
