@@ -56,7 +56,7 @@
   "homepage": "https://github.com/glaucia86/repo-doctor#readme",
   "dependencies": {
     "@github/copilot-sdk": "^0.1.21",
-    "@inquirer/prompts": "^7.0.0",
+    "@inquirer/prompts": "^8.2.0",
     "@octokit/rest": "^22.0.1",
     "chalk": "^5.3.0",
     "commander": "^12.0.0",
