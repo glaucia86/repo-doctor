@@ -169,6 +169,102 @@ For the `--issue` feature, you'll need a GitHub Personal Access Token with speci
 
 ---
 
+## 🧭 Detailed --issue Setup (and 401 Troubleshooting)
+
+This section explains, step by step, how to create the right token, avoid 401 errors, and run `--issue` safely. It also clarifies the two authentication paths used by Repo Doctor.
+
+### 1) Understand the two auth paths
+
+- **Copilot SDK auth (models and analysis)** uses GitHub Copilot access. If this fails, you will see: `Failed to list models: 401`.
+- **GitHub API auth (repo read + issue creation)** uses your PAT. If this fails, you will see 401/403 when listing files or creating issues.
+
+### 2) Clean environment (important)
+
+Do this before testing to avoid old tokens interfering.
+
+```powershell
+Remove-Item Env:GITHUB_TOKEN, Env:GH_TOKEN -ErrorAction SilentlyContinue
+```
+
+### 3) Authenticate Copilot SDK (fixes "Failed to list models: 401")
+
+Use GitHub CLI login to get an OAuth token that Copilot accepts.
+
+```powershell
+gh auth logout
+gh auth login
+```
+
+Choose:
+- Host: GitHub.com
+- Login via web
+- Git operations: HTTPS
+
+Confirm login:
+
+```powershell
+gh auth status
+```
+
+Export the token for Repo Doctor:
+
+```powershell
+$env:GH_TOKEN = (gh auth token)
+```
+
+### 4) Create a PAT for `--issue` (GitHub API)
+
+You have two supported paths. Classic PAT is the most reliable.
+
+#### Option A: Classic PAT (recommended)
+
+1. GitHub -> Settings -> Developer settings -> Personal access tokens -> **Tokens (classic)**
+2. Click **Generate new token (classic)**
+3. Select scopes:
+  - `repo` (private + public) **or** `public_repo` (public only)
+4. Generate and copy the token once
+
+#### Option B: Fine-grained PAT
+
+1. GitHub -> Settings -> Developer settings -> Personal access tokens -> **Fine-grained tokens**
+2. **Repository access**:
+  - **All repositories** (if you want to create issues in any repo you own)
+  - or **Only select repositories** (recommended for least privilege)
+3. **Repository permissions** (minimum):
+  - **Metadata**: Read-only (Required)
+  - **Contents**: Read-only
+  - **Issues**: Read and write
+4. **Account permissions**: keep **No access**
+
+### 5) Run Repo Doctor with `--issue`
+
+Use `GH_TOKEN` for Copilot and pass the PAT only for issue creation.
+
+```powershell
+# Copilot SDK auth (models/analysis)
+$env:GH_TOKEN = (gh auth token)
+
+# Run in dev (chat) and create issues
+npm run dev
+```
+
+In the app:
+
+```
+/deep owner/repo --issue --token <YOUR_PAT>
+```
+
+### 6) Quick diagnosis checklist
+
+- **401 on models**: Copilot auth failed -> redo Step 3 (gh auth + GH_TOKEN)
+- **401/403 on issue creation**: PAT lacks access or `Issues: Read/Write`
+- **Public repo but want issues**: PAT still needs `Issues: Read/Write`
+- **Org repo**: your account must have permission to create issues in that repo
+
+---
+
+---
+
 | Category | What's Checked | Example Findings |
 |----------|----------------|------------------|
 | 📚 **Docs & Onboarding** | README, setup instructions, contributing guidelines | Missing installation steps |
