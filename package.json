@@ -18,12 +18,17 @@
     "start": "node dist/index.js",
     "chat": "npx tsx src/cli.ts chat",
     "analyze": "npx tsx src/cli.ts analyze",
+    "lint": "eslint \"src/**/*.ts\" \"tests/**/*.ts\"",
+    "lint:fix": "eslint \"src/**/*.ts\" \"tests/**/*.ts\" --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:integration": "vitest run --config vitest.integration.config.ts",
     "test:all": "vitest run && vitest run --config vitest.integration.config.ts",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "prepare": "husky install"
   },
   "repository": {
     "type": "git",
@@ -61,10 +66,16 @@
     "zod": "^3.22.0"
   },
   "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
     "@types/commander": "^2.12.0",
     "@types/cross-spawn": "^6.0.6",
     "@types/node": "^25.0.10",
     "@vitest/coverage-v8": "^4.0.18",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "husky": "^9.1.6",
+    "prettier": "^3.3.3",
     "typescript": "^5.9.3",
     "vitest": "^4.0.18"
   },

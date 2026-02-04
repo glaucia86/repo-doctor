@@ -1,7 +1,7 @@
 import type { Category } from "../../types/schema.js";
 
 const CATEGORY_LABEL_MAP: Record<Category, string> = {
-  docs: "documentation",
+  docs: "docs",
   dx: "dx",
   ci: "ci",
   tests: "tests",
@@ -9,15 +9,15 @@ const CATEGORY_LABEL_MAP: Record<Category, string> = {
   security: "security",
 };
 
-export const BASE_LABEL = "repo-doctor";
+export const LABEL_PREFIX = "repo-doctor";
 
 export function buildIssueLabels(categories: Category[] = []): string[] {
   const labels = new Set<string>();
-  labels.add(BASE_LABEL);
+  labels.add(LABEL_PREFIX);
 
   for (const category of categories) {
     const label = CATEGORY_LABEL_MAP[category];
-    if (label) labels.add(label);
+    if (label) labels.add(`${LABEL_PREFIX}:${label}`);
   }
 
   return Array.from(labels);

@@ -2,7 +2,7 @@
  * Tests for Application State
  */
 
-import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { getCopilotCliModels } from "../../../src/providers/copilotModels.js";
 import {
   AppState,

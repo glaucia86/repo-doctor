@@ -116,7 +116,7 @@ export async function publishReport(request: PublishRequest): Promise<PublishRes
         const priority = inferPriority(combinedText);
 
         const issueLabels = buildIssueLabels([category]);
-        issueLabels.push(priority);
+        issueLabels.push(priority.toLowerCase());
 
         const issueTitle = `[Repo Doctor] ${category}: ${issue.title}`;
         const issueBody = buildIssueBody(issue);

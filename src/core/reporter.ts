@@ -12,7 +12,6 @@ import {
   printFindings,
   printNextSteps,
   box,
-  CATEGORY_ICONS,
   CATEGORY_LABELS,
 } from "../ui/index.js";
 

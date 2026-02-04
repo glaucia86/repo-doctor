@@ -4,8 +4,8 @@
  */
 
 import { writeFileSync, mkdirSync, existsSync } from "fs";
-import { join, dirname } from "path";
-import type { AnalysisResult, Finding, CategoryScore } from "../types/schema.js";
+import { join } from "path";
+import type { AnalysisResult } from "../types/schema.js";
 import { CATEGORY_LABELS, PRIORITY_LABELS, CATEGORY_ICONS, PRIORITY_ICONS } from "../ui/themes.js";
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -34,19 +34,20 @@ function getHealthStatus(score: number): { label: string; emoji: string } {
 
 /**
  * Get priority color for markdown
+ * @deprecated Currently unused but kept for potential future use
  */
-function getPriorityBadge(priority: string): string {
-  switch (priority) {
-    case "P0":
-      return "🔴 **P0 - Critical**";
-    case "P1":
-      return "🟠 **P1 - High Priority**";
-    case "P2":
-      return "🟢 **P2 - Suggestion**";
-    default:
-      return priority;
-  }
-}
+// function getPriorityBadge(priority: string): string {
+//   switch (priority) {
+//     case "P0":
+//       return "🔴 **P0 - Critical**";
+//     case "P1":
+//       return "🟠 **P1 - High Priority**";
+//     case "P2":
+//       return "🟢 **P2 - Suggestion**";
+//     default:
+//       return priority;
+//   }
+// }
 
 /**
  * Generate a progress bar for markdown

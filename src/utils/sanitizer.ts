@@ -59,7 +59,7 @@ const HIDDEN_CONTENT_PATTERNS = [
   // HTML comments with suspicious content
   /<!--[\s\S]*?(ignore|instruction|prompt|system|override|bypass)[\s\S]*?-->/gi,
   // Zero-width characters (can hide text)
-  /[\u200B\u200C\u200D\uFEFF]/g,
+  /[\u200B-\u200D\uFEFF]/g,
   // Right-to-left override (can hide/reverse text)
   /[\u202A-\u202E\u2066-\u2069]/g,
 ];

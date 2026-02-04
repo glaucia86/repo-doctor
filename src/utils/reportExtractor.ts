@@ -13,7 +13,7 @@
  */
 export function extractReportOnly(content: string): string {
   // Step 1: Remove common debug/noise patterns
-  let cleaned = content
+  const cleaned = content
     // Remove npm/repomix warnings and deprecation notices
     .replace(/npm warn.*\n?/gi, "")
     .replace(/npm notice.*\n?/gi, "")
@@ -135,7 +135,7 @@ export function removeDuplicateSections(content: string): string {
     return lines.reduce((sum, line) => sum + line.length, 0);
   }
 
-  function saveSection(endIndex: number) {
+  function saveSection(_endIndex: number) {
     if (currentLines.length === 0) return;
 
     const normalizedHeader = currentHeader.toLowerCase().replace(/[^a-z0-9]/g, "");

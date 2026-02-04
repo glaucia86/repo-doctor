@@ -5,7 +5,7 @@
 
 import * as readline from "readline";
 import { analyzeRepositoryWithCopilot } from "../core/agent.js";
-import { parseCommand, type CommandType } from "../ui/commands.js";
+import { parseCommand } from "../ui/commands.js";
 import { parseRepoRef, buildRepoUrl, buildRepoSlug } from "./parsers/repoParser.js";
 import {
   appState,

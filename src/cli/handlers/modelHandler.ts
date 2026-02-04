@@ -116,7 +116,7 @@ export async function handleModel(modelName?: string): Promise<void> {
 
   // Check if it's a number
   const modelIndex = parseInt(modelName, 10);
-  let model = !isNaN(modelIndex)
+  const model = !isNaN(modelIndex)
     ? findModelByIndex(modelIndex, models)
     : findModel(modelName, models);
 
