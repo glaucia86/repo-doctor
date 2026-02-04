@@ -153,6 +153,7 @@ Select AI Model:
 | Quick daily checks | `gpt-4o` |
 | Free tier users | `gpt-4o` or `gpt-4.1` |
 | Detailed audits | `claude-sonnet-4` |
+| Publishing with `--issue` | `claude-sonnet-4.5` |
 | Complex monorepos | `claude-opus-4.5` |
 | Code-focused analysis | `gpt-5.1-codex` |
 | Deep reasoning needed | `o3` |

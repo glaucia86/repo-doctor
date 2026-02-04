@@ -78,29 +78,39 @@ export async function printChatHeader(): Promise<void> {
 
   // Render the big colorful logo with elegant line-by-line reveal
   const logo = renderBigLogo();
+  const isInteractive = Boolean(process.stdout.isTTY) && !process.env.CI;
 
-  // Dynamic energy effect: lines pulse with energy before settling
-  for (let i = 0; i < logo.length; i++) {
-    const line = logo[i];
+  if (!isInteractive) {
+    for (const line of logo) {
+      console.log("  " + line);
+    }
+    console.log();
+  } else {
+    // Dynamic energy effect: lines pulse with energy before settling
+    for (let i = 0; i < logo.length; i++) {
+      const line = logo[i];
 
-    // Energy pulse: brighter flash
-    process.stdout.write('  ' + c.premium(line) + '\r');
-    await new Promise(resolve => setTimeout(resolve, 30));
+      // Energy pulse: brighter flash
+      process.stdout.write("  " + c.premium(line) + "\r");
+      await new Promise((resolve) => setTimeout(resolve, 30));
 
-    // Quick dim
-    process.stdout.write('  ' + c.dim(line) + '\r');
-    await new Promise(resolve => setTimeout(resolve, 20));
+      // Quick dim
+      process.stdout.write("  " + c.dim(line) + "\r");
+      await new Promise((resolve) => setTimeout(resolve, 20));
 
-    // Energy surge: even brighter
-    process.stdout.write('  ' + c.brand(line) + '\r');
-    await new Promise(resolve => setTimeout(resolve, 25));
+      // Energy surge: even brighter
+      process.stdout.write("  " + c.brand(line) + "\r");
+      await new Promise((resolve) => setTimeout(resolve, 25));
 
-    // Settle to normal with cascade timing
-    console.log('  ' + line);
+      // Settle to normal with cascade timing
+      console.log("  " + line);
 
-    // Dynamic pause: faster for lower lines (energy cascade)
-    const pause = Math.max(25, 60 - (i * 8));
-    await new Promise(resolve => setTimeout(resolve, pause));
+      // Dynamic pause: faster for lower lines (energy cascade)
+      const pause = Math.max(25, 60 - i * 8);
+      await new Promise((resolve) => setTimeout(resolve, pause));
+    }
+
+    console.log();
   }
 
   console.log();

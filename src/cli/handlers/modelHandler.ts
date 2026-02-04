@@ -65,7 +65,7 @@ function promptModelSelection(models: ModelInfo[]): Promise<ModelInfo | null> {
         return;
       }
 
-    const index = parseInt(trimmed, 10);
+      const index = parseInt(trimmed, 10);
       if (!isNaN(index) && index >= 1 && index <= models.length) {
         resolve(models[index - 1]!);
         return;

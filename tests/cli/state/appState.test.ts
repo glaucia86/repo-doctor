@@ -3,6 +3,7 @@
  */
 
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
+import { getCopilotCliModels } from "../../../src/providers/copilotModels.js";
 import {
   AppState,
   AVAILABLE_MODELS,
@@ -13,6 +14,14 @@ import {
   getAvailableModels,
   clearModelCache,
 } from "../../../src/cli/state/appState.js";
+
+vi.mock("../../../src/providers/copilotModels.js", () => ({
+  getCopilotCliModels: vi.fn(),
+}));
+
+beforeEach(() => {
+  vi.mocked(getCopilotCliModels).mockReturnValue(null);
+});
 
 describe("AppState", () => {
   let state: AppState;
@@ -141,6 +150,7 @@ describe("getAvailableModels memoization", () => {
     // Clear cache before each test to ensure isolation
     clearModelCache();
     vi.restoreAllMocks();
+    vi.mocked(getCopilotCliModels).mockReturnValue(null);
   });
 
   it("should return models on first call", () => {

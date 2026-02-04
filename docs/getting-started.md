@@ -13,7 +13,7 @@ Want to see Repo Doctor in action? Here's how to test the GitHub issue creation 
 ```bash
 # Go to: https://github.com/settings/tokens
 # Generate new token (classic) with repo scope OR granular permissions (metadata, contents, issues)
-# Copy the token (starts with ghp_)
+# Copy the token (often starts with ghp_ or github_pat_)
 ```
 
 ### 2. Test with Your Repository
@@ -22,7 +22,7 @@ Want to see Repo Doctor in action? Here's how to test the GitHub issue creation 
 # Replace with your actual token and repository
 export GITHUB_TOKEN=ghp_your_token_here
 
-# This will create multiple GitHub issues automatically!
+# This may create one or multiple GitHub issues automatically, depending on findings/output format.
 repo-doctor analyze your-username/your-repo --issue
 ```
 
@@ -256,6 +256,8 @@ repo-doctor analyze your-username/your-repo --issue
 
 **Want to try the publishing features?** Here's how:
 
+> **Tip:** If you plan to use the `--issue` flag, the best model for report quality is **Claude Sonnet 4.5**.
+
 #### Quick Test with Issues
 
 ```bash
@@ -265,7 +267,7 @@ export GITHUB_TOKEN=ghp_your_token_here
 # Create issues for each problem found
 repo-doctor analyze your-username/your-repo --issue
 
-# Result: Multiple GitHub issues created automatically!
+# Result: One or multiple GitHub issues created automatically, depending on findings.
 ```
 
 #### Interactive Mode
@@ -304,7 +306,7 @@ Want to try the publishing features? Here's a complete step-by-step guide:
        - `contents` — Read repository contents  
        - `issues` — Create and manage issues
 
-3. **Copy the token** (starts with `ghp_`)
+3. **Copy the token** (often starts with `ghp_` or `github_pat_`)
 
 ### Step 2: Test with Interactive Mode
 
@@ -336,7 +338,7 @@ repo-doctor chat
 ```
 
 **Expected Result:**
-- Multiple issues created, one for each problem found
+- One or multiple issues created, depending on findings
 - Each issue has detailed description, impact, and fix instructions
 - Issues are labeled by category (docs, dx, ci, security, etc.)
 

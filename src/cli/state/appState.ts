@@ -5,9 +5,7 @@
 
 import type { AnalysisResult } from "../../types/schema.js";
 import type { AnalysisOutput } from "../../core/agent.js";
-import { createRequire } from "node:module";
-
-const require = createRequire(import.meta.url);
+import { getCopilotCliModels } from "../../providers/copilotModels.js";
 
 // ════════════════════════════════════════════════════════════════════════════
 // TYPES
@@ -92,8 +90,6 @@ export function getAvailableModels(): ModelInfo[] {
   }
 
   try {
-    // Lazy import to avoid hard dependency during module load
-    const { getCopilotCliModels } = require("../../providers/copilotModels.js") as typeof import("../../providers/copilotModels.js");
     const models = getCopilotCliModels();
     if (models && models.length > 0) {
       const premiumMap = new Map(AVAILABLE_MODELS.map((model) => [model.id.toLowerCase(), model.premium]));

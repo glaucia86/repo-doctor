@@ -100,11 +100,6 @@ export async function publishReport(request: PublishRequest): Promise<PublishRes
     };
   }
 
-  const { markdown } = buildPublishReport({
-    content: analysisContent,
-    repoFullName: repo.fullName,
-  });
-
   try {
     const labels = buildIssueLabels(inferredCategories);
     const title = `Repo Doctor Report: ${repo.fullName}`;
@@ -138,6 +133,11 @@ export async function publishReport(request: PublishRequest): Promise<PublishRes
 
       return { ok: true, target, targetUrls };
     }
+
+    const { markdown } = buildPublishReport({
+      content: analysisContent,
+      repoFullName: repo.fullName,
+    });
 
     const targetUrl = await createIssue({
       owner: repo.owner,

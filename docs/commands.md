@@ -118,6 +118,8 @@ If no repository is provided, Repo Doctor starts in interactive mode.
 | `--help` | `-h` | — | — | Show help information |
 | `--version` | `-v` | — | — | Show version number |
 
+> **Tip:** If you plan to use `--issue`, the best model for report quality is **Claude Sonnet 4.5**.
+
 ---
 
 ## Analysis Commands

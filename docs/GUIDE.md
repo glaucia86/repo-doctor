@@ -225,6 +225,8 @@ repo-doctor my-org/private-repo --token ghp_xxxxxxxxxxxxxxxxxxxx
 
 Use `--issue` to create GitHub issues with the analysis output. This requires a PAT with issue write access and Copilot SDK auth for model access.
 
+> **Tip:** If you plan to use `--issue`, the best model for report quality is **Claude Sonnet 4.5**.
+
 ```bash
 # Copilot SDK auth (recommended)
 export GH_TOKEN="$(gh auth token)"

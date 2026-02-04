@@ -27,8 +27,9 @@ export function clearScreen(): void {
 export async function printHeader(compact = false, animated = true): Promise<void> {
   console.log();
   const logo = compact ? renderCompactLogo() : renderLogo();
+  const isInteractive = Boolean(process.stdout.isTTY) && !process.env.CI;
 
-  if (animated && !compact) {
+  if (animated && !compact && isInteractive) {
     // Animated version - show lines one by one with async timing
     for (const line of logo) {
       console.log("  " + line);
