@@ -163,58 +163,45 @@ class ClipboardService implements IClipboardService {
    * Copy to clipboard on Linux using xclip or xsel
    */
   private async copyLinux(text: string): Promise<IClipboardResult> {
+    // Try xclip first
+    const xclipResult = await this.tryCommand("xclip", ["-selection", "clipboard"], text);
+    if (xclipResult.success) {
+      return xclipResult;
+    }
+
+    // Fallback to xsel
+    return await this.tryCommand("xsel", ["--clipboard", "--input"], text);
+  }
+
+  /**
+   * Helper to try a clipboard command
+   */
+  private async tryCommand(command: string, args: string[], text: string): Promise<IClipboardResult> {
     return new Promise((resolve) => {
-      // Try xclip first
-      let proc = spawn("xclip", ["-selection", "clipboard"], {
+      const proc = spawn(command, args, {
         stdio: ["pipe", "ignore", "ignore"],
       });
 
-      let usedXsel = false;
+      proc.stdin.write(text);
+      proc.stdin.end();
 
-      proc.on("error", () => {
-        // Fallback to xsel
-        usedXsel = true;
-        proc = spawn("xsel", ["--clipboard", "--input"], {
-          stdio: ["pipe", "ignore", "ignore"],
-        });
-
-        proc.stdin.write(text);
-        proc.stdin.end();
-
-        proc.on("close", (code) => {
-          if (code === 0) {
-            resolve({ success: true });
-          } else {
-            resolve({
-              success: false,
-              error: `xsel exited with code ${code}`,
-            });
-          }
-        });
-
-        proc.on("error", (error) => {
+      proc.on("close", (code) => {
+        if (code === 0) {
+          resolve({ success: true });
+        } else {
           resolve({
             success: false,
-            error: `Neither xclip nor xsel available: ${error.message}`,
+            error: `${command} exited with code ${code}`,
           });
-        });
+        }
       });
 
-      if (!usedXsel) {
-        proc.stdin.write(text);
-        proc.stdin.end();
-
-        proc.on("close", (code) => {
-          if (code === 0) {
-            resolve({ success: true });
-          } else {
-            resolve({
-              success: false,
-              error: `xclip exited with code ${code}`,
-            });
-          }
+      proc.on("error", (error) => {
+        resolve({
+          success: false,
+          error: `${command} not available: ${error.message}`,
         });
-      }
+      });
     });
   }
 }
