@@ -1,0 +1,11 @@
+node_modules/
+tests/
+docs/
+ai-documents/
+specs/
+resources/
+*.log
+dist/
+build/
+.vscode/
+.git/
