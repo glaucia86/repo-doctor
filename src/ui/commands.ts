@@ -199,6 +199,7 @@ export function parseCommand(input: string): CommandType {
         const { repoRef, issue } = parseAnalyzeArgs(args);
         return { type: "analyze", repoRef, issue };
       } catch (error) {
+        console.log("Error parsing /analyze command:", error);
         return { type: "unknown", input: trimmed };
       }
     }
@@ -211,6 +212,7 @@ export function parseCommand(input: string): CommandType {
         const { repoRef, issue } = parseAnalyzeArgs(args);
         return { type: "deep", repoRef, issue };
       } catch (error) {
+        console.log("Error parsing /deep command:", error);
         return { type: "unknown", input: trimmed };
       }
     }

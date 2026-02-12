@@ -206,8 +206,8 @@ export function createEventHandler(options: EventHandlerOptions): {
 
           // Log failures prominently for tools with structured results
           if (parsedResult && parsedResult.success === false) {
-            const errorReason = String(parsedResult.reason || "UNKNOWN");
-            const errorMsg = String(parsedResult.error || "");
+            const errorReason = typeof parsedResult.reason === 'string' ? parsedResult.reason : "UNKNOWN";
+            const errorMsg = typeof parsedResult.error === 'string' ? parsedResult.error : "";
             
             if (!silent && !json) {
               console.log(
