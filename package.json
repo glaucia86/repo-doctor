@@ -67,7 +67,7 @@
   "devDependencies": {
     "@types/commander": "^2.12.0",
     "@types/cross-spawn": "^6.0.6",
-    "@types/node": "^25.2.0",
+    "@types/node": "^25.2.3",
     "@typescript-eslint/eslint-plugin": "^7.18.0",
     "@typescript-eslint/parser": "^7.18.0",
     "@vitest/coverage-v8": "^4.0.18",
