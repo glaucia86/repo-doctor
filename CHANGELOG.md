@@ -162,7 +162,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Security**: Content sanitization utilities to prevent prompt injection attacks
 - **Documentation**: Comprehensive Copilot instructions (`.github/copilot-instructions.md`)
 - **Documentation**: AGENTS.md with improved clarity and detail for agent configuration
-- **Documentation**: CLAUDE.md for project context and guidance
 
 ### Changed
 
