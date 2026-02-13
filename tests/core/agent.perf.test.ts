@@ -1,29 +1,30 @@
-import { describe, bench } from "vitest";
-import { analyzeRepositoryWithCopilot } from "../../../src/core/agent.js";
+import { describe, it, expect } from "vitest";
+import { analyzeRepositoryWithCopilot } from "../../src/core/agent.js";
 
-// Mock all dependencies for performance testing
-import { vi } from "vitest";
-
+// Mock CopilotClient
 vi.mock("@github/copilot-sdk", async (importOriginal) => {
-  const actual = await importOriginal() as Record<string, any>;
+  const actual = await importOriginal();
   return {
     ...actual,
-    CopilotClient: class {
-      start = vi.fn().mockResolvedValue(undefined);
-      createSession = vi.fn().mockResolvedValue({
-        on: vi.fn(),
-        sendAndWait: vi.fn().mockImplementation(async () => {
-          // Simulate some processing time
-          await new Promise(resolve => setTimeout(resolve, 10));
-          return "Mocked analysis response";
+    CopilotClient: function() {
+      return {
+        start: vi.fn().mockResolvedValue(undefined),
+        createSession: vi.fn().mockResolvedValue({
+          on: vi.fn(),
+          sendAndWait: vi.fn().mockImplementation(async () => {
+            // Simulate some processing time
+            await new Promise(resolve => setTimeout(resolve, 10));
+            return "Mocked analysis response";
+          }),
         }),
         stop: vi.fn().mockResolvedValue(undefined),
-      });
+      };
     },
   };
 });
 
-vi.mock("../../../src/ui/index.js", () => ({
+// Mock UI functions to avoid console output
+vi.mock("../../src/ui/index.js", () => ({
   startSpinner: vi.fn().mockReturnValue({
     update: vi.fn(),
     success: vi.fn(),
@@ -53,7 +54,8 @@ vi.mock("../../../src/ui/index.js", () => ({
   box: vi.fn().mockReturnValue(["Mocked box output"]),
 }));
 
-vi.mock("../../../src/core/agent/index.js", () => ({
+// Mock extracted modules
+vi.mock("../../src/core/agent/index.js", () => ({
   SYSTEM_PROMPT: "Mock system prompt",
   QUICK_SYSTEM_PROMPT: "Mock quick prompt",
   DEEP_SYSTEM_PROMPT: "Mock deep prompt",
@@ -73,8 +75,8 @@ vi.mock("../../../src/core/agent/index.js", () => ({
   }),
 }));
 
-describe("Performance Benchmarks", () => {
-  bench("analyzeRepositoryWithCopilot - quick analysis", async () => {
+describe("Performance Tests", () => {
+  it("analyzeRepositoryWithCopilot - quick analysis performance", async () => {
     const options = {
       repoUrl: "https://github.com/owner/repo",
       token: "mock-token",
@@ -84,13 +86,17 @@ describe("Performance Benchmarks", () => {
       deep: false,
     };
 
+    const start = performance.now();
     await analyzeRepositoryWithCopilot(options);
-  }, {
-    time: 1000, // Run for 1 second
-    iterations: 10, // Minimum iterations
+    const end = performance.now();
+    const duration = end - start;
+
+    // Assert that it completes within reasonable time (e.g., < 100ms for mocked)
+    expect(duration).toBeLessThan(100);
+    console.log(`Quick analysis took ${duration.toFixed(2)}ms`);
   });
 
-  bench("analyzeRepositoryWithCopilot - deep analysis", async () => {
+  it("analyzeRepositoryWithCopilot - deep analysis performance", async () => {
     const options = {
       repoUrl: "https://github.com/owner/repo",
       token: "mock-token",
@@ -100,9 +106,12 @@ describe("Performance Benchmarks", () => {
       deep: true,
     };
 
+    const start = performance.now();
     await analyzeRepositoryWithCopilot(options);
-  }, {
-    time: 1000,
-    iterations: 10,
+    const end = performance.now();
+    const duration = end - start;
+
+    expect(duration).toBeLessThan(100);
+    console.log(`Deep analysis took ${duration.toFixed(2)}ms`);
   });
 });
