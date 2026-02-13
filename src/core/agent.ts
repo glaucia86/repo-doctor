@@ -58,6 +58,126 @@ export interface AnalysisOutput {
 // MAIN FUNCTION
 // ════════════════════════════════════════════════════════════════════════════
 
+/**
+ * Initialize Copilot client and create analysis session
+ */
+async function initializeCopilotSession(options: {
+  model: string;
+  isDeep: boolean;
+  token?: string;
+  maxFiles: number;
+  maxBytes: number;
+}) {
+  const { model, isDeep, token, maxFiles, maxBytes } = options;
+
+  // Create and start client
+  const client = new CopilotClient();
+  await client.start();
+
+  // Create session with tools
+  const baseTools = repoTools({ token, maxFiles, maxBytes });
+  const tools = isDeep 
+    ? [...baseTools, ...deepAnalysisTools({ maxBytes: 512000 })]
+    : baseTools;
+
+  // Select the appropriate system prompt based on analysis mode
+  const systemPrompt = getSystemPrompt(isDeep ? "deep" : "quick");
+
+  const session = await client.createSession({
+    model: model,
+    streaming: true,
+    tools,
+    systemMessage: {
+      mode: "append",
+      content: systemPrompt,
+    },
+    // Enable infinite sessions for long-running analyses (v0.1.18+)
+    // Automatically compacts context when buffer approaches limits
+    infiniteSessions: {
+      enabled: true,
+      backgroundCompactionThreshold: 0.80,  // Start compaction at 80% buffer
+      bufferExhaustionThreshold: 0.95,      // Block at 95% until compaction completes
+    },
+  });
+
+  return { client, session };
+}
+
+/**
+ * Run analysis with timeout handling
+ */
+async function runAnalysisWithTimeout(session: any, prompt: string, timeout: number, isSilent: boolean, isJson: boolean) {
+  try {
+    const response = await session.sendAndWait({ prompt }, timeout);
+    
+    if (!response && !isSilent && !isJson) {
+      printWarning("No response received from Copilot");
+    }
+  } catch (error) {
+    if (error instanceof Error && error.message.toLowerCase().includes("timeout")) {
+      printWarning(`Analysis timed out after ${timeout / 1000}s. Partial results shown above.`);
+    } else {
+      throw error;
+    }
+  }
+}
+
+/**
+ * Handle analysis completion and logging
+ */
+function handleAnalysisCompletion(
+  state: any,
+  guardrails: any,
+  durationMs: number,
+  isVerbose: boolean,
+  isSilent: boolean,
+  isJson: boolean
+) {
+  // Final message
+  if (!isSilent && !isJson) {
+    // Print completion summary
+    console.log();
+    
+    if (state.aborted) {
+      console.log(
+        "  " +
+          c.warning(ICON.warn) +
+          " " +
+          c.warningBold("Analysis stopped by guardrails")
+      );
+      console.log(
+        "  " +
+          c.dim(`Reason: ${state.abortReason}`)
+      );
+    } else {
+      console.log(
+        "  " +
+          c.healthy(ICON.check) +
+          " " +
+          c.healthyBold("Analysis completed successfully!")
+      );
+    }
+    
+    console.log(
+      "  " +
+        c.dim(`Made ${state.toolCallCount} API calls in ${(durationMs / 1000).toFixed(1)}s`)
+    );
+    
+    // Log guardrail stats in verbose mode
+    if (isVerbose) {
+      const stats = guardrails.getStats();
+      if (stats.warningCount > 0) {
+        console.log(
+          "  " +
+            c.warning(`Guardrail warnings: ${stats.warningCount}`)
+        );
+      }
+      console.timeEnd("Analysis duration");
+    }
+    console.log();
+  }
+}
+
 export async function analyzeRepositoryWithCopilot(options: AnalyzeOptions): Promise<AnalysisOutput> {
   const startTime = Date.now();
   if (options.verbosity === "verbose") {
@@ -88,41 +208,17 @@ export async function analyzeRepositoryWithCopilot(options: AnalyzeOptions): Pro
   let spinner = !isSilent && !isJson ? startSpinner("Initializing Copilot...") : null;
 
   try {
-    // Create and start client
-    const client = new CopilotClient();
-    await client.start();
-
-    if (spinner) {
-      updateSpinner("Creating analysis session...");
-    }
-
-    // Create session with tools
-    const baseTools = repoTools({ token, maxFiles, maxBytes });
-    const tools = isDeep 
-      ? [...baseTools, ...deepAnalysisTools({ maxBytes: 512000 })]
-      : baseTools;
-
-    // Select the appropriate system prompt based on analysis mode
-    const systemPrompt = getSystemPrompt(isDeep ? "deep" : "quick");
-
-    const session = await client.createSession({
-      model: model,
-      streaming: true,
-      tools,
-      systemMessage: {
-        mode: "append",
-        content: systemPrompt,
-      },
-      // Enable infinite sessions for long-running analyses (v0.1.18+)
-      // Automatically compacts context when buffer approaches limits
-      infiniteSessions: {
-        enabled: true,
-        backgroundCompactionThreshold: 0.80,  // Start compaction at 80% buffer
-        bufferExhaustionThreshold: 0.95,      // Block at 95% until compaction completes
-      },
+    // Initialize Copilot session
+    const { client, session } = await initializeCopilotSession({
+      model,
+      isDeep,
+      token,
+      maxFiles,
+      maxBytes,
     });
 
     if (spinner) {
+      updateSpinner("Creating analysis session...");
       spinnerSuccess("Session created");
       spinner = null;
     }
@@ -166,69 +262,15 @@ export async function analyzeRepositoryWithCopilot(options: AnalyzeOptions): Pro
     }
 
     // Run analysis with timeout
-    // sendAndWait accepts a second parameter for timeout in milliseconds
-    try {
-      const response = await session.sendAndWait({ prompt }, timeout);
-      
-      if (!response && !isSilent && !isJson) {
-        printWarning("No response received from Copilot");
-      }
-    } catch (error) {
-      if (error instanceof Error && error.message.toLowerCase().includes("timeout")) {
-        printWarning(`Analysis timed out after ${timeout / 1000}s. Partial results shown above.`);
-      } else {
-        throw error;
-      }
-    }
+    await runAnalysisWithTimeout(session, prompt, timeout, isSilent, isJson);
 
     // Cleanup
     await client.stop();
 
     const durationMs = Date.now() - startTime;
 
-    // Final message
-    if (!isSilent && !isJson) {
-      // Print completion summary
-      console.log();
-      
-      if (state.aborted) {
-        console.log(
-          "  " +
-            c.warning(ICON.warn) +
-            " " +
-            c.warningBold("Analysis stopped by guardrails")
-        );
-        console.log(
-          "  " +
-            c.dim(`Reason: ${state.abortReason}`)
-        );
-      } else {
-        console.log(
-          "  " +
-            c.healthy(ICON.check) +
-            " " +
-            c.healthyBold("Analysis completed successfully!")
-        );
-      }
-      
-      console.log(
-        "  " +
-          c.dim(`Made ${state.toolCallCount} API calls in ${(durationMs / 1000).toFixed(1)}s`)
-      );
-      
-      // Log guardrail stats in verbose mode
-      if (isVerbose) {
-        const stats = guardrails.getStats();
-        if (stats.warningCount > 0) {
-          console.log(
-            "  " +
-              c.warning(`Guardrail warnings: ${stats.warningCount}`)
-          );
-        }
-        console.timeEnd("Analysis duration");
-      }
-      console.log();
-    }
+    // Handle completion logging
+    handleAnalysisCompletion(state, guardrails, durationMs, isVerbose, isSilent, isJson);
 
     // Return analysis result (DO NOT call process.exit!)
     return {

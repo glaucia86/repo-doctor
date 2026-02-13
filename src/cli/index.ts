@@ -40,8 +40,9 @@ export {
   handleSummary,
   handleHelp,
   showPostAnalysisOptions,
-  type AnalyzeOptions,
 } from "./handlers/index.js";
+import { type CLIAnalyzeOptions } from "./types.js";
 
 // Chat loop
 export { runChatMode } from "./chatLoop.js";
+export type { CLIAnalyzeOptions };

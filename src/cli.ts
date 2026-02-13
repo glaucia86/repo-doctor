@@ -35,15 +35,16 @@ import {
   appState,
   findModel,
   parseRepoRef,
-  type AnalyzeOptions,
 } from "./cli/index.js";
 import { runChatMode } from "./cli/chatLoop.js";
+import { safeValidateCLIAnalyzeOptions } from "./utils/validation.js";
+import { type CLIAnalyzeOptions } from "./cli/types.js";
 
 // ════════════════════════════════════════════════════════════════════════════
 // DEFAULT OPTIONS
 // ════════════════════════════════════════════════════════════════════════════
 
-const defaultOptions: AnalyzeOptions = {
+const defaultOptions: Partial<CLIAnalyzeOptions> = {
   maxFiles: 800,
   maxBytes: 204800,
   timeout: 120000,
@@ -90,7 +91,7 @@ const getEnumOption = <T extends string>(
 
 async function runDirectAnalyze(
   repoRef: string,
-  options: AnalyzeOptions
+  options: CLIAnalyzeOptions
 ): Promise<void> {
   const isJson = options.format === "json";
   
@@ -221,10 +222,10 @@ program
       }
     }
 
-    const options: AnalyzeOptions = {
+    const options: CLIAnalyzeOptions = safeValidateCLIAnalyzeOptions({
       ...defaultOptions,
       token: getStringOption(opts, "token") || process.env.GITHUB_TOKEN,
-    };
+    }, defaultOptions);
     await runChatMode(options, repoRef);
   });
 
@@ -253,7 +254,7 @@ program
       }
     }
     
-    const options: AnalyzeOptions = {
+    const options: CLIAnalyzeOptions = safeValidateCLIAnalyzeOptions({
       token: getStringOption(opts, "token") || process.env.GITHUB_TOKEN,
       maxFiles: getNumberOption(opts, "maxFiles") ?? defaultOptions.maxFiles,
       maxBytes: getNumberOption(opts, "maxBytes") ?? defaultOptions.maxBytes,
@@ -262,17 +263,17 @@ program
         opts,
         "verbosity",
         ["silent", "normal", "verbose"] as const,
-        defaultOptions.verbosity
+        defaultOptions.verbosity!
       ),
       format: getEnumOption(
         opts,
         "format",
         ["pretty", "json", "minimal"] as const,
-        defaultOptions.format
+        defaultOptions.format!
       ),
       deep: getBooleanOption(opts, "deep") ?? false,
       issue: getBooleanOption(opts, "issue") ?? false,
-    };
+    }, defaultOptions);
     await runDirectAnalyze(repoRef, options);
   });
 

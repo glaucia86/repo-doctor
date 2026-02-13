@@ -17,21 +17,13 @@ import {
 } from "../../ui/index.js";
 import { publishReport } from "../../core/publish/index.js";
 import { isAuthenticated } from "../../providers/github.js";
+import { type CLIAnalyzeOptions } from "../types.js";
 
 // ════════════════════════════════════════════════════════════════════════════
 // TYPES
 // ════════════════════════════════════════════════════════════════════════════
 
-export interface AnalyzeOptions {
-  token?: string;
-  maxFiles: number;
-  maxBytes: number;
-  timeout: number;
-  verbosity: "silent" | "normal" | "verbose";
-  format: "pretty" | "json" | "minimal";
-  deep?: boolean;
-  issue?: boolean;
-}
+// AnalyzeOptions imported from schema.ts
 
 interface PublishFlagParseResult {
   repoRef: string;
@@ -69,7 +61,7 @@ function extractPublishFlags(input: string): PublishFlagParseResult {
  */
 export async function handleAnalyze(
   repoRef: string,
-  options: AnalyzeOptions,
+  options: CLIAnalyzeOptions,
   deep: boolean = false
 ): Promise<void> {
   const parsedFlags = extractPublishFlags(repoRef);

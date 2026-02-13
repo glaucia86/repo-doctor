@@ -2,7 +2,7 @@
  * Handlers module exports
  */
 
-export { handleAnalyze, showPostAnalysisOptions, type AnalyzeOptions } from "./analyzeHandler.js";
+export { handleAnalyze, showPostAnalysisOptions } from "./analyzeHandler.js";
 export { handleExport } from "./exportHandler.js";
 export { handleCopy } from "./copyHandler.js";
 export { handleModel } from "./modelHandler.js";

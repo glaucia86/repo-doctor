@@ -23,8 +23,9 @@ import {
   handleSummary,
   handleHelp,
   showPostAnalysisOptions,
-  type AnalyzeOptions,
 } from "./handlers/index.js";
+import { type CLIAnalyzeOptions } from "./types.js";
+import { promptModelSelection } from "./handlers/sharedPrompts.js";
 import {
   clearScreen,
   printChatHeader,
@@ -72,60 +73,7 @@ function promptRepoUrl(): Promise<string> {
   });
 }
 
-/**
- * Show model menu and prompt for selection using readline
- */
-function promptModelSelection(): Promise<ModelInfo> {
-  return new Promise((resolve) => {
-    const models = getAvailableModels();
-
-    const rl = readline.createInterface({
-      input: process.stdin,
-      output: process.stdout,
-    });
-
-    console.log();
-    console.log("  " + c.whiteBold(ICON.model + " Select AI Model"));
-    console.log("  " + c.border("─".repeat(50)));
-    console.log();
-
-    models.forEach((model, index) => {
-      const num = c.info(`[${index + 1}]`);
-      const premiumIcon = model.premium ? c.premium(" ⚡") : c.healthy(" ✓ FREE");
-      const isDefault = model.id === "claude-sonnet-4";
-      const defaultIndicator = isDefault ? c.dim(" (default)") : "";
-      console.log(`    ${num} ${c.text(model.name)}${premiumIcon}${defaultIndicator}`);
-    });
-
-    console.log();
-    console.log("  " + c.dim("Press Enter for default, or type a number:"));
-    console.log();
-
-    rl.question(c.brand("  ❯ "), (answer) => {
-      rl.close();
-      const trimmed = answer.trim();
-
-      if (!trimmed) {
-        // Default: claude-sonnet-4
-        resolve(models.find((m) => m.id === "claude-sonnet-4") || models[0]!);
-        return;
-      }
-
-      const index = parseInt(trimmed, 10);
-      if (!isNaN(index) && index >= 1 && index <= models.length) {
-        resolve(models[index - 1]!);
-      } else {
-        // Try to find by name
-        const found = models.find(
-          (m) =>
-            m.id.toLowerCase() === trimmed.toLowerCase() ||
-            m.name.toLowerCase().includes(trimmed.toLowerCase())
-        );
-        resolve(found || models.find((m) => m.id === "claude-sonnet-4") || models[0]!);
-      }
-    });
-  });
-}
+// Model selection moved to sharedPrompts.ts to reduce duplication
 
 // ════════════════════════════════════════════════════════════════════════════
 // INITIAL ANALYSIS
@@ -133,7 +81,7 @@ function promptModelSelection(): Promise<ModelInfo> {
 
 async function runInitialAnalysis(
   repoRef: string,
-  options: AnalyzeOptions
+  options: CLIAnalyzeOptions
 ): Promise<void> {
   const parsed = parseRepoRef(repoRef);
   if (!parsed) {
@@ -184,102 +132,85 @@ async function runInitialAnalysis(
 // ════════════════════════════════════════════════════════════════════════════
 
 /**
- * Run the interactive chat loop
+ * Handle initial onboarding when no repo is provided
  */
-export async function runChatMode(
-  options: AnalyzeOptions,
-  initialRepoRef?: string
-): Promise<void> {
-  options.issue = options.issue ?? false;
-  // Ensure token is initialized from environment if not explicitly provided
-  options.token = options.token || process.env.GITHUB_TOKEN;
+async function handleInitialOnboarding(options: CLIAnalyzeOptions): Promise<string | null> {
+  const repoRef = await promptRepoUrl();
 
-  clearScreen();
-  await printChatHeader();
-  printWelcome();
-  printQuickCommands();
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // ONBOARDING: If no repo provided, ask for one
-  // ═══════════════════════════════════════════════════════════════════════════
-  if (!initialRepoRef) {
-    const repoRef = await promptRepoUrl();
-
-    if (!repoRef) {
-      console.log();
-      printWarning("No repository provided. Use /analyze <repo> in chat.");
-      console.log();
-    } else if (repoRef.startsWith("/")) {
-      // User entered a command - parse and execute it
-      const command = parseCommand(repoRef);
-      
-      if (command.type === "analyze") {
-        // Run analysis with the repo ref from the command
-        const selectedModel = await promptModelSelection();
-        appState.setModel(selectedModel.id, selectedModel.premium);
-        console.log();
-        printSuccess(`Model: ${selectedModel.name}`);
-        console.log();
-        await handleAnalyze(
-          command.repoRef,
-          { ...options, issue: command.issue },
-          false
-        );
-      } else if (command.type === "deep") {
-        // Run deep analysis
-        const selectedModel = await promptModelSelection();
-        appState.setModel(selectedModel.id, selectedModel.premium);
-        console.log();
-        printSuccess(`Model: ${selectedModel.name}`);
-        console.log();
-        await handleAnalyze(
-          command.repoRef,
-          { ...options, issue: command.issue },
-          true
-        );
-      } else if (command.type === "model") {
-        // Handle model selection
-        await handleModel(command.modelName);
-      } else {
-        // Other commands - skip to chat loop
-        console.log();
-        printWarning(`Command "${repoRef}" will be processed in chat mode.`);
-        console.log();
-      }
-    } else {
-      const parsed = parseRepoRef(repoRef);
-      if (!parsed) {
-        console.log();
-        printError("Invalid repository format.");
-        console.log(c.dim("  Use /analyze <repo> in chat to try again."));
-        console.log();
-      } else {
-        // Ask for model
-        const selectedModel = await promptModelSelection();
-        appState.setModel(selectedModel.id, selectedModel.premium);
-
-        console.log();
-        printSuccess(`Model: ${selectedModel.name}`);
-        console.log();
-
-        // Run initial analysis
-        await runInitialAnalysis(repoRef, options);
-      }
-    }
-  } else {
-    // Repo provided via argument - analyze directly
-    await runInitialAnalysis(initialRepoRef, options);
+  if (!repoRef) {
+    console.log();
+    printWarning("No repository provided. Use /analyze <repo> in chat to try again.");
+    console.log();
+    return null;
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // CHAT LOOP
-  // ═══════════════════════════════════════════════════════════════════════════
-  printChatStatusBar(
-    appState.currentModel,
-    appState.isPremium,
-    appState.lastRepo || undefined
-  );
+  if (repoRef.startsWith("/")) {
+    // User entered a command - parse and execute it
+    const command = parseCommand(repoRef);
+    
+    if (command.type === "analyze") {
+      // Run analysis with the repo ref from the command
+      const selectedModel = await promptModelSelection();
+      appState.setModel(selectedModel.id, selectedModel.premium);
+      console.log();
+      printSuccess(`Model: ${selectedModel.name}`);
+      console.log();
+      await handleAnalyze(
+        command.repoRef,
+        { ...options, issue: command.issue },
+        false
+      );
+      return null; // Don't continue with initial analysis
+    } else if (command.type === "deep") {
+      // Run deep analysis
+      const selectedModel = await promptModelSelection();
+      appState.setModel(selectedModel.id, selectedModel.premium);
+      console.log();
+      printSuccess(`Model: ${selectedModel.name}`);
+      console.log();
+      await handleAnalyze(
+        command.repoRef,
+        { ...options, issue: command.issue },
+        true
+      );
+      return null; // Don't continue with initial analysis
+    } else if (command.type === "model") {
+      // Handle model selection
+      await handleModel(command.modelName);
+      return null; // Don't continue with initial analysis
+    } else {
+      // Other commands - skip to chat loop
+      console.log();
+      printWarning(`Command "${repoRef}" will be processed in chat mode.`);
+      console.log();
+      return null;
+    }
+  } else {
+    const parsed = parseRepoRef(repoRef);
+    if (!parsed) {
+      console.log();
+      printError("Invalid repository format.");
+      console.log(c.dim("  Use /analyze <repo> in chat to try again."));
+      console.log();
+      return null;
+    } else {
+      // Ask for model
+      const selectedModel = await promptModelSelection();
+      appState.setModel(selectedModel.id, selectedModel.premium);
 
+      console.log();
+      printSuccess(`Model: ${selectedModel.name}`);
+      console.log();
+
+      return repoRef;
+    }
+  }
+}
+
+/**
+ * Setup the readline interface for chat
+ */
+function setupChatInterface(): { rl: readline.Interface; promptUser: () => void; } {
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
@@ -302,6 +233,135 @@ export async function runChatMode(
     rl.prompt();
   };
 
+  return { rl, promptUser };
+}
+
+/**
+ * Process a command in the chat loop
+ */
+async function processCommandInChat(
+  input: string,
+  options: CLIAnalyzeOptions,
+  rl: readline.Interface
+): Promise<void> {
+  const command = parseCommand(input);
+
+  // For async commands, pause readline to prevent input issues during analysis
+  // "model" is included because its handler creates its own readline
+  const shouldPause = [
+    "analyze",
+    "deep", 
+    "export",
+    "copy",
+    "model"
+  ].includes(command.type);
+
+  if (shouldPause) {
+    rl.pause();
+  }
+
+  try {
+    switch (command.type) {
+      case "analyze":
+        await handleAnalyze(command.repoRef, { ...options, issue: command.issue }, false);
+        break;
+
+      case "deep":
+        await handleAnalyze(command.repoRef, { ...options, issue: command.issue }, true);
+        break;
+
+      case "export":
+        await handleExport(command.path, command.format);
+        break;
+
+      case "copy":
+        await handleCopy();
+        break;
+
+      case "summary":
+        handleSummary();
+        break;
+
+      case "history":
+        handleHistory();
+        break;
+
+      case "model":
+        await handleModel(command.modelName);
+        break;
+
+      case "last":
+        handleLast();
+        break;
+
+      case "clear":
+        await handleClear();
+        break;
+
+      case "help":
+        handleHelp();
+        break;
+
+      case "quit":
+        appState.setRunning(false);
+        printGoodbye();
+        rl.close();
+        process.exit(0);
+        return;
+
+      case "unknown":
+        if (command.input.trim()) {
+          printUnknownCommand(command.input);
+        }
+        break;
+    }
+  } finally {
+    // Resume readline after async operations complete
+    if (shouldPause) {
+      rl.resume();
+    }
+  }
+}
+
+/**
+ * Run the interactive chat loop
+ */
+export async function runChatMode(
+  options: CLIAnalyzeOptions,
+  initialRepoRef?: string
+): Promise<void> {
+  options.issue = options.issue ?? false;
+  // Ensure token is initialized from environment if not explicitly provided
+  options.token = options.token || process.env.GITHUB_TOKEN;
+
+  clearScreen();
+  await printChatHeader();
+  printWelcome();
+  printQuickCommands();
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ONBOARDING: If no repo provided, ask for one
+  // ═══════════════════════════════════════════════════════════════════════════
+  if (!initialRepoRef) {
+    initialRepoRef = await handleInitialOnboarding(options) || undefined;
+  }
+
+  if (initialRepoRef) {
+    // Repo provided via argument - analyze directly
+    await runInitialAnalysis(initialRepoRef, options);
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // CHAT LOOP
+  // ═══════════════════════════════════════════════════════════════════════════
+  printChatStatusBar(
+    appState.currentModel,
+    appState.isPremium,
+    appState.lastRepo || undefined
+  );
+
+  const { rl, promptUser } = setupChatInterface();
+
   // Flag to prevent re-entrance during async operations
   let isProcessing = false;
 
@@ -311,82 +371,11 @@ export async function runChatMode(
       return;
     }
 
-    const command = parseCommand(input);
-
-    // For async commands, pause readline to prevent input issues during analysis
-    // "model" is included because its handler creates its own readline
-    if (
-      command.type === "analyze" ||
-      command.type === "deep" ||
-      command.type === "export" ||
-      command.type === "copy" ||
-      command.type === "model"
-    ) {
-      isProcessing = true;
-      rl.pause();
-    }
-
+    isProcessing = true;
     try {
-      switch (command.type) {
-        case "analyze":
-          await handleAnalyze(command.repoRef, { ...options, issue: command.issue }, false);
-          break;
-
-        case "deep":
-          await handleAnalyze(command.repoRef, { ...options, issue: command.issue }, true);
-          break;
-
-        case "export":
-          await handleExport(command.path, command.format);
-          break;
-
-        case "copy":
-          await handleCopy();
-          break;
-
-        case "summary":
-          handleSummary();
-          break;
-
-        case "history":
-          handleHistory();
-          break;
-
-        case "model":
-          await handleModel(command.modelName);
-          break;
-
-        case "last":
-          handleLast();
-          break;
-
-        case "clear":
-          await handleClear();
-          break;
-
-        case "help":
-          handleHelp();
-          break;
-
-        case "quit":
-          appState.setRunning(false);
-          printGoodbye();
-          rl.close();
-          process.exit(0);
-          return;
-
-        case "unknown":
-          if (command.input.trim()) {
-            printUnknownCommand(command.input);
-          }
-          break;
-      }
+      await processCommandInChat(input, options, rl);
     } finally {
-      // Resume readline after async operations complete
-      if (isProcessing) {
-        isProcessing = false;
-        rl.resume();
-      }
+      isProcessing = false;
     }
 
     if (appState.isRunning) {
