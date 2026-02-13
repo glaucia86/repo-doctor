@@ -25,7 +25,7 @@ export const DEFAULT_INCLUDE_PATTERNS = [
   "package.json",
   "package-lock.json",
   "yarn.lock",
-  "pnpm-lock.yaml",
+  "package-lock.json",
   "tsconfig*.json",
   ".eslintrc*",
   ".prettierrc*",

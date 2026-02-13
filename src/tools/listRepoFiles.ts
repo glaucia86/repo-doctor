@@ -48,7 +48,7 @@ const NOISE_FILE_PATTERNS = [
 const LOCK_FILES = [
   "package-lock.json",
   "yarn.lock",
-  "pnpm-lock.yaml",
+  "package-lock.json",
 ];
 
 const isBlobWithPath = (node: {

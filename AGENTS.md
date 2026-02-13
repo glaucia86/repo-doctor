@@ -2,7 +2,7 @@
 
 AI-powered GitHub repository health analyzer using the GitHub Copilot SDK.
 
-This project uses pnpm for package management.
+This project uses npm for package management.
 
 ## Quick Start
 

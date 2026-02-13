@@ -32,7 +32,7 @@ EXTRACTED FROM package.json:
 From file tree you saw:
 \`\`\`
 EXTRACTED FROM file tree:
-- Lockfile: pnpm-lock.yaml (→ package manager is pnpm)
+- Lockfile: package-lock.json (→ package manager is npm)
 - .github/workflows/ exists but is EMPTY
 - .nvmrc NOT FOUND
 \`\`\`
@@ -50,7 +50,7 @@ Based on extracted facts:
 
 \`\`\`yaml
 # .github/workflows/ci.yml
-# Based on: package.json scripts, pnpm-lock.yaml in tree
+# Based on: package.json scripts, package-lock.json in tree
 name: CI
 on: [push, pull_request]
 
@@ -59,14 +59,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4        # FROM: pnpm-lock.yaml in file tree
       - uses: actions/setup-node@v4
         with:
           node-version: '20'               # FROM: engines.node ">=20"
-          cache: 'pnpm'
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm run lint                 # FROM: scripts.lint exists
-      - run: pnpm run build                # FROM: scripts.build exists
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run lint                 # FROM: scripts.lint exists
+      - run: npm run build                # FROM: scripts.build exists
       # ⚠️ No test step: scripts.test not found in package.json
 \`\`\`
 
@@ -84,7 +83,7 @@ jobs:
 
 **Evidence found:**
 - \`.github/workflows/\` directory exists but contains no .yml files (from file tree)
-- Package manager: pnpm (pnpm-lock.yaml found)
+- Package manager: npm (package-lock.json found)
 - Node version: >=20 (from package.json engines.node)
 - Available scripts: dev, build, lint (from package.json)
 - Test script: NOT FOUND
@@ -99,7 +98,7 @@ Create \`.github/workflows/ci.yml\`:
 
 **Note:** Consider adding a test script first. Suggested:
 - If using Vite: \`"test": "vitest"\`
-- Add vitest to devDependencies: \`pnpm add -D vitest\`
+- Add vitest to devDependencies: \`npm install -D vitest\`
 \`\`\`
 
 ## What You CANNOT Do
@@ -131,7 +130,7 @@ To provide a more complete recommendation, consider analyzing [file].
 For partial recommendations when something is missing:
 
 \`\`\`yaml
-- run: pnpm run test  # ⚠️ TODO: Add "test" script to package.json first
+- run: npm run test  # ⚠️ TODO: Add "test" script to package.json first
                       # Based on devDependencies, suggested options:
                       # - "test": "vitest" (vite detected)
                       # - "test": "jest" (if you prefer Jest)
