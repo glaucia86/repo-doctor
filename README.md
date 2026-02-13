@@ -60,7 +60,7 @@
 <td width="50%">
 
 ### 🤖 AI-Powered Analysis
-- **10+ AI Models** — GPT-4o, Claude Sonnet 4, o3, and more
+- **11+ AI Models** — GPT-4o, Claude Sonnet 4, GPT-5.3-Codex, o3, and more
 - **Contextual Understanding** — Adapts to your stack
 - **Evidence-Based** — Every finding backed by file evidence
 
@@ -345,7 +345,7 @@ repo-doctor vercel/next.js --issue
 | `/deep <repo>` | Deep analysis with full source scan |
 | `/copy` | Copy last report to clipboard |
 | `/export [path]` | Save report as markdown file |
-| `/model [name]` | Switch AI model |
+| `/model [name]` | Switch AI model (now works in onboarding phase) |
 | `/help` | Show all available commands |
 | `/quit` | Exit Repo Doctor |
 
@@ -360,6 +360,7 @@ repo-doctor vercel/next.js --issue
 |-------|------|----------|
 | `gpt-4o` | Free | Balanced performance (default) |
 | `gpt-4.1` | Free | Fast analysis |
+| `gpt-5.3-codex` | Premium ⚡ | Advanced coding tasks |
 | `claude-sonnet-4` | Premium ⚡ | Detailed analysis |
 | `claude-opus-4.5` | Premium ⚡ | Most capable (3x rate limit) |
 | `o3` | Premium ⚡ | Deep reasoning tasks |

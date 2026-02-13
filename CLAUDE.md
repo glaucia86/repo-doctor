@@ -112,6 +112,7 @@ Test files are in `tests/` mirroring the `src/` structure:
 | Model | Type | Notes |
 |-------|------|-------|
 | `gpt-4o` | Free | Good default |
+| `gpt-5.3-codex` | Premium ⚡ | Advanced coding tasks |
 | `claude-sonnet-4` | Premium ⚡ | **Recommended** — Excellent for analysis |
 | `claude-sonnet-4.5` | Premium ⚡ | Enhanced reasoning |
 | `claude-opus-4.5` | Premium ⚡ | Most capable (3x rate limit) |

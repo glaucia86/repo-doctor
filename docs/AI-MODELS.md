@@ -17,6 +17,7 @@ Repo Doctor supports multiple AI models through the GitHub Copilot SDK. Choose t
 | `gpt-5` | ⚡ Premium | ⚡⚡ | ⭐⭐⭐⭐ | Advanced tasks |
 | `gpt-5.1-codex` | ⚡ Premium | ⚡⚡ | ⭐⭐⭐⭐ | Code-focused analysis |
 | `gpt-5.2-codex` | ⚡ Premium | ⚡⚡ | ⭐⭐⭐⭐ | Latest code optimization |
+| `gpt-5.3-codex` | ⚡ Premium | ⚡⚡ | ⭐⭐⭐⭐⭐ | Advanced coding tasks |
 | `o3` | ⚡ Premium | ⚡ | ⭐⭐⭐⭐⭐ | Complex reasoning |
 
 ---
@@ -103,6 +104,14 @@ repo-doctor vercel/next.js --model gpt-5.2-codex
 - **Speed:** Moderate
 - **Quality:** Most recent Codex improvements
 
+### GPT-5.3 Codex
+```bash
+repo-doctor vercel/next.js --model gpt-5.3-codex
+```
+- **Best for:** Advanced coding tasks and complex codebases
+- **Speed:** Moderate
+- **Quality:** Cutting-edge code analysis and optimization
+
 ### O3
 ```bash
 repo-doctor vercel/next.js --model o3
@@ -156,6 +165,7 @@ Select AI Model:
 | Publishing with `--issue` | `claude-sonnet-4.5` |
 | Complex monorepos | `claude-opus-4.5` |
 | Code-focused analysis | `gpt-5.1-codex` |
+| Advanced coding tasks | `gpt-5.3-codex` |
 | Deep reasoning needed | `o3` |
 
 ---
