@@ -4,7 +4,7 @@ import { CopilotClient } from "@github/copilot-sdk";
 
 // Mock CopilotClient
 vi.mock("@github/copilot-sdk", async (importOriginal) => {
-  const actual = await importOriginal();
+  const actual = await importOriginal() as Record<string, any>;
   return {
     ...actual,
     CopilotClient: class {
