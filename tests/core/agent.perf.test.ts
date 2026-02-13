@@ -3,7 +3,7 @@ import { analyzeRepositoryWithCopilot } from "../../src/core/agent.js";
 
 // Mock CopilotClient
 vi.mock("@github/copilot-sdk", async (importOriginal) => {
-  const actual = await importOriginal();
+  const actual = await importOriginal() as Record<string, any>;
   return {
     ...actual,
     CopilotClient: function() {
