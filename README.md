@@ -354,6 +354,38 @@ repo-doctor vercel/next.js --issue
 
 ---
 
+## 📝 Examples
+
+### Quick Analysis
+```bash
+repo-doctor
+/analyze microsoft/vscode
+```
+
+### Deep Analysis with Custom Model
+```bash
+repo-doctor
+/model claude-sonnet-4
+/deep facebook/react
+```
+
+### Export Report
+```bash
+repo-doctor
+/analyze vercel/next.js
+/export nextjs-report.md
+```
+
+### Interactive Mode
+```bash
+repo-doctor
+# Then use commands interactively
+/analyze myorg/myrepo
+/copy
+```
+
+---
+
 ## 🤖 Available AI Models
 
 | Model | Type | Best For |
