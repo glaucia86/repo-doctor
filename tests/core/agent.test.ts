@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { analyzeRepositoryWithCopilot } from "../../src/core/agent.js";
-import { CopilotClient } from "@github/copilot-sdk";
 
 // Mock CopilotClient
 vi.mock("@github/copilot-sdk", async (importOriginal) => {
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
   const actual = await importOriginal() as Record<string, any>;
   return {
     ...actual,

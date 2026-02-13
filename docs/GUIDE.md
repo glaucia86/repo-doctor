@@ -260,10 +260,410 @@ Repo Doctor classifies findings into three priority levels:
 | 📋 **Governance** | LICENSE, CODE_OF_CONDUCT, SECURITY policy, templates |
 | 🔐 **Security** | Dependabot/Renovate, security policy, secret management |
 
----
+## Advanced Usage Examples
 
-## Need More Help?
+### CI/CD Integration
 
-- 📖 [AI Models Reference](./AI-MODELS.md)
-- 🤝 [Contributing Guide](./CONTRIBUTING.md)
-- 🐛 [Report an Issue](https://github.com/glaucia86/repo-doctor/issues)
+#### GitHub Actions Integration
+
+Create a workflow that automatically analyzes your repository health:
+
+```yaml
+# .github/workflows/repo-health.yml
+name: Repository Health Check
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Run weekly on Mondays at 9 AM UTC
+    - cron: '0 9 * * 1'
+
+jobs:
+  health-check:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Repo Doctor
+        run: npm install -g repo-doctor
+
+      - name: Run health analysis
+        run: repo-doctor analyze ${{ github.repository }} --export health-report.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload report as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: health-report
+          path: health-report.md
+
+      - name: Comment PR with health score
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('health-report.md', 'utf8');
+            
+            // Extract health score (assuming it's in the report)
+            const scoreMatch = report.match(/Health Score: (\d+)/);
+            const score = scoreMatch ? scoreMatch[1] : 'N/A';
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## 🩺 Repository Health Report\n\n**Health Score:** ${score}/100\n\n[View full report](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`
+            });
+```
+
+#### Jenkins Pipeline Integration
+
+```groovy
+// Jenkinsfile
+pipeline {
+    agent any
+    
+    stages {
+        stage('Repository Health Check') {
+            steps {
+                script {
+                    // Install Repo Doctor if not available globally
+                    sh 'npm install -g repo-doctor'
+                    
+                    // Run analysis
+                    sh "repo-doctor analyze ${env.GIT_URL.replace('.git', '').split('/').slice(-2).join('/')} --export health-report.md"
+                    
+                    // Archive report
+                    archiveArtifacts artifacts: 'health-report.md', fingerprint: true
+                    
+                    // Read and parse report for health score
+                    def report = readFile 'health-report.md'
+                    def score = (report =~ /Health Score: (\d+)/)[0][1]
+                    
+                    // Set build description
+                    currentBuild.description = "Health Score: ${score}/100"
+                    
+                    // Fail build if health score is too low
+                    if (score.toInteger() < 70) {
+                        unstable('Repository health score is below threshold')
+                    }
+                }
+            }
+        }
+    }
+    
+    post {
+        always {
+            publishHTML([
+                allowMissing: false,
+                alwaysLinkToLastBuild: true,
+                keepAll: true,
+                reportDir: '.',
+                reportFiles: 'health-report.md',
+                reportName: 'Repository Health Report'
+            ])
+        }
+    }
+}
+```
+
+#### CircleCI Integration
+
+```yaml
+# .circleci/config.yml
+version: 2.1
+
+workflows:
+  health-check:
+    jobs:
+      - repo-health
+
+jobs:
+  repo-health:
+    docker:
+      - image: cimg/node:20
+    steps:
+      - checkout
+      - run:
+          name: Install Repo Doctor
+          command: npm install -g repo-doctor
+      - run:
+          name: Run Health Analysis
+          command: |
+            repo-doctor analyze $CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME --export health-report.md
+          environment:
+            GITHUB_TOKEN: $GITHUB_TOKEN
+      - store_artifacts:
+          path: health-report.md
+          destination: health-report.md
+      - run:
+          name: Post Health Score to Slack
+          command: |
+            SCORE=$(grep "Health Score:" health-report.md | grep -o "[0-9]\+")
+            curl -X POST -H 'Content-type: application/json' \
+              --data "{\"text\":\"Repository Health Score: $SCORE/100\"}" \
+              $SLACK_WEBHOOK_URL
+
+orbs:
+  slack: circleci/slack@4.12.5
+```
+
+### Report Automation
+
+#### Automated Weekly Reports
+
+Create a scheduled script that generates and emails weekly health reports:
+
+```bash
+#!/bin/bash
+# weekly-health-report.sh
+
+REPO="your-org/your-repo"
+OUTPUT_DIR="./health-reports"
+DATE=$(date +%Y-%m-%d)
+
+# Create output directory
+mkdir -p "$OUTPUT_DIR"
+
+# Run analysis
+repo-doctor analyze "$REPO" --export "$OUTPUT_DIR/health-report-$DATE.md"
+
+# Generate summary
+SCORE=$(grep "Health Score:" "$OUTPUT_DIR/health-report-$DATE.md" | grep -o "[0-9]\+")
+ISSUES=$(grep -c "🔴\|🟠\|🟡" "$OUTPUT_DIR/health-report-$DATE.md")
+
+# Send email (requires mail command or similar)
+echo "Subject: Weekly Health Report - $REPO
+Health Score: $SCORE/100
+Issues Found: $ISSUES
+
+Full report attached." | mail -s "Weekly Health Report" -a "$OUTPUT_DIR/health-report-$DATE.md" your-email@example.com
+```
+
+#### Slack Integration
+
+Post health reports to Slack channels:
+
+```bash
+#!/bin/bash
+# slack-health-report.sh
+
+REPO="your-org/your-repo"
+SLACK_WEBHOOK_URL="https://hooks.slack.com/services/YOUR/WEBHOOK/URL"
+
+# Run analysis
+repo-doctor analyze "$REPO" --export health-report.md
+
+# Extract key metrics
+SCORE=$(grep "Health Score:" health-report.md | grep -o "[0-9]\+")
+CRITICAL=$(grep -c "🔴" health-report.md)
+HIGH=$(grep -c "🟠" health-report.md)
+MEDIUM=$(grep -c "🟡" health-report.md)
+
+# Determine color based on score
+if [ "$SCORE" -ge 90 ]; then
+    COLOR="good"
+elif [ "$SCORE" -ge 70 ]; then
+    COLOR="warning"
+else
+    COLOR="danger"
+fi
+
+# Post to Slack
+curl -X POST -H 'Content-type: application/json' \
+  --data "{
+    \"attachments\": [
+      {
+        \"color\": \"$COLOR\",
+        \"title\": \"Repository Health Report - $REPO\",
+        \"fields\": [
+          {
+            \"title\": \"Health Score\",
+            \"value\": \"$SCORE/100\",
+            \"short\": true
+          },
+          {
+            \"title\": \"Critical Issues\",
+            \"value\": \"$CRITICAL\",
+            \"short\": true
+          },
+          {
+            \"title\": \"High Priority\",
+            \"value\": \"$HIGH\",
+            \"short\": true
+          },
+          {
+            \"title\": \"Medium Priority\",
+            \"value\": \"$MEDIUM\",
+            \"short\": true
+          }
+        ],
+        \"actions\": [
+          {
+            \"type\": \"button\",
+            \"text\": \"View Full Report\",
+            \"url\": \"https://github.com/$REPO\"
+          }
+        ]
+      }
+    ]
+  }" \
+  "$SLACK_WEBHOOK_URL"
+```
+
+#### GitHub Issues Automation
+
+Automatically create issues for critical findings:
+
+```bash
+#!/bin/bash
+# auto-issue-creation.sh
+
+REPO="your-org/your-repo"
+
+# Run analysis with issue creation
+export GITHUB_TOKEN="your-github-token"
+export GH_TOKEN="$(gh auth token)"
+
+# Create issues for all findings
+repo-doctor analyze "$REPO" --issue
+
+# Or create issues only for critical (P0) findings
+# (This would require custom scripting to filter the report)
+```
+
+### Custom Analysis Scripts
+
+#### Multi-Repository Analysis
+
+Analyze multiple repositories in batch:
+
+```bash
+#!/bin/bash
+# batch-analysis.sh
+
+REPOS=(
+    "your-org/repo1"
+    "your-org/repo2"
+    "your-org/repo3"
+)
+
+OUTPUT_DIR="./batch-reports"
+mkdir -p "$OUTPUT_DIR"
+
+for repo in "${REPOS[@]}"; do
+    echo "Analyzing $repo..."
+    repo-doctor analyze "$repo" --export "$OUTPUT_DIR/$(basename "$repo").md"
+done
+
+# Generate summary report
+echo "# Batch Health Report" > "$OUTPUT_DIR/summary.md"
+echo "Generated on $(date)" >> "$OUTPUT_DIR/summary.md"
+echo "" >> "$OUTPUT_DIR/summary.md"
+
+for repo in "${REPOS[@]}"; do
+    repo_name=$(basename "$repo")
+    score=$(grep "Health Score:" "$OUTPUT_DIR/$repo_name.md" | grep -o "[0-9]\+")
+    echo "- **$repo**: $score/100" >> "$OUTPUT_DIR/summary.md"
+done
+```
+
+#### Trend Analysis
+
+Track health scores over time:
+
+```bash
+#!/bin/bash
+# trend-analysis.sh
+
+REPO="your-org/your-repo"
+HISTORY_FILE="./health-history.csv"
+
+# Run analysis
+repo-doctor analyze "$REPO" --export temp-report.md
+
+# Extract metrics
+DATE=$(date +%Y-%m-%d)
+SCORE=$(grep "Health Score:" temp-report.md | grep -o "[0-9]\+")
+CRITICAL=$(grep -c "🔴" temp-report.md)
+HIGH=$(grep -c "🟠" temp-report.md)
+MEDIUM=$(grep -c "🟡" temp-report.md)
+
+# Append to history
+echo "$DATE,$SCORE,$CRITICAL,$HIGH,$MEDIUM" >> "$HISTORY_FILE"
+
+# Generate trend chart (requires additional tools)
+# This could be extended with Python/matplotlib or similar
+
+rm temp-report.md
+```
+
+### Integration with Development Workflows
+
+#### Pre-commit Hook
+
+Add repository health checks to your pre-commit workflow:
+
+```bash
+#!/bin/bash
+# .git/hooks/pre-commit
+
+# Run quick health check
+repo-doctor analyze "$(git config --get remote.origin.url | sed 's/.*github.com[:/]\(.*\)\.git/\1/')" --export /tmp/health-check.md
+
+SCORE=$(grep "Health Score:" /tmp/health-check.md | grep -o "[0-9]\+")
+
+if [ "$SCORE" -lt 50 ]; then
+    echo "⚠️  Repository health score is low ($SCORE/100). Consider addressing issues before committing."
+    echo "Full report: /tmp/health-check.md"
+fi
+
+# Don't block commit, just warn
+exit 0
+```
+
+#### VS Code Extension Integration
+
+Create a VS Code task for easy access:
+
+```json
+// .vscode/tasks.json
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Run Repo Doctor",
+            "type": "shell",
+            "command": "repo-doctor",
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Analyze Current Repo",
+            "type": "shell",
+            "command": "repo-doctor analyze $(git config --get remote.origin.url | sed 's/.*github.com[:/]\(.*\)\.git/\\1/')",
+            "group": "build"
+        }
+    ]
+}
+```

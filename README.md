@@ -469,13 +469,20 @@ The codebase follows **SOLID principles** for maintainability:
 ```
 src/
 ├── cli/          # Command handlers, state, parsers
-├── core/agent/   # System prompts, event handling
+├── core/agent/   # Copilot SDK session, modular prompts
 ├── tools/        # Individual tool files (SRP)
 ├── ui/display/   # Display modules (spinner, menus, etc.)
 └── types/        # Zod schemas, interfaces
 ```
 
-> 📖 See [Architecture Documentation](docs/architecture.md) for details.
+**Key Design Decisions:**
+- **Agentic CLI**: Uses GitHub Copilot SDK for AI-powered analysis
+- **Modular Prompts**: System prompts composed from reusable base modules
+- **Tool-Based Architecture**: AI agent invokes specific tools for data gathering
+- **Streaming Output**: Real-time analysis with event-driven updates
+- **Security First**: Content sanitization prevents prompt injection
+
+> 📖 See [Architecture Documentation](docs/architecture.md) for technical details.
 
 ---
 

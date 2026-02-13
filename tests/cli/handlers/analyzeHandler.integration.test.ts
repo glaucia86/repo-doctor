@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { handleAnalyze } from "../../../src/cli/handlers/analyzeHandler.js";
-import { appState } from "../../../src/cli/state/appState.js";
 
 // Mock dependencies
 vi.mock("../../../src/core/agent.js", () => ({

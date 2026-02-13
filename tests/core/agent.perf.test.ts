@@ -3,6 +3,7 @@ import { analyzeRepositoryWithCopilot } from "../../src/core/agent.js";
 
 // Mock CopilotClient
 vi.mock("@github/copilot-sdk", async (importOriginal) => {
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
   const actual = await importOriginal() as Record<string, any>;
   return {
     ...actual,

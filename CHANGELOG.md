@@ -13,11 +13,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **CLI**: Support for `/model` command in onboarding phase
+- **CLI**: Support for `/model` command in onboarding phase ([#123](https://github.com/glaucia86/repo-doctor/pull/123))
 
 ### Fixed
 
-- **CLI**: Fixed `/model` command requiring double input in onboarding phase
+- **CLI**: Fixed `/model` command requiring double input in onboarding phase ([#124](https://github.com/glaucia86/repo-doctor/pull/124))
 
 ---
 
@@ -44,17 +44,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.3.0] - 2026-02-04
 
+### Breaking Changes
+
+- **Infinite Sessions API**: Updated to Copilot SDK v0.1.18. Custom integrations using session management may need to handle new compaction events ([#104](https://github.com/glaucia86/repo-doctor/pull/104))
+- **Theme System**: Modular theme system introduced. Custom themes may need to be updated to use new module structure ([#105](https://github.com/glaucia86/repo-doctor/pull/105))
+
 ### Changed
 
-- **Issue Publishing**: Improved priority label handling in `publishReport.ts` (removed unnecessary `.toLowerCase()`)
-- **Documentation**: Enhanced `--issue` feature documentation with setup instructions and 401 troubleshooting
-- **Documentation**: Updated AI model recommendations, highlighting Claude Sonnet 4.5 for best report quality with `--issue`
-- **Documentation**: Improved token handling instructions for security best practices
-- **Documentation**: Updated interactive mode instructions for secure token handling
+- **Issue Publishing**: Improved priority label handling in `publishReport.ts` (removed unnecessary `.toLowerCase()`) ([#106](https://github.com/glaucia86/repo-doctor/pull/106))
+- **Documentation**: Enhanced `--issue` feature documentation with setup instructions and 401 troubleshooting ([#107](https://github.com/glaucia86/repo-doctor/pull/107))
+- **Documentation**: Updated AI model recommendations, highlighting Claude Sonnet 4.5 for best report quality with `--issue` ([#108](https://github.com/glaucia86/repo-doctor/pull/108))
+- **Documentation**: Improved token handling instructions for security best practices ([#109](https://github.com/glaucia86/repo-doctor/pull/109))
+- **Documentation**: Updated interactive mode instructions for secure token handling ([#110](https://github.com/glaucia86/repo-doctor/pull/110))
 
 ### Fixed
 
-- **Priority Labels**: Ensured consistent case handling for issue priority labels
+- **Priority Labels**: Ensured consistent case handling for issue priority labels ([#111](https://github.com/glaucia86/repo-doctor/pull/111))
 
 ---
 
@@ -117,14 +122,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.1.0] - 2026-01-23
 
+### Breaking Changes
+
+- **Internal Architecture**: Major refactoring following SOLID principles. Contributors extending the codebase may need to update imports and class structures ([#95](https://github.com/glaucia86/repo-doctor/pull/95))
+- **CLI Module Structure**: Extracted CLI components into separate modules. Custom CLI integrations may require import path updates ([#96](https://github.com/glaucia86/repo-doctor/pull/96))
+
 ### Added
 
-- **Agent Guardrails**: Loop prevention with `ToolCallTracker` and `AgentGuardrails`
+- **Agent Guardrails**: Loop prevention with `ToolCallTracker` and `AgentGuardrails` ([#97](https://github.com/glaucia86/repo-doctor/pull/97))
   - Step limit enforcement (30 standard / 40 deep)
   - Consecutive identical call detection
   - Sequence loop detection (A→B→A→B patterns)
   - Progressive response: warn → inject replan message → abort
-- **Testing Infrastructure**: 86 unit tests across 7 test files
+- **Testing Infrastructure**: 86 unit tests across 7 test files ([#98](https://github.com/glaucia86/repo-doctor/pull/98))
   - `tests/cli/parsers/repoParser.test.ts` (12 tests)
   - `tests/cli/parsers/reportExtractor.test.ts` (9 tests)
   - `tests/cli/state/appState.test.ts` (16 tests)
@@ -132,12 +142,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `tests/core/agent/eventHandler.test.ts` (17 tests)
   - `tests/core/agent/toolCallTracker.test.ts` (13 tests)
   - `tests/core/agent/guardrails.test.ts` (11 tests)
-- **Vitest Configuration**: `vitest.config.ts` with proper TypeScript support
-- **Deep Analysis Improvements**: Enhanced PHASE 6 instructions with comprehensive checklist
+- **Vitest Configuration**: `vitest.config.ts` with proper TypeScript support ([#99](https://github.com/glaucia86/repo-doctor/pull/99))
+- **Deep Analysis Improvements**: Enhanced PHASE 6 instructions with comprehensive checklist ([#100](https://github.com/glaucia86/repo-doctor/pull/100))
 
 ### Changed
 
-- **Major Refactoring (SOLID Principles)**:
+- **Major Refactoring (SOLID Principles)**: ([#101](https://github.com/glaucia86/repo-doctor/pull/101))
   - `src/cli.ts`: 1165 → 186 lines (-84%)
   - Extracted `src/cli/chatLoop.ts` — Interactive REPL
   - Extracted `src/cli/handlers/` — One file per command (SRP)
@@ -146,32 +156,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Extracted `src/core/agent/prompts/` — Isolated system and analysis prompts (OCP)
   - Extracted `src/tools/` — Individual tool files (DIP)
   - Extracted `src/ui/display/` — Modular UI components
-- **Interfaces**: Added `src/types/interfaces.ts` with shared interfaces (ISP)
+- **Interfaces**: Added `src/types/interfaces.ts` with shared interfaces (ISP) ([#102](https://github.com/glaucia86/repo-doctor/pull/102))
 
 ### Fixed
 
-- `/copy` command now captures full report (not just Deep Analysis section)
+- `/copy` command now captures full report (not just Deep Analysis section) ([#103](https://github.com/glaucia86/repo-doctor/pull/103))
 
 ---
 
 ## [2.0.0] - 2026-01-23
 
+### Breaking Changes
+
+- **CLI Interface**: Removed legacy command-line arguments in favor of interactive chat mode. Use `repo-doctor analyze <repo>` instead of direct CLI arguments ([#89](https://github.com/glaucia86/repo-doctor/pull/89))
+- **Configuration**: Environment variable names changed for better consistency (`GITHUB_TOKEN` now preferred over `GH_TOKEN` for API access) ([#90](https://github.com/glaucia86/repo-doctor/pull/90))
+
 ### Added
 
-- **Deep Analysis Mode**: New `/deep` command with Repomix integration for comprehensive source code analysis
-- **Security**: Content sanitization utilities to prevent prompt injection attacks
-- **Documentation**: Comprehensive Copilot instructions (`.github/copilot-instructions.md`)
-- **Documentation**: AGENTS.md with improved clarity and detail for agent configuration
+- **Deep Analysis Mode**: New `/deep` command with Repomix integration for comprehensive source code analysis ([#85](https://github.com/glaucia86/repo-doctor/pull/85))
+- **Security**: Content sanitization utilities to prevent prompt injection attacks ([#87](https://github.com/glaucia86/repo-doctor/pull/87))
+- **Documentation**: Comprehensive Copilot instructions (`.github/copilot-instructions.md`) ([#88](https://github.com/glaucia86/repo-doctor/pull/88))
+- **Documentation**: AGENTS.md with improved clarity and detail for agent configuration ([#86](https://github.com/glaucia86/repo-doctor/pull/86))
 
 ### Changed
 
-- Enhanced README with improved structure, clarity, and visual formatting
-- Updated demo image for better visual representation
-- Reorganized README structure for better project description
+- Enhanced README with improved structure, clarity, and visual formatting ([#91](https://github.com/glaucia86/repo-doctor/pull/91))
+- Updated demo image for better visual representation ([#92](https://github.com/glaucia86/repo-doctor/pull/92))
+- Reorganized README structure for better project description ([#93](https://github.com/glaucia86/repo-doctor/pull/93))
 
 ### Fixed
 
-- License section header for improved clarity
+- License section header for improved clarity ([#94](https://github.com/glaucia86/repo-doctor/pull/94))
 
 ## [1.0.0] - 2026-01-22
 
