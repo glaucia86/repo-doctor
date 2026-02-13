@@ -7,25 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+---
+
+## [2.1.2] - 2026-02-13
+
 ### Added
 
-- **CI**: GitHub Actions workflow for lint/build/tests
-- **Governance**: LICENSE, SECURITY.md, CODE_OF_CONDUCT
-- **DX**: .nvmrc for Node version pinning
-- **Automation**: Dependabot config
-- **Linting/Format**: ESLint config, Prettier config, tsconfig.eslint.json
-
-### Changed
-
-- **Tooling**: TypeScript pinned to a version supported by typescript-eslint
-- **CLI**: Safer option parsing to avoid unsafe `any` usage
-- **Repo Packer**: Repomix availability check made sync and tests updated
-- **README**: Added npm version and coverage badges
+- **CLI**: Support for `/model` command in onboarding phase
 
 ### Fixed
 
-- **Lint**: Removed no-control-regex violations and unsafe type usages
-- **Sanitizer**: Regex handling and path validation fixes
+- **CLI**: Fixed `/model` command requiring double input in onboarding phase
 
 ---
 
@@ -222,7 +214,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [2.3.0]: https://github.com/glaucia86/repo-doctor/compare/v2.2.0...v2.3.0
 [2.2.0]: https://github.com/glaucia86/repo-doctor/compare/v2.1.0...v2.2.0
+[2.1.2]: https://github.com/glaucia86/repo-doctor/compare/v2.1.1...v2.1.2
 [2.1.0]: https://github.com/glaucia86/repo-doctor/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/glaucia86/repo-doctor/compare/v1.0.0...v2.0.0
 [1.0.0]: https://github.com/glaucia86/repo-doctor/releases/tag/v1.0.0
-[Unreleased]: https://github.com/glaucia86/repo-doctor/compare/v2.3.0...HEAD
+[Unreleased]: https://github.com/glaucia86/repo-doctor/compare/v2.1.2...HEAD
