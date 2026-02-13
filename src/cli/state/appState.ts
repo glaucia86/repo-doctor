@@ -61,6 +61,7 @@ export const AVAILABLE_MODELS: ModelInfo[] = [
   { id: "gpt-5.2", name: "GPT-5.2 (Preview)", premium: true },
   { id: "gpt-5.1-codex", name: "GPT-5.1-Codex", premium: true },
   { id: "gpt-5.2-codex", name: "GPT-5.2-Codex", premium: true },
+  { id: "gpt-5.3-codex", name: "GPT-5.3-Codex", premium: true },
   { id: "gpt-5.1-codex-max", name: "GPT-5.1-Codex-Max", premium: true },
   { id: "gpt-5.1-codex-mini", name: "GPT-5.1-Codex-Mini", premium: true },
   { id: "o3", name: "o3 (Reasoning)", premium: true },
@@ -146,6 +147,14 @@ export function getAvailableModels(): ModelInfo[] {
           } else {
             const existing = seenById.get(idKey)!;
             if (!existing.premium && m.premium) existing.premium = true;
+          }
+        }
+
+        // Add any models from AVAILABLE_MODELS that are not in the CLI list
+        for (const staticModel of AVAILABLE_MODELS) {
+          const idKey = staticModel.id.toLowerCase();
+          if (!seenById.has(idKey)) {
+            result.push(staticModel);
           }
         }
 

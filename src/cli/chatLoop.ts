@@ -237,6 +237,9 @@ export async function runChatMode(
           { ...options, issue: command.issue },
           true
         );
+      } else if (command.type === "model") {
+        // Handle model selection
+        await handleModel(command.modelName);
       } else {
         // Other commands - skip to chat loop
         console.log();

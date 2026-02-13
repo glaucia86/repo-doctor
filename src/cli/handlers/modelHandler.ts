@@ -50,12 +50,12 @@ function promptModelSelection(models: ModelInfo[]): Promise<ModelInfo | null> {
     console.log("  " + c.dim("Enter number, name, or press Enter to cancel:"));
     console.log();
 
-    process.stdin.resume();
     const rl = readline.createInterface({
       input: process.stdin,
       output: process.stdout,
       terminal: true,
     });
+    rl.resume();
 
     rl.question(c.brand("  ❯ "), (answer) => {
       rl.close();
