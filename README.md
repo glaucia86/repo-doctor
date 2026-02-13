@@ -28,6 +28,12 @@
   <a href="LICENSE">
     <img src="https://img.shields.io/badge/license-MIT-green?style=for-the-badge" alt="License"/>
   </a>
+  <a href="https://libraries.io/github/glaucia86/repo-doctor">
+    <img src="https://img.shields.io/librariesio/github/glaucia86/repo-doctor?style=for-the-badge" alt="Dependencies"/>
+  </a>
+  <a href="https://bundlephobia.com/package/repo-doctor">
+    <img src="https://img.shields.io/bundlephobia/min/repo-doctor?style=for-the-badge" alt="Bundle Size"/>
+  </a>
 </p>
 
 <p align="center">

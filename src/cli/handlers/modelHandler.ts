@@ -8,15 +8,12 @@ import {
   getAvailableModels,
   findModel,
   findModelByIndex,
-  type ModelInfo,
 } from "../state/appState.js";
-import * as readline from "readline";
 import {
   printSuccess,
   printWarning,
   printChatStatusBar,
   c,
-  ICON,
 } from "../../ui/index.js";
 import { promptModelSelectionWithCurrent } from "./sharedPrompts.js";
 

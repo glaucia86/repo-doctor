@@ -9,8 +9,6 @@ import { parseCommand } from "../ui/commands.js";
 import { parseRepoRef, buildRepoUrl, buildRepoSlug } from "./parsers/repoParser.js";
 import {
   appState,
-  getAvailableModels,
-  type ModelInfo,
 } from "./state/appState.js";
 import {
   handleAnalyze,

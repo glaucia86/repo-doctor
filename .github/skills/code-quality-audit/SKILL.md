@@ -16,6 +16,7 @@ Inclui:
 - Complexidade heurística (linhas, níveis de aninhamento)
 - Duplicação aparente
 - Nomenclatura inconsistente
+- Integração com ESLint para detecção automática de code smells
 
 Não inclui:
 - Testes de execução ou profiling

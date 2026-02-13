@@ -1,4 +1,4 @@
-import { CopilotClient } from "@github/copilot-sdk";
+import { CopilotClient, type CopilotSession } from "@github/copilot-sdk";
 import { repoTools, deepAnalysisTools } from "../tools/repoTools.js";
 import {
   startSpinner,
@@ -21,6 +21,8 @@ import {
   createGuardrails,
   createEventHandler,
 } from "./agent/index.js";
+import type { EventHandlerState } from "./agent/eventHandler.js";
+import type { AgentGuardrails } from "./agent/guardrails.js";
 
 // Re-export for backward compatibility
 export { SYSTEM_PROMPT, QUICK_SYSTEM_PROMPT, DEEP_SYSTEM_PROMPT, getSystemPrompt };
@@ -106,7 +108,7 @@ async function initializeCopilotSession(options: {
 /**
  * Run analysis with timeout handling
  */
-async function runAnalysisWithTimeout(session: any, prompt: string, timeout: number, isSilent: boolean, isJson: boolean) {
+async function runAnalysisWithTimeout(session: CopilotSession, prompt: string, timeout: number, isSilent: boolean, isJson: boolean) {
   try {
     const response = await session.sendAndWait({ prompt }, timeout);
     
@@ -126,8 +128,8 @@ async function runAnalysisWithTimeout(session: any, prompt: string, timeout: num
  * Handle analysis completion and logging
  */
 function handleAnalysisCompletion(
-  state: any,
-  guardrails: any,
+  state: EventHandlerState,
+  guardrails: AgentGuardrails,
   durationMs: number,
   isVerbose: boolean,
   isSilent: boolean,

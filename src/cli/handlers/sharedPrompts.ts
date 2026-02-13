@@ -6,9 +6,6 @@
 import * as readline from "readline";
 import { getAvailableModels, type ModelInfo } from "../state/appState.js";
 import {
-  printSuccess,
-  printWarning,
-  printChatStatusBar,
   c,
   ICON,
 } from "../../ui/index.js";
