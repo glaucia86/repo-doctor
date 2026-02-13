@@ -60,6 +60,9 @@ export interface AnalysisOutput {
 
 export async function analyzeRepositoryWithCopilot(options: AnalyzeOptions): Promise<AnalysisOutput> {
   const startTime = Date.now();
+  if (options.verbosity === "verbose") {
+    console.time("Analysis duration");
+  }
   
   const {
     repoUrl,
@@ -222,6 +225,7 @@ export async function analyzeRepositoryWithCopilot(options: AnalyzeOptions): Pro
               c.warning(`Guardrail warnings: ${stats.warningCount}`)
           );
         }
+        console.timeEnd("Analysis duration");
       }
       console.log();
     }
