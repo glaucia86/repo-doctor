@@ -1,6 +1,6 @@
 {
   "name": "repo-doctor",
-  "version": "2.1.2",
+  "version": "2.4.0",
   "description": "AI-powered GitHub repository health analyzer using GitHub Copilot SDK",
   "main": "dist/index.js",
   "type": "module",

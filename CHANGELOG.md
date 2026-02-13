@@ -9,6 +9,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.4.0] - 2026-02-13
+
+### Added
+
+- **Skills System**: Added skills for CI workflow audit, code quality audit, dependency health, documentation audit, findings to GitHub issues, repo health, security hygiene, Copilot SDK, and testing posture
+- **Performance Monitoring**: Added basic performance monitoring capabilities
+- **Test Coverage**: Expanded test coverage and added security scanning
+- **CI Improvements**: Added test coverage reporting to CI workflow
+- **Documentation**: Improved README with examples section and added GPT-5.3-Codex model to documentation
+
+### Changed
+
+- **Package Manager**: Updated package manager references from pnpm to npm
+- **CI Configuration**: Updated CI configuration to use Node.js 24 and pnpm for dependency management
+- **CLI Options**: Updated CLI options handling and validation, consolidated model selection prompts
+- **Documentation**: Updated README and GUIDE with advanced usage examples and CI/CD integration details
+- **Node.js Matrix**: Updated Node.js version matrix to 20 and adjusted coverage upload condition
+- **Testing**: Expanded testing posture and updated Node.js matrix to 24+ for engine compatibility
+- **Dependencies**: Updated various dependencies including @typescript-eslint, ora, @inquirer/prompts, @github/copilot-sdk, @types/node
+- **Engine Requirement**: Updated Node.js engine requirement to >=24.0.0
+- **Workflow Permissions**: Updated CI workflow permissions and fixed action versions
+- **Error Handling**: Improved error handling in event handler and command parsing
+- **Clipboard Command**: Streamlined clipboard command handling for Linux with fallback support
+
+### Fixed
+
+- **Type Casting**: Added type casting for importOriginal in performance tests
+- **Imports**: Added missing vi import in performance tests
+- **Mock**: Corrected CopilotClient mock in performance tests
+- **Type Assertion**: Added type assertion for imported CopilotClient
+- **Documentation**: Removed CLAUDE.md documentation file and balanced AGENTS.md size for Copilot context
+- **ESLint**: Updated eslint to version 9.0.0
+- **Copilot Ignore**: Added .copilotignore file to exclude specific directories and files
+
+---
+
 ## [2.1.2] - 2026-02-13
 
 ### Added
