@@ -9,6 +9,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.5.0] - 2026-02-14
+
+### Added
+
+- **Web UI Foundation**: Added local web UI flow and server-side event streaming support for interactive updates
+- **Analytics**: Added analytics tracking and shared HTTP request utilities
+
+### Changed
+
+- **CI Workflow**: Enhanced CI workflow sequencing and build artifact verification order
+- **Routing Cleanup**: Improved route cleanup behavior in the local web UI integration
+- **Project Structure**: Updated codebase import paths after application, presentation, and infrastructure directory restructuring
+
+### Fixed
+
+- **Tests**: Fixed test imports and jobId handling to match the new module layout and avoid integration edge case failures
+- **Changelog Docs**: Updated changelog comparison references for prior release links
+
+---
+
 ## [2.4.0] - 2026-02-13
 
 ### Added
@@ -269,4 +289,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [2.1.0]: https://github.com/glaucia86/repo-doctor/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/glaucia86/repo-doctor/compare/v1.0.0...v2.0.0
 [1.0.0]: https://github.com/glaucia86/repo-doctor/releases/tag/v1.0.0
-[Unreleased]: https://github.com/glaucia86/repo-doctor/compare/v2.4.0...HEAD
+[2.5.0]: https://github.com/glaucia86/repo-doctor/compare/v2.4.0...v2.5.0
+[Unreleased]: https://github.com/glaucia86/repo-doctor/compare/v2.5.0...HEAD
