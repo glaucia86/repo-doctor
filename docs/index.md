@@ -29,6 +29,7 @@ Repo Doctor is your repository's AI doctor that diagnoses issues and prescribes 
 | [🧭 Issue Publishing](issue-publishing.md) | Step-by-step `--issue` setup and 401 troubleshooting |
 | [📖 User Guide](GUIDE.md) | Complete usage guide with examples |
 | [🤖 AI Models](AI-MODELS.md) | Available models and recommendations |
+| [🖥️ Local Web UI](../specs/001-local-web-ui/quickstart.md) | Local API + browser MVP flow and validation checklist |
 
 ### Reference
 
@@ -37,6 +38,8 @@ Repo Doctor is your repository's AI doctor that diagnoses issues and prescribes 
 | [💻 Commands Reference](commands.md) | All CLI commands and options |
 | [📊 Analysis Categories](analysis-categories.md) | What gets analyzed in each category |
 | [🏗️ Architecture](architecture.md) | Technical architecture and design |
+| [🗂️ Repository Layout](repository-layout.md) | Top-level app organization (CLI, Web UI, Site) |
+| [🖼️ Diagrams](architecture.md#diagrams) | Excalidraw source and export guidance |
 
 ### Help & Support
 

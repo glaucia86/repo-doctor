@@ -5,6 +5,15 @@ import prettierConfig from "eslint-config-prettier";
 import globals from "globals";
 
 export default [
+  {
+    ignores: [
+      "node_modules/**",
+      "dist/**",
+      "build/**",
+      "coverage/**",
+      "**/*.min.js",
+    ],
+  },
   js.configs.recommended,
   {
     files: ["**/*.ts"],

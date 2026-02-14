@@ -37,6 +37,7 @@
 </p>
 
 <p align="center">
+  <a href="https://glaucia86.github.io/repo-doctor/">Website</a> •
   <a href="#-quick-start">Quick Start</a> •
   <a href="#-features">Features</a> •
   <a href="#-how-it-works">How It Works</a> •
@@ -260,7 +261,7 @@ Use `GH_TOKEN` for Copilot and pass the PAT only for issue creation.
 $env:GH_TOKEN = (gh auth token)
 
 # Run in dev (chat) and create issues
-npm run dev
+npm run dev:cli
 ```
 
 In the app:
@@ -357,6 +358,43 @@ repo-doctor vercel/next.js --issue
 
 > [!TIP]
 > Use `/deep` for comprehensive code quality analysis. Use `/analyze` for quick governance checks.
+
+## 🗂️ Repository Layout
+
+The repository keeps application runtime code in `src/` and the public website in `site/`:
+
+```text
+site/          # Static marketing/docs site deployed to GitHub Pages
+src/           # Clean architecture runtime code
+```
+
+Implementation source is now organized by clean architecture layers in `src/`:
+- Presentation: `src/presentation/**` (CLI, API, Web UI, terminal UI)
+- Application: `src/application/**` (analysis and reporting orchestration)
+- Infrastructure: `src/infrastructure/**` (GitHub/providers/tools adapters)
+- Domain: `src/domain/**` (schemas, contracts, interfaces)
+- Shared utilities: `src/utils/**`
+
+## 🖥️ Local Web UI
+
+The project has a single Web UI implementation served from `src/presentation/web/public` by `src/presentation/web/main.ts`.
+
+```bash
+npm run dev:web-ui:api
+npm run dev:web-ui
+```
+
+Or run both services together:
+
+```bash
+npm run dev:local-ui
+```
+
+Current MVP capabilities:
+- Create analysis jobs from web state/client modules
+- Read completed markdown/JSON reports
+- Stream progress seeds and cancel running jobs
+- Copy and export completed reports (`md` and `json`)
 
 ---
 

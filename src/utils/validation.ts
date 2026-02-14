@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { AnalyzeOptionsSchema, type AnalyzeOptions } from "../types/schema.js";
-import { type CLIAnalyzeOptions } from "../cli/types.js";
+import { AnalyzeOptionsSchema, type AnalyzeOptions } from "../domain/types/schema.js";
+import { type CLIAnalyzeOptions } from "../presentation/cli/types.js";
 
 /**
  * Validate and sanitize AnalyzeOptions using Zod schema
@@ -24,8 +24,9 @@ export function validateAnalyzeOptions(options: unknown): AnalyzeOptions {
  * Validate CLI-specific options (extends core options with CLI flags)
  */
 export function validateCLIAnalyzeOptions(options: unknown): CLIAnalyzeOptions {
-  // For CLI options, we allow the core schema plus CLI-specific fields
-  const schema = AnalyzeOptionsSchema.extend({
+  // CLI chat mode does not require repoUrl upfront.
+  // The repository is provided later by user input or command arguments.
+  const schema = AnalyzeOptionsSchema.partial({ repoUrl: true }).extend({
     deep: z.boolean().optional(),
     issue: z.boolean().optional(),
   });
@@ -65,3 +66,4 @@ export function safeValidateCLIAnalyzeOptions(
   const merged = { ...defaults, ...(options as object) };
   return validateCLIAnalyzeOptions(merged);
 }
+

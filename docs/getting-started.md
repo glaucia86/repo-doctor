@@ -200,7 +200,7 @@ cd repo-doctor
 npm install
 
 # Run in development mode (with hot reload)
-npm run dev
+npm run dev:cli
 ```
 
 ### Verify Installation

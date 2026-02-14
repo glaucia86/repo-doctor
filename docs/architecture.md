@@ -93,98 +93,26 @@ graph LR
 
 ```
 repo-doctor/
+├── site/                     # Static website (GitHub Pages)
+│
 ├── src/
-│   ├── index.ts              # Entry point with shebang
-│   ├── cli.ts                # Commander setup (~186 lines)
-│   │
-│   ├── cli/                  # CLI Layer (SRP)
-│   │   ├── chatLoop.ts       # Interactive REPL
-│   │   ├── handlers/         # Command handlers (one per command)
-│   │   │   ├── analyzeHandler.ts  # /analyze, /deep
-│   │   │   ├── copyHandler.ts     # /copy
-│   │   │   ├── exportHandler.ts   # /export
-│   │   │   └── modelHandler.ts    # /model
-│   │   ├── parsers/          # Input parsing utilities
-│   │   │   ├── repoParser.ts      # GitHub URL parsing
-│   │   │   └── reportExtractor.ts # Report extraction
-│   │   └── state/            # Application state
-│   │       └── appState.ts   # IAppState interface + AppState class
-│   │
-│   ├── core/
-│   │   ├── agent.ts          # Copilot SDK session management
-│   │   ├── analyzer.ts       # Repository analysis orchestration
-│   │   ├── repoPacker.ts     # Re-exports from repoPacker/
-│   │   ├── repoPacker/       # Repomix integration (modular)
-│   │   │   ├── index.ts      # Public API exports
-│   │   │   ├── types.ts      # PackOptions, PackResult, PackErrorReason
-│   │   │   ├── packer.ts     # packRemoteRepository main function
-│   │   │   ├── executor.ts   # Repomix process execution
-│   │   │   ├── errors.ts     # Error categorization & sanitization
-│   │   │   ├── patterns.ts   # Include/exclude patterns
-│   │   │   ├── cleaner.ts    # Temp directory cleanup
-│   │   │   └── availability.ts # npx/repomix availability check
-│   │   ├── reporter.ts       # Output formatting utilities
-│   │   ├── markdownReporter.ts # Markdown report generation
-│   │   └── agent/            # Agent modules
-│   │       ├── prompts/      # Modular prompt system (OCP)
-│   │       │   ├── systemPrompt.ts     # Legacy SYSTEM_PROMPT (deprecated)
-│   │       │   ├── analysisPrompt.ts   # buildAnalysisPrompt() function
-│   │       │   ├── base/     # Base prompt modules
-│   │       │   │   ├── securityDirective.ts
-│   │       │   │   ├── expertiseProfile.ts
-│   │       │   │   ├── reconnaissance.ts
-│   │       │   │   ├── languageDetection.ts
-│   │       │   │   ├── strategicReading.ts
-│   │       │   │   ├── analysisCriteria.ts
-│   │       │   │   ├── scoring.ts
-│   │       │   │   ├── evidenceRules.ts
-│   │       │   │   ├── outputFormat.ts
-│   │       │   │   ├── constraints.ts
-│   │       │   │   └── errorHandling.ts
-│   │       │   ├── modes/    # Mode-specific extensions
-│   │       │   │   ├── quick.ts   # Quick analysis mode
-│   │       │   │   └── deep.ts    # Deep analysis mode
-│   │       │   └── composers/     # Prompt composition
-│   │       │       └── systemPromptComposer.ts
-│   │       ├── eventHandler.ts    # Session event handling
-│   │       ├── toolCallTracker.ts # Loop detection
-│   │       └── guardrails.ts      # Safety mechanisms
-│   │
-│   ├── providers/
-│   │   └── github.ts         # Octokit factory, token resolution
-│   │
-│   ├── tools/                # Individual tool files (DIP)
-│   │   ├── repoTools.ts      # Factory (re-exports individual tools)
-│   │   ├── getRepoMeta.ts    # get_repo_meta tool
-│   │   ├── listRepoFiles.ts  # list_repo_files tool
-│   │   ├── readRepoFile.ts   # read_repo_file tool
-│   │   └── packRepository.ts # pack_repository tool
-│   │
-│   ├── types/
-│   │   ├── schema.ts         # Zod schemas and TypeScript types
-│   │   └── interfaces.ts     # Shared interfaces (IAppState, etc.)
-│   │
-│   ├── ui/
-│   │   ├── index.ts          # Barrel export
-│   │   ├── commands.ts       # Slash command parsing
-│   │   ├── display.ts        # Re-exports from display/
-│   │   ├── display/          # Modular UI components (SRP)
-│   │   │   ├── messages.ts   # printSuccess, printError, etc.
-│   │   │   ├── menus.ts      # Command menus, model selection
-│   │   │   └── spinner.ts    # Spinner management
-│   │   ├── prompts.ts        # Interactive prompts (readline)
-│   │   ├── themes.ts         # Re-exports from themes/
-│   │   └── themes/           # Theme system (modular)
-│   │       ├── index.ts      # Public API exports
-│   │       ├── colors.ts     # COLORS palette & chalk helpers
-│   │       ├── icons.ts      # ICON, category/priority mappings
-│   │       ├── box.ts        # Box drawing utilities
-│   │       ├── badges.ts     # Progress bars, health scores
-│   │       └── logo.ts       # Logo renderers
-│   │
-│   └── utils/
-│       ├── sanitizer.ts      # Security: prompt injection detection
-│       └── clipboard.ts      # Cross-platform clipboard
+│   ├── index.ts              # Package entrypoint (bin)
+│   ├── cli.ts                # Compatibility entrypoint -> presentation/cli.ts
+│   ├── presentation/         # UI/transport layer
+│   │   ├── cli.ts            # CLI composition root
+│   │   ├── cli/              # chat loop, handlers, state, parsers
+│   │   ├── ui/               # terminal rendering
+│   │   ├── api/              # local HTTP API routes/jobs
+│   │   └── web/              # local Web UI server/public client
+│   ├── application/
+│   │   └── core/             # analysis orchestration, agent flow, reporting
+│   ├── infrastructure/
+│   │   ├── providers/        # GitHub/Copilot provider adapters
+│   │   └── tools/            # Copilot SDK tool adapters
+│   ├── domain/
+│   │   ├── shared/           # contracts and shared domain types
+│   │   └── types/            # schemas, publish/types, interfaces
+│   └── utils/                # cross-cutting utilities
 │
 ├── tests/                    # Vitest test files
 │   ├── cli/                  # CLI tests
@@ -198,16 +126,28 @@ repo-doctor/
 
 ---
 
+## Diagrams
+
+Architecture and flow diagrams can be maintained in Excalidraw source format.
+
+- Source file: `resources/how-it-works.excalidraw`
+- Optional exported image for docs/site: `resources/how-it-works.png`
+
+Tip: keep `.excalidraw` as the source of truth and export PNG/SVG only for rendering targets that do not support Excalidraw natively.
+
+---
+
 ## Core Components
 
-### CLI Layer (`cli.ts` + `cli/`)
+### Presentation Layer (`src/presentation/*`)
 
-The CLI layer is now modular, following the Single Responsibility Principle:
+The presentation layer is modular, following the Single Responsibility Principle:
 
-- **cli.ts** — Commander setup only (~186 lines)
-- **cli/chatLoop.ts** — Interactive REPL
-- **cli/handlers/** — One handler per command (SRP)
-- **cli/state/appState.ts** — Application state management
+- **src/presentation/cli.ts** — CLI composition root
+- **src/presentation/cli/chatLoop.ts** — Interactive REPL
+- **src/presentation/cli/handlers/** — One handler per command
+- **src/presentation/api/** — Local HTTP API
+- **src/presentation/web/** — Local Web UI server and client
 
 ```typescript
 // Simplified structure
@@ -229,7 +169,7 @@ program
   });
 ```
 
-### Agent Core (`agent.ts`)
+### Application Core (`src/application/core/agent.ts`)
 
 The agent integrates with the GitHub Copilot SDK with Infinite Sessions support:
 
@@ -317,7 +257,7 @@ export function createOctokit(token?: string): Octokit {
 }
 ```
 
-### Tools (`repoTools.ts`)
+### Tools (`src/infrastructure/tools/repoTools.ts`)
 
 Custom tools that the AI agent can invoke:
 
@@ -655,7 +595,7 @@ Repo Doctor uses two auth paths:
 
 ### Adding New Tools
 
-1. Define tool in `src/tools/repoTools.ts`:
+1. Define tool in `src/infrastructure/tools/repoTools.ts`:
 
 ```typescript
 const myNewTool = defineTool("my_new_tool", {
@@ -700,7 +640,7 @@ const CategorySchema = z.enum([
 
 ### Custom UI Themes
 
-Modify `src/ui/themes.ts`:
+Modify `src/presentation/ui/themes.ts`:
 
 ```typescript
 export const colors = {

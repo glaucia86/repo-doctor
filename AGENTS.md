@@ -8,7 +8,7 @@ This project uses npm for package management.
 
 ```bash
 npm install        # Install dependencies
-npm run dev        # Interactive mode
+npm run dev:cli    # Interactive mode
 npm test           # Run tests (100+ Vitest)
 npm run build      # Production build
 ```
@@ -16,7 +16,7 @@ npm run build      # Production build
 ## Key Conventions
 
 - **ES Modules**: imports use `.js` extension
-- **UI**: Use `src/ui/` helpers, never raw `console.log`
+- **UI**: Use `src/presentation/ui/` helpers, never raw `console.log`
 - **Errors**: Tools return error objects (don't throw)
 - **Security**: Content sanitized via `utils/sanitizer.ts`
 

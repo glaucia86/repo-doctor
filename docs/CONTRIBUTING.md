@@ -59,7 +59,7 @@ npm run build
 npm link
 
 # Run in development mode (with watch)
-npm run dev
+npm run dev:cli
 ```
 
 ### Running Tests
@@ -84,56 +84,15 @@ npm run test:integration
 
 ```
 repo-doctor/
+├── site/                       # Static website (GitHub Pages)
 ├── src/
-│   ├── index.ts                # Entry point (shebang for CLI)
-│   ├── cli.ts                  # Commander setup (~186 lines)
-│   ├── cli/                    # CLI Layer (SRP)
-│   │   ├── chatLoop.ts         # Interactive REPL
-│   │   ├── handlers/           # Command handlers (one per command)
-│   │   ├── parsers/            # Input parsing utilities
-│   │   └── state/              # Application state
-│   ├── core/
-│   │   ├── agent.ts            # GitHub Copilot SDK integration
-│   │   ├── analyzer.ts         # Repository analysis engine
-│   │   ├── markdownReporter.ts # Markdown report generation
-│   │   ├── repoPacker.ts       # Re-exports from repoPacker/
-│   │   ├── repoPacker/         # Repomix integration (modular)
-│   │   │   ├── packer.ts       # Main pack function
-│   │   │   ├── errors.ts       # Error categorization
-│   │   │   └── patterns.ts     # Include/exclude patterns
-│   │   ├── reporter.ts         # Output formatting utilities
-│   │   └── agent/              # Agent modules
-│   │       ├── prompts/        # Modular prompt system
-│   │       │   ├── base/       # Base prompt modules (11 files)
-│   │       │   ├── modes/      # quick.ts, deep.ts
-│   │       │   └── composers/  # systemPromptComposer.ts
-│   │       ├── eventHandler.ts # Session event handling
-│   │       ├── guardrails.ts   # Safety mechanisms
-│   │       └── toolCallTracker.ts # Loop detection
-│   ├── providers/
-│   │   └── github.ts           # GitHub API client (Octokit)
-│   ├── tools/                  # Individual tool files
-│   │   ├── repoTools.ts        # Tool factory
-│   │   ├── getRepoMeta.ts      # get_repo_meta tool
-│   │   ├── listRepoFiles.ts    # list_repo_files tool
-│   │   ├── readRepoFile.ts     # read_repo_file tool
-│   │   └── packRepository.ts   # pack_repository tool
-│   ├── types/
-│   │   ├── schema.ts           # TypeScript type definitions
-│   │   └── interfaces.ts       # Shared interfaces
-│   └── ui/
-│       ├── commands.ts         # Slash command parsing
-│       ├── display.ts          # Re-exports from display/
-│       ├── display/            # Modular UI components
-│       ├── index.ts            # UI exports barrel
-│       ├── prompts.ts          # Interactive prompts (readline)
-│       ├── themes.ts           # Re-exports from themes/
-│       └── themes/             # Theme system (modular)
-│           ├── colors.ts       # Color palette
-│           ├── icons.ts        # Category/priority icons
-│           ├── box.ts          # Box drawing utilities
-│           ├── badges.ts       # Progress bars
-│           └── logo.ts         # Logo renderers
+│   ├── index.ts                # Package entrypoint
+│   ├── cli.ts                  # Compatibility entrypoint -> presentation/cli.ts
+│   ├── presentation/           # CLI, API, Web UI, terminal UI
+│   ├── application/            # Use cases and orchestration
+│   ├── infrastructure/         # Providers and tool adapters
+│   ├── domain/                 # Contracts, schemas, interfaces
+│   └── utils/                  # Cross-cutting utilities
 ├── tests/                      # Vitest test files
 ├── docs/                       # Documentation
 ├── resources/                  # Images and assets
@@ -147,13 +106,13 @@ repo-doctor/
 
 | File | Purpose |
 |------|---------|
-| `src/cli.ts` | Commander setup (entry point) |
-| `src/cli/chatLoop.ts` | Interactive REPL |
-| `src/core/agent.ts` | Copilot SDK session management |
-| `src/core/agent/prompts/composers/systemPromptComposer.ts` | Modular prompt composition |
-| `src/core/agent/guardrails.ts` | Safety mechanisms (loop prevention) |
-| `src/core/repoPacker/` | Repomix integration for `/deep` command |
-| `src/ui/themes/` | Terminal colors and styling |
+| `src/presentation/cli.ts` | CLI composition root |
+| `src/presentation/cli/chatLoop.ts` | Interactive REPL |
+| `src/application/core/agent.ts` | Copilot SDK session orchestration |
+| `src/application/core/agent/prompts/composers/systemPromptComposer.ts` | Modular prompt composition |
+| `src/application/core/agent/guardrails.ts` | Safety mechanisms (loop prevention) |
+| `src/infrastructure/tools/` | Copilot tool adapters |
+| `src/presentation/ui/themes/` | Terminal colors and styling |
 
 ---
 
@@ -234,7 +193,7 @@ chore: update dependencies
 - Use TypeScript strict mode
 - Define explicit types (avoid `any`)
 - Use interfaces for object shapes
-- Export types from `types/schema.ts`
+- Export types from `src/domain/types/schema.ts`
 
 ### Code Style
 

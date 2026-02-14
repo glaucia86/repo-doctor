@@ -5,7 +5,7 @@
 The system prompt is composed from modular pieces following Open/Closed Principle.
 
 ```
-src/core/agent/prompts/
+src/application/core/agent/prompts/
 ├── base/                    # Base modules
 │   ├── securityDirective.ts # Prompt injection protection
 │   ├── expertiseProfile.ts  # Agent capabilities

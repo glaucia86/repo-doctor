@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Repo Doctor Local UI</title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/icon-16.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/icon-32.png" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icon-180.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="mask-icon" href="/icon-monochrome.svg" color="#0B5FFF" />
+    <meta name="theme-color" content="#0B5FFF" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              ink: "#0B1F33",
+              cobalt: "#0D6E8A",
+              tide: "#0B4F66",
+              ember: "#C55A11",
+              primary: "#0B5FFF",
+              primaryHover: "#0047D6",
+              accent: "#C2410C",
+              accentHover: "#9A3412",
+              risk: "#B42318",
+              success: "#067647",
+              dawn: "#F7FAFC",
+              linen: "#FFF8EF",
+              mint: "#EAFDF5",
+            },
+            fontFamily: {
+              sans: ["Sora", "ui-sans-serif", "system-ui"],
+              mono: ["Space Mono", "ui-monospace", "SFMono-Regular"],
+            },
+            boxShadow: {
+              panel: "0 24px 90px rgba(15, 23, 42, 0.12)",
+              glow: "0 0 0 1px rgba(255,255,255,0.7), 0 16px 45px rgba(14,116,144,0.22)",
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      :root {
+        --surface: rgba(255, 255, 255, 0.82);
+        --line: rgba(11, 31, 51, 0.12);
+        --brand-cool: rgba(13, 110, 138, 0.24);
+        --brand-warm: rgba(197, 90, 17, 0.18);
+        --signal-ok: rgba(6, 118, 71, 0.14);
+        --mx: 50%;
+        --my: 50%;
+        --px: 0px;
+        --py: 0px;
+      }
+
+      body {
+        background:
+          radial-gradient(circle at 8% 18%, var(--brand-cool) 0, transparent 42%),
+          radial-gradient(circle at 95% 2%, var(--brand-warm) 0, transparent 34%),
+          radial-gradient(circle at 85% 85%, var(--signal-ok) 0, transparent 30%),
+          linear-gradient(150deg, #f8fafc 0%, #fff7ed 100%);
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background-image:
+          linear-gradient(rgba(15, 23, 42, 0.03) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(15, 23, 42, 0.03) 1px, transparent 1px);
+        background-size: 36px 36px;
+        mask-image: radial-gradient(circle at center, black 40%, transparent 85%);
+      }
+
+      body::after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        opacity: 0.16;
+        background-image: radial-gradient(rgba(11, 31, 51, 0.25) 0.45px, transparent 0.45px);
+        background-size: 3px 3px;
+        mix-blend-mode: soft-light;
+        animation: grainShift 10s steps(8) infinite;
+      }
+      @keyframes grainShift {
+        0% { transform: translate(0, 0); }
+        25% { transform: translate(-2%, 1%); }
+        50% { transform: translate(1%, -2%); }
+        75% { transform: translate(2%, 2%); }
+        100% { transform: translate(0, 0); }
+      }
+
+      .aurora {
+        position: fixed;
+        border-radius: 9999px;
+        filter: blur(42px);
+        opacity: 0.68;
+        pointer-events: none;
+      }
+
+      .aurora-a {
+        width: 26rem;
+        height: 26rem;
+        top: -8rem;
+        left: -5rem;
+        background: rgba(14, 116, 144, 0.33);
+        transform: translate(calc(var(--px) * -0.4), calc(var(--py) * -0.4));
+        animation: driftA 16s ease-in-out infinite alternate;
+      }
+
+      .aurora-b {
+        width: 24rem;
+        height: 24rem;
+        right: -6rem;
+        top: 22%;
+        background: rgba(234, 88, 12, 0.3);
+        transform: translate(calc(var(--px) * 0.35), calc(var(--py) * -0.35));
+        animation: driftB 18s ease-in-out infinite alternate;
+      }
+
+      .aurora-c {
+        width: 20rem;
+        height: 20rem;
+        bottom: -5rem;
+        left: 28%;
+        background: rgba(16, 185, 129, 0.27);
+        transform: translate(calc(var(--px) * 0.22), calc(var(--py) * 0.28));
+        animation: driftC 14s ease-in-out infinite alternate;
+      }
+
+      @keyframes driftA {
+        from { transform: translate(0, 0) scale(1); }
+        to { transform: translate(4rem, 2rem) scale(1.08); }
+      }
+      @keyframes driftB {
+        from { transform: translate(0, 0) scale(1); }
+        to { transform: translate(-3rem, -3rem) scale(1.12); }
+      }
+      @keyframes driftC {
+        from { transform: translate(0, 0) scale(1); }
+        to { transform: translate(2rem, -2rem) scale(1.1); }
+      }
+
+      .glass {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        backdrop-filter: blur(14px);
+      }
+
+      .spotlight-card {
+        position: relative;
+        overflow: hidden;
+      }
+      .spotlight-card::before {
+        content: "";
+        position: absolute;
+        inset: -1px;
+        pointer-events: none;
+        background:
+          radial-gradient(
+            420px circle at var(--mx) var(--my),
+            rgba(255, 255, 255, 0.42),
+            rgba(13, 110, 138, 0.08) 28%,
+            rgba(255, 255, 255, 0) 66%
+          );
+        opacity: 0.65;
+        transition: opacity 180ms ease;
+      }
+      .spotlight-card:hover::before {
+        opacity: 0.9;
+      }
+
+      .fade-in-up {
+        animation: fadeInUp 500ms ease both;
+      }
+      @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(14px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .aurora,
+        .fade-in-up {
+          animation: none !important;
+        }
+        body::after {
+          animation: none !important;
+        }
+      }
+
+      html.effects-off .aurora {
+        animation: none !important;
+        transform: none !important;
+        opacity: 0.22;
+      }
+      html.effects-off body::after {
+        animation: none !important;
+        opacity: 0.08;
+      }
+      html.effects-off .spotlight-card::before {
+        display: none;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen text-ink antialiased">
+    <div class="aurora aurora-a"></div>
+    <div class="aurora aurora-b"></div>
+    <div class="aurora aurora-c"></div>
+    <div id="app"></div>
+    <script>
+      window.__REPO_DOCTOR_API_BASE__ = "__API_BASE_URL__";
+    </script>
+    <script type="module" src="/app.js"></script>
+  </body>
+  </html>

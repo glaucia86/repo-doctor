@@ -83,7 +83,7 @@ You can use Copilot auth (GH_TOKEN) and pass the PAT only for issue creation.
 $env:GH_TOKEN = (gh auth token)
 
 # Start in dev (chat)
-npm run dev
+npm run dev:cli
 ```
 
 In the app:
