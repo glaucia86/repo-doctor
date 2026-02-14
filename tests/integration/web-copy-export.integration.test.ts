@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { createCreateJobRouteWithRunner } from "../../src/api/routes/createJobRoute.js";
-import { createGetReportRoute } from "../../src/api/routes/getReportRoute.js";
-import { createExportReportRoute } from "../../src/api/routes/exportReportRoute.js";
-import { InMemoryJobRegistry } from "../../src/api/jobs/jobRegistry.js";
-import { JobsClient } from "../../src/web/services/jobsClient.js";
-import { AppStore } from "../../src/web/state/appStore.js";
-import { copyJsonReport, copyMarkdownReport } from "../../src/web/components/CopyReportActions.js";
-import { validateReportParity } from "../../src/web/pages/ReportPage.js";
+import { createCreateJobRouteWithRunner } from "../../src/presentation/api/routes/createJobRoute.js";
+import { createGetReportRoute } from "../../src/presentation/api/routes/getReportRoute.js";
+import { createExportReportRoute } from "../../src/presentation/api/routes/exportReportRoute.js";
+import { InMemoryJobRegistry } from "../../src/presentation/api/jobs/jobRegistry.js";
+import { JobsClient } from "../../src/presentation/web/services/jobsClient.js";
+import { AppStore } from "../../src/presentation/web/state/appStore.js";
+import { copyJsonReport, copyMarkdownReport } from "../../src/presentation/web/components/CopyReportActions.js";
+import { validateReportParity } from "../../src/presentation/web/pages/ReportPage.js";
 
 describe("Web copy/export integration flow", () => {
   it("loads completed report and supports copy + export actions", async () => {

@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { createCreateJobRouteWithRunner } from "../../src/api/routes/createJobRoute.js";
-import { createCancelJobRoute } from "../../src/api/routes/cancelJobRoute.js";
-import { createStreamEventsRoute } from "../../src/api/routes/streamEventsRoute.js";
-import { EventStreamHub } from "../../src/api/jobs/eventStreamHub.js";
-import { InMemoryJobRegistry } from "../../src/api/jobs/jobRegistry.js";
-import { AppStore } from "../../src/web/state/appStore.js";
-import { JobsClient } from "../../src/web/services/jobsClient.js";
+import { createCreateJobRouteWithRunner } from "../../src/presentation/api/routes/createJobRoute.js";
+import { createCancelJobRoute } from "../../src/presentation/api/routes/cancelJobRoute.js";
+import { createStreamEventsRoute } from "../../src/presentation/api/routes/streamEventsRoute.js";
+import { EventStreamHub } from "../../src/presentation/api/jobs/eventStreamHub.js";
+import { InMemoryJobRegistry } from "../../src/presentation/api/jobs/jobRegistry.js";
+import { AppStore } from "../../src/presentation/web/state/appStore.js";
+import { JobsClient } from "../../src/presentation/web/services/jobsClient.js";
 
 describe("Web stream/cancel integration flow", () => {
   it("streams job progress and cancels running job", async () => {

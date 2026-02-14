@@ -14,7 +14,9 @@ interface ResponseLike {
 }
 
 export function createExportReportRoute(registry: InMemoryJobRegistry) {
-  return createExportReportRouteWithCleanup(registry);
+  const cleanupService = new CleanupService();
+  cleanupService.hookIntoRegistry(registry);
+  return createExportReportRouteWithCleanup(registry, cleanupService);
 }
 
 export function createExportReportRouteWithCleanup(

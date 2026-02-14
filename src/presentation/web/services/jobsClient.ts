@@ -77,6 +77,16 @@ export class JobsClient {
     const response = await this.fetchImpl(`${this.baseUrl}/jobs/${jobId}/events`, {
       method: "GET",
     });
+    if (!response.ok) {
+      const payload = await this.readJson<{ message?: string }>(response);
+      throw new Error(payload.message ?? "Request failed.");
+    }
+
+    const contentType = response.headers.get("content-type") ?? "";
+    if (contentType.includes("text/event-stream")) {
+      return this.readSeedEventsFromSse(response);
+    }
+
     const payload = await this.readJson<{ seedEvents?: ProgressEvent[] }>(response);
     return payload.seedEvents ?? [];
   }
@@ -99,6 +109,68 @@ export class JobsClient {
       throw new Error(payload.message ?? "Request failed.");
     }
     return payload;
+  }
+
+  private async readSeedEventsFromSse(response: Response): Promise<ProgressEvent[]> {
+    const reader = response.body?.getReader();
+    if (!reader) {
+      return [];
+    }
+
+    const firstChunk = await this.readFirstSseChunk(reader, 750);
+    await reader.cancel();
+    if (!firstChunk) {
+      return [];
+    }
+
+    const text = new TextDecoder().decode(firstChunk);
+    const blocks = text.split(/\r?\n\r?\n/);
+    if (!text.match(/\r?\n\r?\n$/)) {
+      blocks.pop();
+    }
+
+    const events: ProgressEvent[] = [];
+    for (const block of blocks) {
+      for (const line of block.split(/\r?\n/)) {
+        if (!line.startsWith("data:")) {
+          continue;
+        }
+        const data = line.slice(5).trim();
+        if (!data) {
+          continue;
+        }
+        try {
+          events.push(JSON.parse(data) as ProgressEvent);
+        } catch {
+          // Ignore malformed chunks and return valid events only.
+        }
+      }
+    }
+
+    return events;
+  }
+
+  private async readFirstSseChunk(
+    reader: ReadableStreamDefaultReader<Uint8Array>,
+    timeoutMs: number
+  ): Promise<Uint8Array | null> {
+    let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
+    try {
+      const result = await Promise.race([
+        reader.read(),
+        new Promise<ReadableStreamReadResult<Uint8Array>>((resolve) => {
+          timeoutHandle = setTimeout(() => resolve({ done: true, value: undefined }), timeoutMs);
+        }),
+      ]);
+      if (result.done || !result.value) {
+        return null;
+      }
+      return result.value;
+    } finally {
+      if (timeoutHandle) {
+        clearTimeout(timeoutHandle);
+      }
+    }
   }
 }
 

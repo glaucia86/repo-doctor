@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { InMemoryJobRegistry } from "../../src/api/jobs/jobRegistry.js";
-import type { AnalysisReport } from "../../src/shared/contracts.js";
+import { InMemoryJobRegistry } from "../../src/presentation/api/jobs/jobRegistry.js";
+import type { AnalysisReport } from "../../src/domain/shared/contracts.js";
 
 const createReport = (jobId: string): AnalysisReport => ({
   jobId,

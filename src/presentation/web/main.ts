@@ -1,7 +1,7 @@
 import { createServer } from "node:http";
 import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { dirname, extname, join, resolve } from "node:path";
+import { dirname, extname, join, normalize, resolve, sep } from "node:path";
 import { createRequire } from "node:module";
 import { printError, printInfo, printSuccess } from "../ui/index.js";
 
@@ -49,12 +49,32 @@ try {
 export function startLocalWebServer(port: number = 4173, apiBaseUrl: string = "http://localhost:3001"): void {
   const currentDir = dirname(fileURLToPath(import.meta.url));
   const publicDir = join(currentDir, "public");
+  const resolvedPublicDir = resolve(publicDir);
 
   const server = createServer((req, res) => {
     const url = new URL(req.url ?? "/", `http://${req.headers.host ?? "localhost"}`);
     const requestedPath = url.pathname === "/" ? "/index.html" : url.pathname;
-    const safePath = requestedPath.replace(/\.\./g, "");
-    let filePath = join(publicDir, safePath);
+
+    let decodedPath: string;
+    try {
+      decodedPath = decodeURIComponent(requestedPath);
+    } catch {
+      res.statusCode = 400;
+      res.setHeader("content-type", "text/plain; charset=utf-8");
+      res.end("Invalid path encoding");
+      return;
+    }
+
+    const normalizedPath = normalize(decodedPath).replace(/^([/\\])+/, "");
+    const safePath = `/${normalizedPath.replace(/\\/g, "/")}`;
+    let filePath = resolve(resolvedPublicDir, normalizedPath);
+
+    if (filePath !== resolvedPublicDir && !filePath.startsWith(`${resolvedPublicDir}${sep}`)) {
+      res.statusCode = 404;
+      res.setHeader("content-type", "text/plain; charset=utf-8");
+      res.end("Not found");
+      return;
+    }
 
     try {
       let transformLoader: "jsx" | "ts" | "tsx" | null = null;
@@ -72,20 +92,26 @@ export function startLocalWebServer(port: number = 4173, apiBaseUrl: string = "h
         transformLoader = "ts";
       }
 
-      let content = readFileSync(filePath, "utf8");
-      if (safePath === "/index.html") {
-        content = content.replace("__API_BASE_URL__", apiBaseUrl);
-      }
-      if (transformLoader && transformSource) {
-        content = transformSource(content, {
-          loader: transformLoader,
-          format: "esm",
-          target: "es2020",
-        }).code;
+      const rawContent = readFileSync(filePath);
+      let responseBody: string | Buffer = rawContent;
+
+      if (safePath === "/index.html" || transformLoader) {
+        let content = rawContent.toString("utf8");
+        if (safePath === "/index.html") {
+          content = content.replace("__API_BASE_URL__", apiBaseUrl);
+        }
+        if (transformLoader && transformSource) {
+          content = transformSource(content, {
+            loader: transformLoader,
+            format: "esm",
+            target: "es2020",
+          }).code;
+        }
+        responseBody = content;
       }
       res.statusCode = 200;
       res.setHeader("content-type", mimeByExt[extname(filePath)] ?? "text/plain; charset=utf-8");
-      res.end(content);
+      res.end(responseBody);
     } catch {
       res.statusCode = 404;
       res.setHeader("content-type", "text/plain; charset=utf-8");

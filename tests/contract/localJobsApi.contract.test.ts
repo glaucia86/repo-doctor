@@ -4,7 +4,7 @@ import {
   ANALYSIS_MODES,
   EVENT_TYPES,
   JOB_STATES,
-} from "../../src/shared/contracts.js";
+} from "../../src/domain/shared/contracts.js";
 
 const contractPath = "specs/001-local-web-ui/contracts/openapi.yaml";
 const contract = readFileSync(contractPath, "utf8");

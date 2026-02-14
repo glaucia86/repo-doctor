@@ -34,8 +34,8 @@ jobs:
       - name: Verify build artifacts
         run: |
           test -f dist/index.js
-          test -f dist/api/jobs/jobRegistry.js
-          test -f dist/shared/contracts.js
+          test -f dist/presentation/api/jobs/jobRegistry.js
+          test -f dist/domain/shared/contracts.js
 
       - name: Lint
         run: npm run lint

@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { createCreateJobRouteWithRunner } from "../../src/api/routes/createJobRoute.js";
-import { createGetReportRoute } from "../../src/api/routes/getReportRoute.js";
-import { InMemoryJobRegistry } from "../../src/api/jobs/jobRegistry.js";
-import { JobsClient } from "../../src/web/services/jobsClient.js";
-import { AppStore } from "../../src/web/state/appStore.js";
+import { createCreateJobRouteWithRunner } from "../../src/presentation/api/routes/createJobRoute.js";
+import { createGetReportRoute } from "../../src/presentation/api/routes/getReportRoute.js";
+import { InMemoryJobRegistry } from "../../src/presentation/api/jobs/jobRegistry.js";
+import { JobsClient } from "../../src/presentation/web/services/jobsClient.js";
+import { AppStore } from "../../src/presentation/web/state/appStore.js";
 
 describe("Web run/report integration flow", () => {
   it("creates a job and loads the completed report", async () => {
