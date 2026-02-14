@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { handleAnalyze } from "../../src/cli/handlers/analyzeHandler.js";
+import { handleAnalyze } from "../../src/presentation/cli/handlers/analyzeHandler.js";
 
 vi.mock("../../src/application/core/agent.js", () => ({
   analyzeRepositoryWithCopilot: vi.fn().mockResolvedValue({
@@ -15,7 +15,7 @@ vi.mock("../../src/application/core/repoPacker.js", () => ({
   isRepomixAvailable: vi.fn().mockReturnValue(true),
 }));
 
-vi.mock("../../src/cli/parsers/repoParser.js", () => ({
+vi.mock("../../src/presentation/cli/parsers/repoParser.js", () => ({
   parseRepoRef: vi.fn().mockReturnValue({ owner: "owner", repo: "repo" }),
   buildRepoUrl: vi.fn().mockReturnValue("https://github.com/owner/repo"),
   buildRepoSlug: vi.fn().mockReturnValue("owner/repo"),
@@ -44,7 +44,7 @@ vi.mock("../../src/providers/github.js", () => ({
   isAuthenticated: vi.fn().mockReturnValue(true),
 }));
 
-vi.mock("../../src/cli/state/appState.js", () => ({
+vi.mock("../../src/presentation/cli/state/appState.js", () => ({
   appState: {
     currentModel: "claude-sonnet-4",
     isPremium: true,

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { handleAnalyze } from "../../../src/cli/handlers/analyzeHandler.js";
+import { handleAnalyze } from "../../../src/presentation/cli/handlers/analyzeHandler.js";
 
 // Mock dependencies
 vi.mock("../../../src/application/core/agent.js", () => ({
@@ -16,7 +16,7 @@ vi.mock("../../../src/application/core/repoPacker.js", () => ({
   isRepomixAvailable: vi.fn().mockReturnValue(true),
 }));
 
-vi.mock("../../../src/cli/parsers/repoParser.js", () => ({
+vi.mock("../../../src/presentation/cli/parsers/repoParser.js", () => ({
   parseRepoRef: vi.fn(),
   buildRepoUrl: vi.fn(),
   buildRepoSlug: vi.fn(),
@@ -48,7 +48,7 @@ vi.mock("../../../src/providers/github.js", () => ({
   isAuthenticated: vi.fn().mockReturnValue(true),
 }));
 
-vi.mock("../../../src/cli/state/appState.js", () => ({
+vi.mock("../../../src/presentation/cli/state/appState.js", () => ({
   appState: {
     currentModel: "claude-sonnet-4",
     isPremium: true,
@@ -63,7 +63,7 @@ describe("handleAnalyze (Integration)", () => {
   });
 
   it("should handle basic analysis successfully", async () => {
-    const { parseRepoRef, buildRepoUrl, buildRepoSlug } = await import("../../../src/cli/parsers/repoParser.js");
+    const { parseRepoRef, buildRepoUrl, buildRepoSlug } = await import("../../../src/presentation/cli/parsers/repoParser.js");
     const { printRepo, printModel } = await import("../../../src/ui/index.js");
 
     // Mock parser
@@ -95,7 +95,7 @@ describe("handleAnalyze (Integration)", () => {
   });
 
   it("should handle deep analysis mode", async () => {
-    const { parseRepoRef, buildRepoUrl, buildRepoSlug } = await import("../../../src/cli/parsers/repoParser.js");
+    const { parseRepoRef, buildRepoUrl, buildRepoSlug } = await import("../../../src/presentation/cli/parsers/repoParser.js");
     const { isRepomixAvailable } = await import("../../../src/application/core/repoPacker.js");
 
     vi.mocked(parseRepoRef).mockReturnValue({ owner: "owner", repo: "repo" });
@@ -119,7 +119,7 @@ describe("handleAnalyze (Integration)", () => {
   });
 
   it("should handle issue publishing", async () => {
-    const { parseRepoRef, buildRepoUrl, buildRepoSlug } = await import("../../../src/cli/parsers/repoParser.js");
+    const { parseRepoRef, buildRepoUrl, buildRepoSlug } = await import("../../../src/presentation/cli/parsers/repoParser.js");
     const { publishReport } = await import("../../../src/application/core/publish/index.js");
 
     vi.mocked(parseRepoRef).mockReturnValue({ owner: "owner", repo: "repo" });
@@ -153,7 +153,7 @@ describe("handleAnalyze (Integration)", () => {
   });
 
   it("should handle invalid repo reference", async () => {
-    const { parseRepoRef } = await import("../../../src/cli/parsers/repoParser.js");
+    const { parseRepoRef } = await import("../../../src/presentation/cli/parsers/repoParser.js");
     const { printError } = await import("../../../src/ui/index.js");
 
     vi.mocked(parseRepoRef).mockReturnValue(null);

@@ -28,6 +28,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Check legacy test import paths
+        run: |
+          if rg -n "(\\.{2}/)+src/(api|web|core|shared|cli)/|from ['\"]/src/" tests; then
+            echo "Legacy or absolute /src imports found in tests."
+            exit 1
+          fi
+
       - name: Build
         run: npm run build
 

@@ -8,7 +8,7 @@ import {
   buildRepoUrl,
   buildRepoSlug,
   validateRepoRef,
-} from "../../../src/cli/parsers/repoParser.js";
+} from "../../../src/presentation/cli/parsers/repoParser.js";
 
 describe("repoParser", () => {
   describe("parseRepoRef", () => {

@@ -13,7 +13,7 @@ import {
   findModelByIndex,
   getAvailableModels,
   clearModelCache,
-} from "../../../src/cli/state/appState.js";
+} from "../../../src/presentation/cli/state/appState.js";
 
 vi.mock("../../../src/providers/copilotModels.js", () => ({
   getCopilotCliModels: vi.fn(),
