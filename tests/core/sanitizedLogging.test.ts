@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { toHttpError } from "../../src/api/errors/httpErrors.js";
-import { EventStreamHub } from "../../src/api/jobs/eventStreamHub.js";
-import { InMemoryJobRegistry } from "../../src/api/jobs/jobRegistry.js";
+import { toHttpError } from "../../src/presentation/api/errors/httpErrors.js";
+import { EventStreamHub } from "../../src/presentation/api/jobs/eventStreamHub.js";
+import { InMemoryJobRegistry } from "../../src/presentation/api/jobs/jobRegistry.js";
 
 describe("sanitized logging and events", () => {
   it("redacts token-like data in HTTP error messages", () => {
