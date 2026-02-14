@@ -30,7 +30,7 @@ jobs:
 
       - name: Check legacy test import paths
         run: |
-          if rg -n "(\\.{2}/)+src/(api|web|core|shared|cli)/|from ['\"]/src/" tests; then
+          if rg -n "(\\.{2}/)+src/(api|web|core|shared|cli|providers)/|from ['\"]/src/" tests; then
             echo "Legacy or absolute /src imports found in tests."
             exit 1
           fi

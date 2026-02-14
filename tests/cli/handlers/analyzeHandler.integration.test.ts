@@ -44,7 +44,7 @@ vi.mock("../../../src/application/core/publish/index.js", () => ({
   }),
 }));
 
-vi.mock("../../../src/providers/github.js", () => ({
+vi.mock("../../../src/infrastructure/providers/github.js", () => ({
   isAuthenticated: vi.fn().mockReturnValue(true),
 }));
 

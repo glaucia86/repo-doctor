@@ -7,11 +7,11 @@ import { publishReport } from "../../../src/application/core/publish/publishRepo
 import type { PublishTarget } from "../../../src/types/publish.js";
 
 // Mock dependencies
-vi.mock("../../../src/providers/githubPublish.js", () => ({
+vi.mock("../../../src/infrastructure/providers/githubPublish.js", () => ({
   createIssue: vi.fn(),
 }));
 
-vi.mock("../../../src/providers/github.js", () => ({
+vi.mock("../../../src/infrastructure/providers/github.js", () => ({
   isAuthenticated: vi.fn(),
 }));
 
@@ -24,8 +24,8 @@ vi.mock("../../../src/application/core/publish/labels.js", () => ({
   buildIssueLabels: vi.fn((categories) => categories.map((c) => `repo-doctor:${c}`)),
 }));
 
-import { createIssue } from "../../../src/providers/githubPublish.js";
-import { isAuthenticated } from "../../../src/providers/github.js";
+import { createIssue } from "../../../src/infrastructure/providers/githubPublish.js";
+import { isAuthenticated } from "../../../src/infrastructure/providers/github.js";
 import { buildPublishReport, extractPotentialIssues } from "../../../src/application/core/publish/reportBuilder.js";
 
 describe("publishReport", () => {

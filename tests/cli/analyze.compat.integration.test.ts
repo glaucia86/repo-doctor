@@ -40,7 +40,7 @@ vi.mock("../../src/application/core/publish/index.js", () => ({
   publishReport: vi.fn().mockResolvedValue({ ok: true }),
 }));
 
-vi.mock("../../src/providers/github.js", () => ({
+vi.mock("../../src/infrastructure/providers/github.js", () => ({
   isAuthenticated: vi.fn().mockReturnValue(true),
 }));
 
