@@ -2,7 +2,7 @@
  * Tests for AgentGuardrails
  */
 import { describe, it, expect, beforeEach } from "vitest";
-import { AgentGuardrails, createGuardrails } from "../../../src/core/agent/guardrails.js";
+import { AgentGuardrails, createGuardrails } from "../../../src/application/core/agent/guardrails.js";
 
 describe("AgentGuardrails", () => {
   let guardrails: AgentGuardrails;

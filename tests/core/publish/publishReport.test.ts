@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { publishReport } from "../../../src/core/publish/publishReport.js";
+import { publishReport } from "../../../src/application/core/publish/publishReport.js";
 import type { PublishTarget } from "../../../src/types/publish.js";
 
 // Mock dependencies
@@ -15,18 +15,18 @@ vi.mock("../../../src/providers/github.js", () => ({
   isAuthenticated: vi.fn(),
 }));
 
-vi.mock("../../../src/core/publish/reportBuilder.js", () => ({
+vi.mock("../../../src/application/core/publish/reportBuilder.js", () => ({
   buildPublishReport: vi.fn(),
   extractPotentialIssues: vi.fn(),
 }));
 
-vi.mock("../../../src/core/publish/labels.js", () => ({
+vi.mock("../../../src/application/core/publish/labels.js", () => ({
   buildIssueLabels: vi.fn((categories) => categories.map((c) => `repo-doctor:${c}`)),
 }));
 
 import { createIssue } from "../../../src/providers/githubPublish.js";
 import { isAuthenticated } from "../../../src/providers/github.js";
-import { buildPublishReport, extractPotentialIssues } from "../../../src/core/publish/reportBuilder.js";
+import { buildPublishReport, extractPotentialIssues } from "../../../src/application/core/publish/reportBuilder.js";
 
 describe("publishReport", () => {
   beforeEach(() => {

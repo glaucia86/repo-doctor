@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { handleAnalyze } from "../../src/cli/handlers/analyzeHandler.js";
 
-vi.mock("../../src/core/agent.js", () => ({
+vi.mock("../../src/application/core/agent.js", () => ({
   analyzeRepositoryWithCopilot: vi.fn().mockResolvedValue({
     content: "Compatibility report",
     toolCallCount: 2,
@@ -11,7 +11,7 @@ vi.mock("../../src/core/agent.js", () => ({
   }),
 }));
 
-vi.mock("../../src/core/repoPacker.js", () => ({
+vi.mock("../../src/application/core/repoPacker.js", () => ({
   isRepomixAvailable: vi.fn().mockReturnValue(true),
 }));
 
@@ -36,7 +36,7 @@ vi.mock("../../src/ui/index.js", () => ({
   },
 }));
 
-vi.mock("../../src/core/publish/index.js", () => ({
+vi.mock("../../src/application/core/publish/index.js", () => ({
   publishReport: vi.fn().mockResolvedValue({ ok: true }),
 }));
 

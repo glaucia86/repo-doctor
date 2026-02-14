@@ -6,7 +6,7 @@ import { describe, it, expect } from "vitest";
 import {
   buildPublishReport,
   extractPotentialIssues,
-} from "../../../src/core/publish/reportBuilder.js";
+} from "../../../src/application/core/publish/reportBuilder.js";
 
 describe("reportBuilder", () => {
   describe("buildPublishReport", () => {

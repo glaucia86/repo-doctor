@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildAnalysisPrompt } from "../../../src/core/agent/prompts/analysisPrompt.js";
+import { buildAnalysisPrompt } from "../../../src/application/core/agent/prompts/analysisPrompt.js";
 
 describe("buildAnalysisPrompt", () => {
   describe("standard analysis", () => {

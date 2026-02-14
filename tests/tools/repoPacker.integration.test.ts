@@ -14,7 +14,7 @@ import {
   clearRepomixAvailabilityCache,
   getDefaultIncludePatterns,
   getDeepIncludePatterns,
-} from "../../src/core/repoPacker.js";
+} from "../../src/application/core/repoPacker.js";
 
 // ════════════════════════════════════════════════════════════════════════════
 // SETUP

@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { handleAnalyze } from "../../../src/cli/handlers/analyzeHandler.js";
 
 // Mock dependencies
-vi.mock("../../../src/core/agent.js", () => ({
+vi.mock("../../../src/application/core/agent.js", () => ({
   analyzeRepositoryWithCopilot: vi.fn().mockResolvedValue({
     content: "Mock analysis result",
     toolCallCount: 3,
@@ -12,7 +12,7 @@ vi.mock("../../../src/core/agent.js", () => ({
   }),
 }));
 
-vi.mock("../../../src/core/repoPacker.js", () => ({
+vi.mock("../../../src/application/core/repoPacker.js", () => ({
   isRepomixAvailable: vi.fn().mockReturnValue(true),
 }));
 
@@ -37,7 +37,7 @@ vi.mock("../../../src/ui/index.js", () => ({
   },
 }));
 
-vi.mock("../../../src/core/publish/index.js", () => ({
+vi.mock("../../../src/application/core/publish/index.js", () => ({
   publishReport: vi.fn().mockResolvedValue({
     ok: true,
     targetUrl: "https://github.com/owner/repo/issues/1",
@@ -96,7 +96,7 @@ describe("handleAnalyze (Integration)", () => {
 
   it("should handle deep analysis mode", async () => {
     const { parseRepoRef, buildRepoUrl, buildRepoSlug } = await import("../../../src/cli/parsers/repoParser.js");
-    const { isRepomixAvailable } = await import("../../../src/core/repoPacker.js");
+    const { isRepomixAvailable } = await import("../../../src/application/core/repoPacker.js");
 
     vi.mocked(parseRepoRef).mockReturnValue({ owner: "owner", repo: "repo" });
     vi.mocked(buildRepoUrl).mockReturnValue("https://github.com/owner/repo");
@@ -120,7 +120,7 @@ describe("handleAnalyze (Integration)", () => {
 
   it("should handle issue publishing", async () => {
     const { parseRepoRef, buildRepoUrl, buildRepoSlug } = await import("../../../src/cli/parsers/repoParser.js");
-    const { publishReport } = await import("../../../src/core/publish/index.js");
+    const { publishReport } = await import("../../../src/application/core/publish/index.js");
 
     vi.mocked(parseRepoRef).mockReturnValue({ owner: "owner", repo: "repo" });
     vi.mocked(buildRepoUrl).mockReturnValue("https://github.com/owner/repo");

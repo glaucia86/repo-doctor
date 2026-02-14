@@ -4,7 +4,7 @@ import {
   createPhases,
   DEFAULT_PHASES,
   type EventHandlerOptions,
-} from "../../../src/core/agent/eventHandler.js";
+} from "../../../src/application/core/agent/eventHandler.js";
 
 // Mock UI modules
 vi.mock("../../../src/ui/index.js", () => ({
