@@ -28,11 +28,17 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Lint
-        run: npm run lint
-
       - name: Build
         run: npm run build
+
+      - name: Verify build artifacts
+        run: |
+          test -f dist/index.js
+          test -f dist/api/jobs/jobRegistry.js
+          test -f dist/shared/contracts.js
+
+      - name: Lint
+        run: npm run lint
 
       - name: Check generated icons
         run: npm run icons:check
