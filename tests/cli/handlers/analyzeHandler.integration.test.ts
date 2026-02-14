@@ -22,7 +22,7 @@ vi.mock("../../../src/presentation/cli/parsers/repoParser.js", () => ({
   buildRepoSlug: vi.fn(),
 }));
 
-vi.mock("../../../src/ui/index.js", () => ({
+vi.mock("../../../src/presentation/ui/index.js", () => ({
   printRepo: vi.fn(),
   printModel: vi.fn(),
   printError: vi.fn(),
@@ -64,7 +64,7 @@ describe("handleAnalyze (Integration)", () => {
 
   it("should handle basic analysis successfully", async () => {
     const { parseRepoRef, buildRepoUrl, buildRepoSlug } = await import("../../../src/presentation/cli/parsers/repoParser.js");
-    const { printRepo, printModel } = await import("../../../src/ui/index.js");
+    const { printRepo, printModel } = await import("../../../src/presentation/ui/index.js");
 
     // Mock parser
     vi.mocked(parseRepoRef).mockReturnValue({ owner: "owner", repo: "repo" });
@@ -154,7 +154,7 @@ describe("handleAnalyze (Integration)", () => {
 
   it("should handle invalid repo reference", async () => {
     const { parseRepoRef } = await import("../../../src/presentation/cli/parsers/repoParser.js");
-    const { printError } = await import("../../../src/ui/index.js");
+    const { printError } = await import("../../../src/presentation/ui/index.js");
 
     vi.mocked(parseRepoRef).mockReturnValue(null);
 

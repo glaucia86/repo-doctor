@@ -21,7 +21,7 @@ vi.mock("../../src/presentation/cli/parsers/repoParser.js", () => ({
   buildRepoSlug: vi.fn().mockReturnValue("owner/repo"),
 }));
 
-vi.mock("../../src/ui/index.js", () => ({
+vi.mock("../../src/presentation/ui/index.js", () => ({
   printRepo: vi.fn(),
   printModel: vi.fn(),
   printError: vi.fn(),

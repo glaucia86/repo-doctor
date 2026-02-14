@@ -19,7 +19,7 @@ vi.mock("@github/copilot-sdk", async (importOriginal) => {
 });
 
 // Mock UI functions to avoid console output
-vi.mock("../../src/ui/index.js", () => ({
+vi.mock("../../src/presentation/ui/index.js", () => ({
   startSpinner: vi.fn().mockReturnValue({
     update: vi.fn(),
     success: vi.fn(),
