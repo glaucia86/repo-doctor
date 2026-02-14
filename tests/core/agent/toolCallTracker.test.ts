@@ -2,7 +2,7 @@
  * Tests for ToolCallTracker
  */
 import { describe, it, expect, beforeEach } from "vitest";
-import { ToolCallTracker } from "../../../src/core/agent/toolCallTracker.js";
+import { ToolCallTracker } from "../../../src/application/core/agent/toolCallTracker.js";
 
 describe("ToolCallTracker", () => {
   let tracker: ToolCallTracker;

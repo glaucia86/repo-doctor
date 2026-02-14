@@ -10,7 +10,7 @@ import { spawn, execSync } from "child_process";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
-import type { IClipboardResult, IClipboardService } from "../types/interfaces.js";
+import type { IClipboardResult, IClipboardService } from "../domain/types/interfaces.js";
 
 // ════════════════════════════════════════════════════════════════════════════
 // PLATFORM DETECTION
@@ -228,3 +228,4 @@ export async function copyToClipboard(text: string): Promise<IClipboardResult> {
 export function isClipboardAvailable(): boolean {
   return clipboard.isAvailable();
 }
+

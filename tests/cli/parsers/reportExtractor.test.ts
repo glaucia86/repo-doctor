@@ -7,7 +7,7 @@ import {
   extractReportOnly,
   removeDuplicateSections,
   generateCondensedSummary,
-} from "../../../src/cli/parsers/reportExtractor.js";
+} from "../../../src/presentation/cli/parsers/reportExtractor.js";
 
 describe("reportExtractor", () => {
   describe("extractReportOnly", () => {

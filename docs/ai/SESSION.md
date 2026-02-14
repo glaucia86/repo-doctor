@@ -81,4 +81,4 @@ session.on((event: SessionEvent) => {
 | Exact Repeat | 5+ identical | Warn → Abort |
 | Sequence Loop | A→B→A→B | Warn → Abort |
 
-Config in `src/core/agent/guardrails.ts`.
+Config in `src/application/core/agent/guardrails.ts`.

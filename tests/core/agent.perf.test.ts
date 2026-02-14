@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { analyzeRepositoryWithCopilot } from "../../src/core/agent.js";
+import { analyzeRepositoryWithCopilot } from "../../src/application/core/agent.js";
 
 // Mock CopilotClient
 vi.mock("@github/copilot-sdk", async (importOriginal) => {
@@ -25,7 +25,7 @@ vi.mock("@github/copilot-sdk", async (importOriginal) => {
 });
 
 // Mock UI functions to avoid console output
-vi.mock("../../src/ui/index.js", () => ({
+vi.mock("../../src/presentation/ui/index.js", () => ({
   startSpinner: vi.fn().mockReturnValue({
     update: vi.fn(),
     success: vi.fn(),
@@ -56,7 +56,7 @@ vi.mock("../../src/ui/index.js", () => ({
 }));
 
 // Mock extracted modules
-vi.mock("../../src/core/agent/index.js", () => ({
+vi.mock("../../src/application/core/agent/index.js", () => ({
   SYSTEM_PROMPT: "Mock system prompt",
   QUICK_SYSTEM_PROMPT: "Mock quick prompt",
   DEEP_SYSTEM_PROMPT: "Mock deep prompt",

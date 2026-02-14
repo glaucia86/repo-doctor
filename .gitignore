@@ -4,6 +4,7 @@ node_modules/
 # Build outputs
 /build/
 /dist/
+/web/dist/
 /out/
 /lib/
 
@@ -12,6 +13,7 @@ node_modules/
 
 # Environment files
 .env
+.env*
 .env.local
 .env.*.local
 
@@ -41,6 +43,7 @@ Thumbs.db
 # Temp
 /tmp/
 /temp/
+*.tmp
 
 ai-documents/
 

@@ -8,21 +8,20 @@
 
 ```
 src/
-├── cli.ts              # Entry point (Commander)
-├── cli/                # handlers/, parsers/, state/
-├── core/
-│   ├── agent.ts        # Copilot SDK session
-│   ├── agent/prompts/  # Modular prompt system (base/, modes/, composers/)
-│   └── repoPacker/     # Repomix integration
-├── tools/              # get_repo_meta, list_repo_files, read_repo_file, pack_repository
-├── ui/                 # display/, themes/
-└── utils/              # sanitizer.ts, clipboard.ts
+├── cli.ts                  # Compatibility entrypoint
+├── presentation/           # cli/, api/, web/, ui/
+├── application/            # core/
+├── infrastructure/         # tools/, providers/
+├── domain/                 # types/, shared/
+└── utils/                  # sanitizer.ts, clipboard.ts
 ```
 
 ## Commands
 
 ```bash
-npm run dev              # Dev mode
+npm run dev:cli          # Dev mode (CLI)
+npm run dev:web-ui:api   # Local Web UI API
+npm run dev:web-ui       # Local Web UI server
 npm test                 # Run tests
 npm run build            # Production build
 ```
@@ -38,16 +37,16 @@ npm run build            # Production build
 ## Conventions
 
 - **ES Modules**: imports use `.js` extension
-- **UI**: Use `src/ui/` helpers, never raw console.log
+- **UI**: Use `src/presentation/ui/` helpers, never raw console.log
 - **Errors**: Tools return error objects (don't throw)
 - **Tests**: Vitest with 100+ tests
 
 ## Key Files (read in order)
 
-1. `src/core/agent/prompts/composers/systemPromptComposer.ts`
-2. `src/core/agent.ts`
-3. `src/tools/repoTools.ts`
-4. `src/cli.ts`
+1. `src/application/core/agent/prompts/composers/systemPromptComposer.ts`
+2. `src/application/core/agent.ts`
+3. `src/infrastructure/tools/repoTools.ts`
+4. `src/presentation/cli.ts`
 
 ## Detailed Documentation
 

@@ -32,7 +32,7 @@ Fixes #(issue number)
 
 <!-- Describe the tests you ran -->
 
-- [ ] Manual testing with `npm run dev`
+- [ ] Manual testing with `npm run dev:cli`
 - [ ] Tested with repository: `owner/repo`
 - [ ] Added/updated unit tests
 - [ ] Tested on Windows / macOS / Linux

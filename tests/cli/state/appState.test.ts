@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { getCopilotCliModels } from "../../../src/providers/copilotModels.js";
+import { getCopilotCliModels } from "../../../src/infrastructure/providers/copilotModels.js";
 import {
   AppState,
   AVAILABLE_MODELS,
@@ -13,9 +13,9 @@ import {
   findModelByIndex,
   getAvailableModels,
   clearModelCache,
-} from "../../../src/cli/state/appState.js";
+} from "../../../src/presentation/cli/state/appState.js";
 
-vi.mock("../../../src/providers/copilotModels.js", () => ({
+vi.mock("../../../src/infrastructure/providers/copilotModels.js", () => ({
   getCopilotCliModels: vi.fn(),
 }));
 

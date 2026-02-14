@@ -28,9 +28,9 @@ npm run test:integration # Integration tests (network required)
 ## Manual Testing
 
 ```bash
-npm run dev                      # Interactive mode
-npm run dev -- vercel/next.js    # Direct analysis
-npm run dev -- /deep owner/repo  # Deep analysis
+npm run dev:cli                      # Interactive mode
+npm run dev:cli -- vercel/next.js    # Direct analysis
+npm run dev:cli -- /deep owner/repo  # Deep analysis
 ```
 
 ## Test Cases
