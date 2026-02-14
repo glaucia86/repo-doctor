@@ -65,7 +65,7 @@ describe("Web run/report integration flow", () => {
     expect(running.status).toBe("running");
     expect(running.jobId).toBeDefined();
 
-    const completed = await store.loadCompletedReport(running.jobId!);
+    const completed = await store.loadCompletedReport(running.jobId);
     expect(completed.status).toBe("completed");
     expect(completed.markdownReport).toContain("Analysis");
     expect(completed.jsonReport).toMatchObject({ score: 95 });

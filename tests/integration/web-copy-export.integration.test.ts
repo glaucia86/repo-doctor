@@ -75,7 +75,7 @@ describe("Web copy/export integration flow", () => {
       repositoryInput: "owner/repo",
       analysisMode: "quick",
     });
-    const completed = await store.loadCompletedReport(running.jobId!);
+    const completed = await store.loadCompletedReport(running.jobId);
     expect(completed.status).toBe("completed");
 
     const markdown = copyMarkdownReport({
@@ -89,8 +89,8 @@ describe("Web copy/export integration flow", () => {
     expect(markdown).toContain("Summary");
     expect(json).toContain("Healthy repository");
 
-    const mdExport = await client.exportReport(running.jobId!, "md");
-    const jsonExport = await client.exportReport(running.jobId!, "json");
+    const mdExport = await client.exportReport(running.jobId, "md");
+    const jsonExport = await client.exportReport(running.jobId, "json");
     expect(mdExport.size).toBeGreaterThan(0);
     expect(jsonExport.size).toBeGreaterThan(0);
 

@@ -72,7 +72,7 @@ describe("Web stream/cancel integration flow", () => {
     expect(running.status).toBe("running");
     expect(running.jobId).toBeDefined();
 
-    const withEvents = await store.refreshProgressEvents(running.jobId!);
+    const withEvents = await store.refreshProgressEvents(running.jobId);
     expect(withEvents.timeline?.some((event) => event.eventType === "progress")).toBe(true);
 
     const cancelled = await store.cancelRunningJob();

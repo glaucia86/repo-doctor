@@ -161,9 +161,7 @@ describe("Integration: packRemoteRepository", () => {
 
         expect(result.success).toBe(true);
         expect(result.originalSize).toBeGreaterThan(0);
-        expect(result.originalSize).toBe(
-          Buffer.byteLength(result.content!, "utf-8")
-        );
+        expect(result.originalSize).toBe(Buffer.byteLength(result.content, "utf-8"));
       },
       INTEGRATION_TIMEOUT
     );
