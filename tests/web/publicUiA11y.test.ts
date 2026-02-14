@@ -17,14 +17,14 @@ const runAxe = async (html: string) => {
 
 describe("public web ui accessibility", () => {
   it("keeps required modal accessibility attributes in ModelPicker", () => {
-    const source = read("src/web/public/components/ModelPicker.tsx");
+    const source = read("src/presentation/web/public/components/ModelPicker.tsx");
     expect(source).toContain('role="dialog"');
     expect(source).toContain('aria-modal="true"');
     expect(source).toContain('aria-labelledby="model-picker-title"');
   });
 
   it("keeps live region semantics for toast/error/progress feedback", () => {
-    const source = read("src/web/public/app.tsx");
+    const source = read("src/presentation/web/public/app.tsx");
     expect(source).toContain('aria-live="polite"');
     expect(source).toContain('aria-live="assertive"');
     expect(source).toContain('role="alert"');
